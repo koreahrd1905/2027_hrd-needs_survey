@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: heungkuk-hrd-survey-2027
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
