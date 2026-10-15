@@ -2,20 +2,10 @@
  * ============================================================================
  * [구글 스프레드시트용 Google Apps Script 코드]
  * ============================================================================
- * 이 코드는 구글 스프레드시트의 [확장 프로그램] -> [Apps Script]에 그대로 복사하여
- * [배포] -> [새 배포] -> [웹 앱]으로 배포하시면 됩니다.
- * 
- * 기능:
- * 1. 구성원이 설문을 제출하면 '설문응답_로우데이터' 시트에 실시간 자동 행 추가
- * 2. 스타벅스 럭키드로우에 응모하면 '스타벅스_이벤트응모자' 시트에 실시간 자동 행 추가
- * 3. 휴대전화 번호 1인 1회 한정 중복 체크 자동 수행
- * 4. 시트 및 예쁜 헤더(남색/초록색) 자동 생성 및 첫 행 틀 고정
- * ============================================================================
  */
-
 function doPost(e) {
   var lock = LockService.getScriptLock();
-  lock.tryLock(10000); // 동시 제출 충돌 방지 락
+  lock.tryLock(10000);
   
   try {
     var rawData = e.postData.contents;
@@ -23,9 +13,7 @@ function doPost(e) {
     var action = data.action || 'survey_submit';
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     
-    // ------------------------------------------------------------------------
     // 1. 설문 응답 로우데이터 저장
-    // ------------------------------------------------------------------------
     if (action === 'survey_submit') {
       var sheet = ss.getSheetByName('설문응답_로우데이터');
       if (!sheet) {
@@ -76,9 +64,7 @@ function doPost(e) {
       })).setMimeType(ContentService.MimeType.JSON);
     }
     
-    // ------------------------------------------------------------------------
-    // 2. 스타벅스 커피쿠폰 럭키드로우 이벤트 응모 저장
-    // ------------------------------------------------------------------------
+    // 2. 스타벅스 이벤트 응모 저장
     else if (action === 'event_submit') {
       var eventSheet = ss.getSheetByName('스타벅스_이벤트응모자');
       if (!eventSheet) {
@@ -93,7 +79,6 @@ function doPost(e) {
       var formattedPhone = phone.length === 11 ? 
         phone.slice(0,3) + '-' + phone.slice(3,7) + '-' + phone.slice(7) : phone;
       
-      // 1인 1회 중복 검사
       var lastRow = eventSheet.getLastRow();
       if (lastRow > 1) {
         var phoneColData = eventSheet.getRange(2, 2, lastRow - 1, 1).getValues();
@@ -129,9 +114,7 @@ function doPost(e) {
       })).setMimeType(ContentService.MimeType.JSON);
     }
     
-    // ------------------------------------------------------------------------
     // 3. 전화번호 중복 사전 체크
-    // ------------------------------------------------------------------------
     else if (action === 'event_check') {
       var checkSheet = ss.getSheetByName('스타벅스_이벤트응모자');
       var chkPhone = String(data.phone || '').replace(/[^0-9]/g, '');
@@ -165,6 +148,6 @@ function doPost(e) {
 function doGet(e) {
   return ContentService.createTextOutput(JSON.stringify({
     status: 'ok',
-    message: '2027 그룹 교육니즈 설문조사 Google Apps Script API 정상 작동'
+    message: 'Google Apps Script API 정상 작동'
   })).setMimeType(ContentService.MimeType.JSON);
 }

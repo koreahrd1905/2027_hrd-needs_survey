@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>2027 그룹 인재육성 체계 수립 - 구성원 교육 Needs 설문조사</title>
   <meta name="description" content="2027년 임직원 교육계획 수립을 위한 구성원 교육 Needs 설문조사">
   
@@ -21,6 +21,7 @@
       padding: 0;
       color: #0f172a;
       -webkit-font-smoothing: antialiased;
+      -webkit-text-size-adjust: 100%;
     }
     .respondent-top-bar {
       background: white;
@@ -30,7 +31,6 @@
       top: 0;
       z-index: 100;
     }
-    /* 아래 청색 바탕(1240px) 라인과 완벽히 일치하는 내부 컨테이너 */
     .top-bar-inner {
       max-width: 1240px;
       margin: 0 auto;
@@ -129,7 +129,7 @@
       font-size: 1.08rem;
       color: #e2e8f0;
       font-weight: 500;
-      line-height: 1.65;
+      line-height: 1.7;
       margin: 0;
       word-break: keep-all;
       max-width: 950px;
@@ -177,6 +177,7 @@
       box-shadow: 0 6px 24px rgba(15,23,42,0.04);
       padding: 2.6rem 3rem;
       margin-bottom: 2.2rem;
+      box-sizing: border-box;
     }
     .survey-section-header {
       border-bottom: 2px solid #f1f5f9;
@@ -245,7 +246,7 @@
       margin-left: 0.5rem;
     }
 
-    /* Basic Demographics Grid Row (Q2 and Q3 Side-by-Side Balance) */
+    /* Basic Demographics Grid Row */
     .demographics-grid-row {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -264,8 +265,8 @@
     /* Styled Select and Textarea */
     .select-styled {
       width: 100%;
-      font-size: 0.96rem;
-      padding: 0.82rem 1.1rem;
+      font-size: 16px; /* Prevents auto-zoom on mobile */
+      padding: 0.85rem 1.1rem;
       border: 1.5px solid #cbd5e1;
       border-radius: 10px;
       background: white;
@@ -286,7 +287,7 @@
       border: 1.5px solid #cbd5e1;
       border-radius: 10px;
       font-family: inherit;
-      font-size: 0.96rem;
+      font-size: 16px; /* Prevents auto-zoom on mobile */
       color: #0f172a;
       box-sizing: border-box;
       line-height: 1.6;
@@ -299,7 +300,7 @@
       box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
     }
 
-    /* Likert 5-Point Scale Grid: Wide 5 Columns, No Wrapping */
+    /* Likert 5-Point Scale Grid: Wide 5 Columns */
     .option-grid-5 {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
@@ -319,10 +320,11 @@
       font-size: 0.95rem;
       font-weight: 600;
       color: #334155;
-      white-space: nowrap; /* 절대 줄바꿈되지 않음 */
+      white-space: nowrap;
       transition: all 0.16s ease;
       user-select: none;
       box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+      box-sizing: border-box;
     }
     .option-card-label-5:hover {
       background: #eff6ff;
@@ -340,8 +342,8 @@
       box-shadow: 0 4px 14px rgba(37,99,235,0.18);
     }
     .option-card-label-5 input[type="radio"] {
-      width: 17px;
-      height: 17px;
+      width: 18px;
+      height: 18px;
       accent-color: #2563eb;
       cursor: pointer;
       flex-shrink: 0;
@@ -354,14 +356,12 @@
       gap: 0.75rem;
       margin-top: 0.85rem;
     }
-    /* 2-Column Wide Grid (for Q8, Q15, Q16, Q18, Q24 등 긴 문장 보기 전용: 글자 잘림 완전 방지) */
     .option-grid-2col {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 0.85rem;
       margin-top: 0.85rem;
     }
-    /* 3-Column Grid (for Q27 15개 AI 교육과정 전용: 3열 x 5행의 쾌적한 카드 레이아웃) */
     .option-grid-3col {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -384,6 +384,7 @@
       transition: all 0.16s ease;
       user-select: none;
       box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+      box-sizing: border-box;
     }
     .option-card-label:hover {
       background: #eff6ff;
@@ -407,7 +408,7 @@
       flex-shrink: 0;
     }
 
-    /* Option Text Visual Hierarchy (Q27 및 괄호 설명 분리 스타일) */
+    /* Option Text Visual Hierarchy */
     .option-text-wrap {
       display: flex;
       flex-direction: column;
@@ -509,17 +510,125 @@
       white-space: nowrap;
     }
 
-    /* Responsive adjustments */
+    /* ========================================================================
+       스마트폰 모바일 완전 반응형 최적화 (Mobile Optimization)
+       ======================================================================== */
     @media (max-width: 992px) {
       .option-grid-3col { grid-template-columns: repeat(2, 1fr); }
     }
-    @media (max-width: 820px) {
-      .page-header-banner { padding: 2.2rem 2rem; }
-      .banner-title-text { font-size: 1.85rem; }
-      .banner-info-grid { grid-template-columns: 1fr; gap: 0.75rem; }
-      .survey-section { padding: 1.8rem 1.6rem; }
-      .option-grid-5 { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); }
-      .option-grid-2col, .option-grid-3col { grid-template-columns: 1fr; }
+    
+    @media (max-width: 768px) {
+      .top-bar-inner {
+        padding: 0.85rem 1rem;
+        flex-direction: column;
+        gap: 0.65rem;
+        align-items: flex-start;
+      }
+      .brand-title {
+        gap: 0.65rem;
+      }
+      .brand-badge {
+        font-size: 0.88rem;
+        padding: 0.35rem 0.75rem;
+      }
+      .brand-text-main {
+        font-size: 1.15rem;
+      }
+      .brand-text-sub {
+        font-size: 0.84rem;
+      }
+      .privacy-tag {
+        font-size: 0.82rem;
+        padding: 0.35rem 0.85rem;
+      }
+
+      .survey-container-wrap {
+        margin: 1.25rem auto 4.5rem auto;
+        padding: 0 0.85rem;
+      }
+      .page-header-banner {
+        padding: 1.8rem 1.35rem;
+        border-radius: 18px;
+        margin-bottom: 1.6rem;
+      }
+      .banner-title-text {
+        font-size: 1.55rem;
+        line-height: 1.35;
+      }
+      .banner-desc-text {
+        font-size: 0.96rem;
+        line-height: 1.65;
+      }
+      .banner-info-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+        margin-top: 1.4rem;
+      }
+      .banner-info-card {
+        padding: 0.95rem 1.15rem;
+      }
+      .banner-info-val {
+        font-size: 1.12rem;
+      }
+
+      .survey-section {
+        padding: 1.6rem 1.25rem;
+        border-radius: 18px;
+        margin-bottom: 1.6rem;
+      }
+      .survey-section-title {
+        font-size: 1.22rem;
+      }
+      .question-card {
+        margin-bottom: 1.8rem;
+        padding-bottom: 1.6rem;
+      }
+      .question-title-text {
+        font-size: 1.02rem;
+        line-height: 1.5;
+      }
+
+      /* 스마트폰에서 5점 척도는 1열로 배치하여 터치 편의성 및 가독성 100% 확보 */
+      .option-grid-5 {
+        grid-template-columns: 1fr !important;
+        gap: 0.6rem;
+      }
+      .option-card-label-5 {
+        padding: 0.9rem 1.1rem;
+        justify-content: flex-start;
+        text-align: left;
+        white-space: normal;
+        font-size: 0.95rem;
+      }
+      .option-grid-2col, .option-grid-3col, .option-grid {
+        grid-template-columns: 1fr !important;
+        gap: 0.6rem;
+      }
+      .demographics-grid-row {
+        grid-template-columns: 1fr !important;
+        gap: 0.85rem;
+      }
+      .demographic-card-box {
+        padding: 1.1rem 1.2rem;
+      }
+
+      .submit-bar {
+        padding: 1rem 1.25rem;
+      }
+      .btn-submit-survey {
+        width: 100%;
+        padding: 1rem 1.2rem;
+        font-size: 1.08rem;
+        border-radius: 14px;
+        justify-content: center;
+      }
+      #toast-msg {
+        width: 86%;
+        font-size: 0.92rem;
+        padding: 0.8rem 1.2rem;
+        white-space: normal;
+        text-align: center;
+      }
     }
   </style>
 </head>

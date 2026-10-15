@@ -367,6 +367,24 @@ class BukangLuckyDrawGame {
     const muteBtn = document.getElementById('bukang-mute-btn');
     const errEl = document.getElementById('bukang-phone-err');
 
+    // Mobile Touch & Click Driving Support (스마트폰 터치로 부캉이 수영)
+    const canvasEl = document.getElementById('bukang-canvas');
+    if (canvasEl) {
+      const handleDrive = () => {
+        if (this.gameState === 'SWIMMING') {
+          this.swimSpeed = Math.min(this.swimSpeed + 1.25, this.maxSpeed);
+          this.lastKeyPressTime = Date.now();
+          this.keyPressCount++;
+          if (this.keyPressCount % 4 === 0) {
+            this.playSplashSound();
+            this.createWaterSplash(this.shark.screenX, this.shark.y, 14);
+          }
+        }
+      };
+      canvasEl.addEventListener('touchstart', (e) => { e.preventDefault(); handleDrive(); }, { passive: false });
+      canvasEl.addEventListener('click', handleDrive);
+    }
+
     // BGM is permanently set to 'shark' (상어가족)
     this.currentBgm = 'shark';
 
@@ -395,16 +413,10 @@ class BukangLuckyDrawGame {
       try {
         startBtn.disabled = true;
         startBtn.innerHTML = '<span>⏳</span> 중복 확인 중...';
-        let chkRes;
-      if (window.GOOGLE_SCRIPT_URL && window.GOOGLE_SCRIPT_URL.startsWith('http')) {
-        chkRes = await fetch(window.GOOGLE_SCRIPT_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ action: 'event_check', phone: raw })
-        }).then(r => r.json());
-      } else {
+        let chkRes = { already_submitted: false };
+      try {
         chkRes = await fetch(`/api/event/check?phone=${encodeURIComponent(raw)}`).then(r => r.json());
-      }
+      } catch(e) {}
         if (chkRes && chkRes.already_submitted) {
           errEl.innerHTML = `⚠️ 이미 이벤트 응모가 완료된 번호입니다. (${phoneInput.value})<br><strong>이벤트 응모는 1인 1회로 한정됩니다.</strong>`;
           errEl.style.display = 'block';
@@ -544,7 +556,7 @@ class BukangLuckyDrawGame {
     this.playTone(440, 'sine', 0.2, 0.2);
     this.playTone(660, 'triangle', 0.25, 0.25, 0.1);
 
-    // Backend submission (Supports Google Apps Script & Local Flask)
+    // Resilient Backend submission
     const eventPayload = {
       action: 'event_submit',
       survey_id: this.surveyId,
@@ -553,15 +565,20 @@ class BukangLuckyDrawGame {
       job_group: (window.currentSurveySubmission && window.currentSurveySubmission.job_group) || '',
       position: (window.currentSurveySubmission && window.currentSurveySubmission.position) || ''
     };
-    const eventUrl = (window.GOOGLE_SCRIPT_URL && window.GOOGLE_SCRIPT_URL.startsWith('http')) 
-      ? window.GOOGLE_SCRIPT_URL 
-      : '/api/event/submit';
-    
-    fetch(eventUrl, {
+    fetch('/api/event/submit', {
       method: 'POST',
-      headers: { 'Content-Type': (eventUrl.startsWith('http') && eventUrl.includes('script.google.com')) ? 'text/plain;charset=utf-8' : 'application/json' },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(eventPayload)
-    })
+    }).catch(e => console.warn('Event submit log:', e));
+
+    if (window.GOOGLE_SCRIPT_URL && window.GOOGLE_SCRIPT_URL.startsWith('http')) {
+      fetch(window.GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(eventPayload)
+      }).catch(e => {});
+    }
     .then(res => res.json())
     .then(data => {
       if (data && data.entry_id) {

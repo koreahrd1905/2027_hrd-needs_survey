@@ -1,10 +1,11 @@
 """
 2027 그룹 인재육성 체계 수립 - 구성원 교육 Needs 설문조사 독립 웹 앱
-(Render 무료 클라우드 배포 및 로컬 실행 겸용)
+(Render 무료 클라우드 배포 및 구글 스프레드시트 안정 연동 프록시 탑재)
 """
 import os
 import json
 import time
+import threading
 from datetime import datetime
 from flask import Flask, jsonify, request, send_file, send_from_directory
 
@@ -17,6 +18,44 @@ os.makedirs(DATA_DIR, exist_ok=True)
 QUESTIONS_FILE = os.path.join(DATA_DIR, "questions.json")
 RESPONSES_FILE = os.path.join(DATA_DIR, "responses.json")
 EVENT_ENTRIES_FILE = os.path.join(DATA_DIR, "event_entries.json")
+
+def get_google_script_url():
+    # 1. config.js에서 읽기
+    cfg_file = os.path.join(BASE_DIR, "config.js")
+    if os.path.exists(cfg_file):
+        try:
+            with open(cfg_file, "r", encoding="utf-8") as f:
+                for line in f:
+                    if "GOOGLE_SCRIPT_URL" in line and "http" in line:
+                        parts = line.split('"')
+                        if len(parts) >= 2 and parts[1].startswith("http"):
+                            return parts[1]
+        except Exception:
+            pass
+    # 2. 환경변수 확인
+    return os.environ.get("GOOGLE_SCRIPT_URL", "https://script.google.com/macros/s/AKfycbwGgiOiLxFy6a7-gL44E7igImvQ7S-1Ls5wI31MkIN_pzpNjFhp-7kjNS-Vay37KLk/exec")
+
+def forward_to_google_async(payload):
+    def _run():
+        google_url = get_google_script_url()
+        if not google_url:
+            return
+        try:
+            import urllib.request
+            data = json.dumps(payload).encode("utf-8")
+            req = urllib.request.Request(
+                google_url,
+                data=data,
+                headers={"Content-Type": "text/plain;charset=utf-8"}
+            )
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                print(f"[Google Sheets Forward OK] status={resp.status}")
+        except Exception as e:
+            print(f"[Google Sheets Forward Warning] {e}")
+
+    t = threading.Thread(target=_run)
+    t.daemon = True
+    t.start()
 
 def load_json(filepath, default_val):
     if os.path.exists(filepath):
@@ -44,7 +83,8 @@ def serve_config():
     cfg_file = os.path.join(BASE_DIR, "config.js")
     if os.path.exists(cfg_file):
         return send_file(cfg_file, mimetype="application/javascript")
-    return "window.GOOGLE_SCRIPT_URL = '';", 200, {"Content-Type": "application/javascript"}
+    url = get_google_script_url()
+    return f'window.GOOGLE_SCRIPT_URL = "{url}";', 200, {"Content-Type": "application/javascript"}
 
 @app.route("/data/<path:filename>")
 def serve_data(filename):
@@ -74,6 +114,20 @@ def submit_survey():
     }
     responses.append(record)
     save_json(RESPONSES_FILE, responses)
+    
+    # 구글 스프레드시트에 실시간 행 추가 (백그라운드 안정 전송)
+    forward_to_google_async({
+        "action": "survey_submit",
+        "department": record["department"],
+        "job_group": record["job_group"],
+        "position": record["position"],
+        "delivery_mode": record["delivery_mode"],
+        "open_needs": record["open_needs"],
+        "open_feedback": record["open_feedback"],
+        "answers": record["answers"]
+    })
+
+    # 사용자에게는 즉시 성공 응답을 내려 부캉이 게임 모달이 지체 없이 열리도록 보장
     return jsonify({"success": True, "id": submission_id, "message": "설문이 정상 제출되었습니다."})
 
 @app.route("/api/event/check", methods=["GET"])
@@ -132,6 +186,17 @@ def submit_event():
     }
     entries.append(entry)
     save_json(EVENT_ENTRIES_FILE, entries)
+
+    # 구글 스프레드시트 '스타벅스_이벤트응모자' 시트에 실시간 추가
+    forward_to_google_async({
+        "action": "event_submit",
+        "phone": formatted_phone,
+        "survey_id": survey_id,
+        "department": entry["department"],
+        "job_group": entry["job_group"],
+        "position": entry["position"]
+    })
+
     return jsonify({"success": True, "entry_id": entry_id, "message": "이벤트 응모가 완료되었습니다."})
 
 @app.route("/health")
