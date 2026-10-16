@@ -1,22 +1,21 @@
 /**
  * ============================================================================
- * [2027 구성원 교육니즈 설문조사 - 구글 스프레드시트 실시간 연동 완성본 스크립트]
+ * [2027 구성원 교육니즈 설문조사 - 구글 스프레드시트 1:1 완벽 정렬 연동 스크립트]
  * ============================================================================
  * 
- * ★ [초간단 적용 방법]
+ * ★ A1~AT1 46개 전체 문항 제목과 작성자 응답 데이터를 100% 1:1로 정확하게 일치시킵니다.
+ * ★ 흥국생명 / 흥국화재 스타벅스 이벤트 당첨자 시트 자동 분리 기록 지원
+ * 
+ * 📌 [적용 방법 (1분 소요)]:
  * 1. 구글 스프레드시트 메뉴에서 [확장 프로그램] ➡️ [Apps Script] 클릭
- * 2. 기존 코드를 모두 지우고 이 코드 전체를 복사하여 붙여넣기 후 [저장 (Ctrl + S)]
- * 3. 상단 함수 선택창에서 [setupHeaders] 선택 후 [실행] 클릭!
- *    👉 1행에 문항 번호와 질문 내용(네이비 블루 헤더)이 즉시 예쁘게 생성됩니다!
- *    👉 기존에 1행에 들어가 있던 응답 데이터는 자동으로 2행으로 안전하게 밀려 내려갑니다!
- * 4. 우측 상단 [배포] ➡️ [새 배포] ➡️ 유형: 웹 앱(Web app)
- *    - 다음 사용자 권한으로 실행: [나 (내 계정)]
- *    - 액세스 권한: [모든 사용자 (Anyone)]
- *    - [배포] 클릭 완료!
+ * 2. 기존 코드를 전체 선택(Ctrl + A)하여 삭제하고, 이 코드 전체를 붙여넣기(Ctrl + V) 후 [저장 (Ctrl + S)]
+ * 3. 상단 함수 목록에서 [setupHeaders] 선택 후 [실행] 클릭!
+ *    👉 1행(A1~AT1)에 46개 공식 문항 제목이 깔끔한 네이비 블루 서식으로 정돈됩니다!
+ * 4. 우측 상단 [배포] ➡️ [배포 관리] ➡️ 연필(수정) 아이콘 ➡️ 버전: [새 버전] 선택 ➡️ [배포] 클릭 완료!
  * ============================================================================
  */
 
-// 46개 전체 문항 공식 헤더 목록 (캡처 2 규격 100% 일치)
+// 1. A1부터 AT1까지 46개 전체 문항 공식 헤더 목록 (캡처 규격 100% 일치)
 var COLUMN_HEADERS = [
   "응답 ID",
   "제출 일시",
@@ -66,108 +65,116 @@ var COLUMN_HEADERS = [
   "29. (주관식) 2027년 연간 교육계획 수립과 사내교육운영 전반(일정, 방식, 지원제도 등)에 대해 회사나 교육부서에 바라는 점을 작성해 주십시오."
 ];
 
-// 각 컬럼에 매핑되는 데이터 키 목록
+// 2. A열부터 AT열까지 46개 컬럼에 1:1로 매핑되는 폼 필드 데이터 키 목록
 var COLUMN_KEYS = [
-  "id",
-  "submitted_at",
-  "q1_company",
-  "q1_division",
-  "q1_department",
-  "q2",
-  "q3",
-  "q4",
-  "q4_1",
-  "q5",
-  "q5_1",
-  "q6",
-  "q6_1",
-  "q7",
-  "q7_1",
-  "q8",
-  "q8_1",
-  "q9",
-  "q9_1",
-  "q10",
-  "q11",
-  "q11_1",
-  "q12",
-  "q12_1",
-  "q13",
-  "q13_1",
-  "q14",
-  "q15",
-  "q16",
-  "q17",
-  "q17_1",
-  "q18",
-  "q18_1",
-  "q19",
-  "q19_1",
-  "q20",
-  "q21",
-  "q22",
-  "q23",
-  "q24",
-  "q25",
-  "q26",
-  "q26_1",
-  "q27",
-  "q28",
-  "q29"
+  "id",             // Col A (01)
+  "submitted_at",   // Col B (02)
+  "q1_company",     // Col C (03) -> 1. 소속 회사
+  "q1_division",    // Col D (04) -> 1. 실/본부
+  "q1_department",  // Col E (05) -> 1. 소속 부서
+  "q2",             // Col F (06) -> 2. 직군
+  "q3",             // Col G (07) -> 3. 직급/직책
+  "q4",             // Col H (08) -> 4번 문항 (객관식)
+  "q4_1",           // Col I (09) -> 4-1번 사유 (주관식)
+  "q5",             // Col J (10) -> 5번 문항 (객관식)
+  "q5_1",           // Col K (11) -> 5-1번 사유 (주관식)
+  "q6",             // Col L (12) -> 6번 문항 (객관식)
+  "q6_1",           // Col M (13) -> 6-1번 사유 (주관식)
+  "q7",             // Col N (14) -> 7번 문항 (객관식)
+  "q7_1",           // Col O (15) -> 7-1번 사유 (주관식)
+  "q8",             // Col P (16) -> 8번 문항 (복수선택)
+  "q8_1",           // Col Q (17) -> 8-1번 기타의견 (주관식)
+  "q9",             // Col R (18) -> 9번 문항 (객관식)
+  "q9_1",           // Col S (19) -> 9-1번 사유 (주관식)
+  "q10",            // Col T (20) -> 10번 교육방법 선호
+  "q11",            // Col U (21) -> 11번 태광러닝센터 만족도
+  "q11_1",          // Col V (22) -> 11-1번 개선사항 (주관식)
+  "q12",            // Col W (23) -> 12번 용인연수원 식당 만족도
+  "q12_1",          // Col X (24) -> 12-1번 개선사항 (주관식)
+  "q13",            // Col Y (25) -> 13번 용인연수원 숙소 만족도
+  "q13_1",          // Col Z (26) -> 13-1번 개선사항 (주관식)
+  "q14",            // Col AA (27) -> 14번 일하는 방식 혁신
+  "q15",            // Col AB (28) -> 15번 필요 교육 (복수선택)
+  "q16",            // Col AC (29) -> 16번 리더 역할 (복수선택)
+  "q17",            // Col AD (30) -> 17번 리더 교육주제 (복수선택)
+  "q17_1",          // Col AE (31) -> 17-1번 기타의견 (주관식)
+  "q18",            // Col AF (32) -> 18번 직원 교육주제 (복수선택)
+  "q18_1",          // Col AG (33) -> 18-1번 기타의견 (주관식)
+  "q19",            // Col AH (34) -> 19번 직무교육 만족도
+  "q19_1",          // Col AI (35) -> 19-1번 사유 (주관식)
+  "q20",            // Col AJ (36) -> 20번 직무교육 기회
+  "q21",            // Col AK (37) -> 21번 업무 도움도
+  "q22",            // Col AL (38) -> 22번 (주관식) 직무맞춤 교육
+  "q23",            // Col AM (39) -> 23번 (주관식) 전문자격증
+  "q24",            // Col AN (40) -> 24번 AI·디지털 역량수준
+  "q25",            // Col AO (41) -> 25번 26년 워크스마트 적용도
+  "q26",            // Col AP (42) -> 26번 적용어려움 사유
+  "q26_1",          // Col AQ (43) -> 26-1번 기타의견 (주관식)
+  "q27",            // Col AR (44) -> 27번 수강희망 과정 (복수선택)
+  "q28",            // Col AS (45) -> 28번 (주관식) 기타 희망주제
+  "q29"             // Col AT (46) -> 29번 (주관식) HRD 제언
 ];
 
 /**
- * ★ [1행 헤더 자동 생성 및 서식 적용 함수]
- * 상단에서 setupHeaders 선택 후 [실행] 버튼을 누르면 1행에 헤더가 즉시 자동 생성됩니다.
+ * 1. [헤더 자동 생성 및 서식 적용]
  */
 function setupHeaders() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getActiveSheet();
+  var sheet = getSurveyTargetSheet(ss);
   
-  // 만약 1행에 이미 응답 데이터(예: resp_...)가 들어가 있다면 1행 위에 빈 행을 하나 삽입하여 밀어냄
-  var firstCellVal = String(sheet.getRange(1, 1).getValue() || '');
-  if (firstCellVal.indexOf('resp_') !== -1 || (firstCellVal && firstCellVal !== '응답 ID')) {
-    sheet.insertRowBefore(1);
-  }
-  
-  // 1행에 46개 문항 제목 헤더 일괄 입력
+  // 1행에 46개 문항 헤더 일괄 입력
   sheet.getRange(1, 1, 1, COLUMN_HEADERS.length).setValues([COLUMN_HEADERS]);
   
-  // 헤더 스타일 서식 적용 (캡처 2와 100% 동일한 고급 네이비 블루 디자인)
+  // 헤더 서식 지정 (다크 네이비 블루, 화이트 볼드, 수직/수평 중앙 정렬)
   var headerRange = sheet.getRange(1, 1, 1, COLUMN_HEADERS.length);
-  headerRange.setBackground('#1e3a8a')       // 깊고 신뢰감 있는 다크 네이비 블루
-             .setFontColor('#ffffff')       // 선명한 화이트 텍스트
-             .setFontWeight('bold')         // 볼드체 강조
-             .setFontSize(10)               // 가독성 높은 폰트 크기
-             .setHorizontalAlignment('center') // 가운데 정렬
-             .setVerticalAlignment('middle')   // 수직 중앙 정렬
-             .setWrap(false);               // 줄바꿈 방지
+  headerRange.setBackground('#1e3a8a')
+             .setFontColor('#ffffff')
+             .setFontWeight('bold')
+             .setFontSize(10)
+             .setHorizontalAlignment('center')
+             .setVerticalAlignment('middle')
+             .setWrap(false);
   
-  sheet.setRowHeight(1, 36);                // 헤더 행 높이 36px 확보
-  sheet.setFrozenRows(1);                   // 1행 틀 고정 (스크롤해도 헤더 상단 고정)
+  sheet.setRowHeight(1, 38);
+  sheet.setFrozenRows(1);
   
-  // 주요 인적사항 컬럼 폭 적정 너비 설정
+  // 인적사항 주요 열 폭 자동 최적화
   sheet.setColumnWidth(1, 150); // 응답 ID
-  sheet.setColumnWidth(2, 170); // 제출 일시
-  sheet.setColumnWidth(3, 140); // 소속 회사
+  sheet.setColumnWidth(2, 160); // 제출 일시
+  sheet.setColumnWidth(3, 130); // 소속 회사
   sheet.setColumnWidth(4, 150); // 실/본부
   sheet.setColumnWidth(5, 160); // 소속 부서
   sheet.setColumnWidth(6, 120); // 직군
-  sheet.setColumnWidth(7, 100); // 직급
-  
-  Logger.log('★ [성공] 1행에 문항 번호와 질문 내용(총 ' + COLUMN_HEADERS.length + '개 컬럼)이 정상 배치되었습니다!');
+  sheet.setColumnWidth(7, 110); // 직급
 }
 
 /**
- * ★ [설문 응답 실시간 수신 및 자동 기록 함수]
- * 임직원이 웹에서 설문 제출 시 호출되어 1행 헤더 아래에 데이터를 정확히 한 줄씩 기록합니다.
+ * 설문 응답을 저장할 기본 시트 찾기
+ */
+function getSurveyTargetSheet(ss) {
+  var sheet = ss.getSheetByName('설문응답');
+  if (sheet) return sheet;
+  
+  var allSheets = ss.getSheets();
+  for (var i = 0; i < allSheets.length; i++) {
+    var name = allSheets[i].getName();
+    if (name.indexOf('스타벅스') === -1) {
+      return allSheets[i];
+    }
+  }
+  return allSheets[0];
+}
+
+/**
+ * 2. [실시간 데이터 수신 및 A1~AT1 1:1 기록]
  */
 function doPost(e) {
   var lock = LockService.getScriptLock();
-  lock.tryLock(15000);
-  
   try {
-    var rawData = "";
+    lock.waitLock(15000);
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    
+    var rawData = "{}";
     if (e && e.postData && e.postData.contents) {
       rawData = e.postData.contents;
     } else if (e && e.parameter && e.parameter.data) {
@@ -178,19 +185,17 @@ function doPost(e) {
     try {
       data = JSON.parse(rawData);
     } catch(err) {
-      data = e.parameter || {};
+      data = (e && e.parameter) ? e.parameter : {};
     }
     
     var action = data.action || 'survey_submit';
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
     
     // ------------------------------------------------------------------------
-    // 1. 설문 응답 로우데이터 저장
+    // [Action 1] 29개 설문 응답 본문 1:1 완벽 정렬 저장
     // ------------------------------------------------------------------------
     if (action === 'survey_submit') {
-      var sheet = ss.getActiveSheet();
+      var sheet = getSurveyTargetSheet(ss);
       
-      // 만약 1행에 헤더가 없는 상태라면 자동으로 헤더 먼저 생성
       var firstCell = String(sheet.getRange(1, 1).getValue() || '');
       if (sheet.getLastRow() === 0 || firstCell !== '응답 ID') {
         setupHeaders();
@@ -200,7 +205,7 @@ function doPost(e) {
       var nowStr = data.submitted_at || Utilities.formatDate(new Date(), 'Asia/Seoul', 'yyyy-MM-dd HH:mm:ss');
       var answers = data.answers || {};
       
-      // 46개 컬럼 순서에 1:1로 정확하게 매핑되는 데이터 행 생성
+      // 46개 컬럼(A열~AT열)에 1:1로 정확하게 들어갈 데이터 행 구성
       var newRow = [];
       for (var i = 0; i < COLUMN_KEYS.length; i++) {
         var key = COLUMN_KEYS[i];
@@ -221,7 +226,7 @@ function doPost(e) {
         } else if (key === 'q3') {
           val = answers['q3'] || data.position || '';
         } else {
-          // 일반 문항 및 주관식 문항
+          // 객관식, 복수선택, 서브이유, 주관식 문항
           val = answers[key];
           if (val === undefined || val === null) {
             val = data[key] || '';
@@ -234,10 +239,9 @@ function doPost(e) {
         newRow.push(val);
       }
       
-      // 시트에 실시간 1행 추가
+      // 1행 헤더 아래에 1:1로 완벽하게 1행 추가
       sheet.appendRow(newRow);
       
-      // 추가된 행 서식: 높이 26px, 텍스트 수직 중앙 정렬
       var lastRow = sheet.getLastRow();
       sheet.setRowHeight(lastRow, 26);
       sheet.getRange(lastRow, 1, 1, newRow.length).setVerticalAlignment('middle');
@@ -246,30 +250,32 @@ function doPost(e) {
         success: true,
         id: submissionId,
         row: lastRow,
-        message: '설문 응답이 구글 스프레드시트에 성공적으로 기록되었습니다.'
+        message: 'A1~AT1 헤더에 1:1로 완벽히 정렬되어 기록되었습니다.'
       })).setMimeType(ContentService.MimeType.JSON);
     }
     
     // ------------------------------------------------------------------------
-    // 2. 스타벅스 이벤트 응모 저장 (소속회사별 시트 분리: 스타벅스_흥국생명 / 스타벅스_흥국화재)
+    // [Action 2] 스타벅스 이벤트 응모 저장 (흥국생명 / 흥국화재 시트 자동 분리)
     // ------------------------------------------------------------------------
     else if (action === 'event_submit') {
       var rawCompany = String(data.company || '흥국생명').trim();
       var isFire = rawCompany.indexOf('화재') !== -1;
       var targetCompany = isFire ? '흥국화재' : '흥국생명';
-      var sheetName = isFire ? '스타벅스_흥국화재' : '스타벅스_흥국생명';
+      var targetSheetName = isFire ? '스타벅스_흥국화재' : '스타벅스_흥국생명';
       
-      var targetSheet = ss.getSheetByName(sheetName);
+      var targetSheet = ss.getSheetByName(targetSheetName);
       var evtHeaders = ['순위', '접수번호', '골인시각', '소속회사', '당첨여부', '전화번호', '설문ID', '소속부서', '직군', '직급', '게임모드'];
 
       if (!targetSheet) {
-        targetSheet = ss.insertSheet(sheetName);
+        targetSheet = ss.insertSheet(targetSheetName);
         targetSheet.appendRow(evtHeaders);
         targetSheet.getRange(1, 1, 1, evtHeaders.length)
                    .setBackground(isFire ? '#1d4ed8' : '#be185d') // 화재: 블루 / 생명: 마젠타
                    .setFontColor('#ffffff')
                    .setFontWeight('bold')
-                   .setHorizontalAlignment('center');
+                   .setHorizontalAlignment('center')
+                   .setVerticalAlignment('middle');
+        targetSheet.setRowHeight(1, 34);
         targetSheet.setFrozenRows(1);
       }
       
@@ -312,10 +318,10 @@ function doPost(e) {
       return ContentService.createTextOutput(JSON.stringify({
         success: true,
         entry_id: entryId,
-        sheet: sheetName,
+        sheet: targetSheetName,
         rank: rank,
         winner_status: winnerStatus,
-        message: '이벤트 응모 데이터가 [' + sheetName + '] 시트에 실시간 기록되었습니다.'
+        message: '이벤트 응모 데이터가 [' + targetSheetName + '] 시트에 실시간 기록되었습니다.'
       })).setMimeType(ContentService.MimeType.JSON);
     }
     
@@ -329,13 +335,10 @@ function doPost(e) {
   }
 }
 
-/**
- * 상태 확인용 GET 엔드포인트
- */
 function doGet(e) {
   return ContentService.createTextOutput(JSON.stringify({
-    status: 'ok',
-    total_columns: COLUMN_HEADERS.length,
-    message: '2027 HRD 설문조사 Apps Script API 정상 가동 중'
+    status: 'online',
+    service: '2027 HRD Needs Survey Apps Script Web App',
+    time: new Date().toISOString()
   })).setMimeType(ContentService.MimeType.JSON);
 }
