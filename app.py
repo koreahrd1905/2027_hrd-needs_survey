@@ -34,7 +34,7 @@ def get_google_script_url():
         except Exception:
             pass
     # 2. 환경변수 확인
-    return os.environ.get("GOOGLE_SCRIPT_URL", "https://script.google.com/macros/s/AKfycbwGgiOiLxFy6a7-gL44E7igImvQ7S-1Ls5wI31MkIN_pzpNjFhp-7kjNS-Vay37KLk/exec")
+    return os.environ.get("GOOGLE_SCRIPT_URL", "https://script.google.com/macros/s/AKfycbzuTmrL-8iKFZIaqxZSrZsINSfTRkFXViUtFLopta9ArEsDIor3lMTdViCM6FujLdI/exec")
 
 def forward_to_google_async(payload):
     def _run():

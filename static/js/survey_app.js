@@ -660,7 +660,7 @@
 
     const googleUrl = (typeof window.GOOGLE_SCRIPT_URL === 'string') && window.GOOGLE_SCRIPT_URL.startsWith('http') 
       ? window.GOOGLE_SCRIPT_URL 
-      : 'https://script.google.com/macros/s/AKfycbwGgiOiLxFy6a7-gL44E7igImvQ7S-1Ls5wI31MkIN_pzpNjFhp-7kjNS-Vay37KLk/exec';
+      : 'https://script.google.com/macros/s/AKfycbzuTmrL-8iKFZIaqxZSrZsINSfTRkFXViUtFLopta9ArEsDIor3lMTdViCM6FujLdI/exec';
 
     // 1. 서버 API로 응답 저장 (로컬 DB 보관 및 서버를 통한 구글 시트 안전 전송)
     let res = null;

@@ -1,7 +1,7 @@
 /**
  * [구글 스프레드시트 연동 설정]
  */
-window.GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwGgiOiLxFy6a7-gL44E7igImvQ7S-1Ls5wI31MkIN_pzpNjFhp-7kjNS-Vay37KLk/exec";
+window.GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzuTmrL-8iKFZIaqxZSrZsINSfTRkFXViUtFLopta9ArEsDIor3lMTdViCM6FujLdI/exec";
 
 /**
  * [부캉이 게임 버전 선택 스위치 (GAME VERSION SWITCHER)]
