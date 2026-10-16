@@ -1,6 +1,6 @@
 {
-  "game_version": 1,
-  "quota_life": 300,
-  "quota_fire": 300,
-  "updated_at": "2026-10-16T22:57:10.948509"
+  "game_version": 2,
+  "quota_life": 50,
+  "quota_fire": 50,
+  "updated_at": "2026-10-16T23:00:52.423673"
 }
