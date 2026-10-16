@@ -407,6 +407,14 @@ class BukangLuckyDrawGameV2 {
     this.ctx = this.canvas.getContext('2d');
 
     this.bindEvents();
+
+    // Global touch audio unlock for iOS Safari
+    if (this.modalEl) {
+      this.modalEl.addEventListener('touchstart', () => {
+        this.initAudio();
+      }, { once: true, passive: true });
+    }
+
     this.initCanvasGame();
   }
 
@@ -434,6 +442,7 @@ class BukangLuckyDrawGameV2 {
     });
 
     startBtn.addEventListener('click', async () => {
+      this.initAudio(); // iOS Safari / Android immediate audio unlock on user gesture
       const raw = phoneInput.value.replace(/[^0-9]/g, '');
       if (raw.length < 10 || !raw.startsWith('010')) {
         errEl.innerText = '올바른 휴대전화 번호 (010-XXXX-XXXX)를 입력해 주십시오.';
@@ -463,6 +472,16 @@ class BukangLuckyDrawGameV2 {
       startBtn.innerHTML = '<span>🦈</span> START (부캉이 출발!)';
       this.phoneNumber = phoneInput.value;
       this.startSwimming();
+    });
+
+    
+    // Virtual Keyboard auto-scroll for all iOS and Android devices
+    phoneInput.addEventListener('focus', () => {
+      setTimeout(() => {
+        try {
+          phoneInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } catch (e) {}
+      }, 350);
     });
 
     phoneInput.addEventListener('keypress', (e) => {

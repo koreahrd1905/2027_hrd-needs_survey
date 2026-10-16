@@ -1405,52 +1405,95 @@ body {
 
 
 
+
 /* ==========================================================================
-   부캉이 게임 반응형 모바일 & 폴더블 지원 (Galaxy Fold 가로/세로/펼침 완벽 최적화)
+   부캉이 게임 유니버설 반응형 (모든 아이폰 Safari & 안드로이드 Chrome/삼성인터넷 완벽 지원)
    ========================================================================== */
 
-/* 터치 제스처 반응성 강화 (300ms 딜레이 방지) */
-.bukang-modal-overlay,
-.bukang-modal-box,
-.bukang-body,
-#bukang-canvas {
+/* 1. iOS Safari Dynamic Viewport (dvh) & Safe Area 지원 */
+.bukang-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  width: 100dvw;
+  height: 100vh;
+  height: 100dvh;
+  background: rgba(15, 23, 42, 0.82);
+  backdrop-filter: blur(8px);
+  z-index: 100000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: env(safe-area-inset-top, 8px) env(safe-area-inset-right, 8px) max(8px, env(safe-area-inset-bottom, 8px)) env(safe-area-inset-left, 8px);
+  box-sizing: border-box;
+  animation: bukangFadeIn 0.3s ease-out;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
 
-/* 기본 가이드 배너 스타일 (인라인 충돌 해소 및 안전 정렬) */
+/* 모달 컨테이너: 모든 기기에서 뷰포트 비율에 맞춰 자동 최적화 */
+.bukang-modal-box {
+  background: #ffffff;
+  width: min(94vw, 1024px);
+  max-height: min(94vh, 94dvh, 900px);
+  border-radius: clamp(14px, 2vw, 20px);
+  box-shadow: 0 25px 60px -15px rgba(2, 132, 199, 0.45), 0 0 0 2px rgba(186, 230, 253, 0.8);
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  -webkit-overflow-scrolling: touch;
+  touch-action: manipulation;
+}
+
+/* 고속 연타 제스처 최적화 (모든 모바일 브라우저 300ms 딜레이 및 더블탭 확대 방지) */
+.bukang-body,
+#bukang-canvas {
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* 가이드 배너 유니버설 스타일 */
 #bukang-keyboard-guide {
   position: absolute;
-  top: 14px;
+  top: clamp(8px, 2vh, 14px);
   left: 50%;
   transform: translateX(-50%);
   background: linear-gradient(135deg, rgba(234, 88, 12, 0.96), rgba(220, 38, 38, 0.96));
   backdrop-filter: blur(6px);
   color: white;
-  padding: 0.6rem 1.6rem;
+  padding: clamp(0.35rem, 1.2vw, 0.6rem) clamp(0.75rem, 2vw, 1.6rem);
   border-radius: 30px;
-  font-size: 0.95rem;
+  font-size: clamp(0.76rem, 1.8vw, 0.95rem);
   font-weight: 800;
   box-shadow: 0 6px 20px rgba(220,38,38,0.45);
   border: 2px solid #fef08a;
   z-index: 20;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.5rem;
   animation: guidePulse 1.2s infinite alternate;
   white-space: nowrap;
+  max-width: 92%;
   cursor: pointer;
+  touch-action: manipulation;
 }
 
-/* 1. 모바일 세로 모드 & 폴드 접힘/펼침 세로 화면 (화면 너비 768px 이하) */
+/* ==========================================================================
+   A. 모든 모바일 스마트폰 세로 모드 (아이폰 SE, 13/14/15/16 Pro, 갤럭시 S/A, 픽셀 등 - 화면 너비 768px 이하)
+   ========================================================================== */
 @media (max-width: 768px) {
   .bukang-modal-overlay {
-    padding: 0.4rem;
+    padding: max(6px, env(safe-area-inset-top, 6px)) max(6px, env(safe-area-inset-right, 6px)) max(6px, env(safe-area-inset-bottom, 6px)) max(6px, env(safe-area-inset-left, 6px));
   }
-  
+
   .bukang-modal-box {
     width: 96vw !important;
-    max-width: 560px !important;
-    max-height: 94vh !important;
+    max-width: 540px !important;
+    max-height: min(94vh, 94dvh) !important;
     border-radius: 16px !important;
   }
 
@@ -1458,6 +1501,7 @@ body {
     padding: 0.55rem 0.85rem !important;
     gap: 0.45rem !important;
     flex-wrap: nowrap !important;
+    flex-shrink: 0 !important;
   }
 
   .bukang-icon {
@@ -1465,13 +1509,13 @@ body {
   }
 
   .bukang-title h3 {
-    font-size: 0.92rem !important;
+    font-size: clamp(0.85rem, 2.8vw, 0.96rem) !important;
     line-height: 1.25 !important;
     margin: 0 !important;
   }
 
   .bukang-title p {
-    font-size: 0.72rem !important;
+    font-size: clamp(0.68rem, 2vw, 0.74rem) !important;
     margin-top: 0.1rem !important;
     line-height: 1.2 !important;
   }
@@ -1480,17 +1524,20 @@ body {
     width: 30px !important;
     height: 30px !important;
     font-size: 0.9rem !important;
+    flex-shrink: 0 !important;
   }
 
   #bukang-canvas {
     width: 100% !important;
     max-height: 28vh !important;
+    max-height: 28dvh !important;
     aspect-ratio: 1200 / 580 !important;
     object-fit: contain !important;
   }
 
   .bukang-input-panel {
-    padding: 0.65rem 0.85rem 0.85rem !important;
+    padding: 0.65rem 0.85rem 0.9rem !important;
+    flex-shrink: 0 !important;
   }
 
   .shark-badge {
@@ -1500,13 +1547,13 @@ body {
   }
 
   .bukang-guide-card h4 {
-    font-size: 0.92rem !important;
+    font-size: clamp(0.86rem, 2.6vw, 0.96rem) !important;
     margin: 0.15rem 0 !important;
     line-height: 1.3 !important;
   }
 
   .bukang-guide-card p {
-    font-size: 0.8rem !important;
+    font-size: clamp(0.76rem, 2.2vw, 0.82rem) !important;
     margin: 0.15rem 0 0.5rem 0 !important;
     line-height: 1.4 !important;
   }
@@ -1527,27 +1574,25 @@ body {
     flex: 1 !important;
     min-width: 0 !important;
     padding: 0.6rem 0.5rem !important;
-    font-size: 0.98rem !important;
+    font-size: clamp(0.9rem, 2.8vw, 1.02rem) !important;
     border-radius: 10px !important;
   }
 
   .bukang-start-btn {
     flex-shrink: 0 !important;
     padding: 0.6rem 0.95rem !important;
-    font-size: 0.88rem !important;
+    font-size: clamp(0.82rem, 2.4vw, 0.92rem) !important;
     border-radius: 10px !important;
   }
 
-  /* 안내 문구 박스 축소 최적화 */
   .bukang-guide-card > div[style*="background:#f0f9ff"] {
     margin-top: 0.5rem !important;
     padding: 0.4rem 0.7rem !important;
-    font-size: 0.74rem !important;
+    font-size: clamp(0.68rem, 2vw, 0.75rem) !important;
     line-height: 1.4 !important;
     border-radius: 8px !important;
   }
 
-  /* 키보드 / 터치 가이드 배너 축소 */
   #bukang-keyboard-guide {
     top: 8px !important;
     font-size: 0.76rem !important;
@@ -1559,9 +1604,8 @@ body {
     gap: 0.4rem !important;
   }
 
-  /* 진행률 게이지 HUD 축소 */
   #bukang-progress-bar-wrap {
-    bottom: 8px !important;
+    bottom: max(8px, env(safe-area-inset-bottom, 8px)) !important;
     left: 8px !important;
     right: 8px !important;
     padding: 0.4rem 0.75rem !important;
@@ -1573,17 +1617,20 @@ body {
   }
 }
 
-/* 2. 삼성 갤럭시 폴드 가로 모드 (Landscape: 화면 높이 550px 이하) - 캡처 2 완벽 해결 */
-@media (orientation: landscape) and (max-height: 550px) {
+/* ==========================================================================
+   B. 모든 모바일 스마트폰 가로 모드 (아이폰/안드로이드 가로 회전 시 높이 600px 이하)
+   ========================================================================== */
+@media (orientation: landscape) and (max-height: 600px) {
   .bukang-modal-overlay {
-    padding: 0.25rem !important;
+    padding: max(4px, env(safe-area-inset-top, 4px)) max(4px, env(safe-area-inset-right, 4px)) max(4px, env(safe-area-inset-bottom, 4px)) max(4px, env(safe-area-inset-left, 4px)) !important;
   }
 
   .bukang-modal-box {
     width: 98vw !important;
-    max-width: 920px !important;
-    height: 96vh !important;
-    max-height: 96vh !important;
+    width: 98dvw !important;
+    max-width: 960px !important;
+    height: min(98vh, 98dvh) !important;
+    max-height: min(98vh, 98dvh) !important;
     border-radius: 12px !important;
   }
 
@@ -1591,6 +1638,7 @@ body {
     padding: 0.35rem 0.75rem !important;
     flex-wrap: nowrap !important;
     min-height: 38px !important;
+    flex-shrink: 0 !important;
   }
 
   .bukang-icon {
@@ -1606,7 +1654,7 @@ body {
   }
 
   .bukang-title p {
-    display: none !important; /* 가로 높이 확보를 위해 부제 숨김 */
+    display: none !important;
   }
 
   .bukang-btn-icon {
@@ -1615,13 +1663,15 @@ body {
     font-size: 0.8rem !important;
   }
 
-  /* 가로 모드 입력 상태: 캔버스와 입력창을 좌우 2분할(Row) 배치하여 스크롤 없이 한눈에 표시 */
+  /* 가로 모드 입력 상태: 2분할(좌: 캔버스 / 우: 입력폼)로 스크롤 없이 한눈에 표시 */
   .bukang-body.is-input-state {
     flex-direction: row !important;
     align-items: stretch !important;
     justify-content: center !important;
     height: calc(96vh - 40px) !important;
+    height: calc(96dvh - 40px) !important;
     max-height: calc(96vh - 40px) !important;
+    max-height: calc(96dvh - 40px) !important;
     overflow: hidden !important;
   }
 
@@ -1695,7 +1745,9 @@ body {
   /* 가로 모드 게임 중(SWIMMING): 캔버스 전체 화면 극대화 */
   .bukang-body:not(.is-input-state) {
     height: calc(96vh - 40px) !important;
+    height: calc(96dvh - 40px) !important;
     max-height: calc(96vh - 40px) !important;
+    max-height: calc(96dvh - 40px) !important;
   }
 
   .bukang-body:not(.is-input-state) #bukang-canvas {
@@ -1714,7 +1766,7 @@ body {
   }
 
   #bukang-progress-bar-wrap {
-    bottom: 6px !important;
+    bottom: max(6px, env(safe-area-inset-bottom, 6px)) !important;
     left: 8px !important;
     right: 8px !important;
     padding: 0.3rem 0.75rem !important;
@@ -1728,6 +1780,7 @@ body {
   .result-card {
     padding: 0.8rem 1.2rem !important;
     max-height: 92vh !important;
+    max-height: 92dvh !important;
     overflow-y: auto !important;
   }
 
@@ -1748,7 +1801,9 @@ body {
   }
 }
 
-/* 3. 초슬림 화면 (Galaxy Fold 전면 커버 디스플레이 가로폭 360px 이하) */
+/* ==========================================================================
+   C. 초소형 디바이스 대응 (아이폰 SE 1세대, 소형 안드로이드 - 너비 360px 이하)
+   ========================================================================== */
 @media (max-width: 360px) {
   .phone-input-row {
     flex-direction: column !important;
