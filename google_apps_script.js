@@ -152,7 +152,7 @@ function setupHeaders() {
  * 설문 응답을 저장할 기본 시트 찾기
  */
 function getSurveyTargetSheet(ss) {
-  var sheet = ss.getSheetByName('설문응답');
+  var sheet = ss.getSheetByName('설문응답_로우데이터') || ss.getSheetByName('설문응답');
   if (sheet) return sheet;
   
   var allSheets = ss.getSheets();
