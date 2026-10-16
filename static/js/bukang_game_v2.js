@@ -833,8 +833,8 @@ class BukangLuckyDrawGameV2 {
       };
     }
 
-    // Google Apps Script logging
-    if (window.GOOGLE_SCRIPT_URL && window.GOOGLE_SCRIPT_URL.startsWith('http')) {
+    // Google Apps Script logging (서버 미응답 시 비상 폴백 전송)
+    if ((!serverResult || !serverResult.entry_id) && window.GOOGLE_SCRIPT_URL && window.GOOGLE_SCRIPT_URL.startsWith('http')) {
       try {
         fetch(window.GOOGLE_SCRIPT_URL, {
           method: 'POST',

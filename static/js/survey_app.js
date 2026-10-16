@@ -637,8 +637,10 @@
       }
     }
 
+    const submissionId = 'resp_' + Date.now();
     const payload = {
       action: 'survey_submit',
+      id: submissionId,
       company: answers['q1_company'] || '흥국생명',
       division: answers['q1_division'] || '',
       department: answers['q1_department'] || '기타',
@@ -660,26 +662,9 @@
       ? window.GOOGLE_SCRIPT_URL 
       : 'https://script.google.com/macros/s/AKfycbwGgiOiLxFy6a7-gL44E7igImvQ7S-1Ls5wI31MkIN_pzpNjFhp-7kjNS-Vay37KLk/exec';
 
-    // 1. [핵심] 구글 스프레드시트로 브라우저에서 직접 무조건 즉시 전송 (Dual Direct Dispatch)
-    if (googleUrl) {
-      try {
-        fetch(googleUrl, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(payload)
-        }).then(() => {
-          console.log('✅ [구글 시트 실시간 전송 성공] 데이터가 구글 스프레드시트로 즉시 발송되었습니다.');
-        }).catch(err => {
-          console.warn('Google direct fetch warning:', err);
-        });
-      } catch(e) {
-        console.warn('Google direct dispatch exception:', e);
-      }
-    }
-
-    // 2. 서버 API로 응답 저장 (로컬 DB 및 백업 보관)
+    // 1. 서버 API로 응답 저장 (로컬 DB 보관 및 서버를 통한 구글 시트 안전 전송)
     let res = null;
+    let serverOk = false;
     try {
       const serverRes = await fetch('/api/survey/submit', {
         method: 'POST',
@@ -688,9 +673,24 @@
       });
       if (serverRes.ok) {
         res = await serverRes.json();
+        serverOk = true;
       }
     } catch(err) {
       console.warn('Server API fetch warning:', err);
+    }
+
+    // 2. 만약 서버 API 호출에 실패한 경우에만 브라우저에서 구글 시트로 직접 비상 전송
+    if (!serverOk && googleUrl) {
+      try {
+        fetch(googleUrl, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        }).catch(err => {
+          console.warn('Google fallback error:', err);
+        });
+      } catch(e) {}
     }
 
     // 3순위 (절대 안전망): 사용자의 설문 완료가 에러로 중단되지 않고 100% 럭키드로우로 연결

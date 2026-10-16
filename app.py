@@ -101,7 +101,7 @@ def submit_survey():
     data = request.json or {}
     responses = load_json(RESPONSES_FILE, [])
     
-    submission_id = f"resp_{int(time.time())}_{len(responses) + 1}"
+    submission_id = data.get("id") or f"resp_{int(time.time()*1000)}"
     ans = data.get("answers", {})
     record = {
         "id": submission_id,
@@ -122,6 +122,10 @@ def submit_survey():
     # 구글 스프레드시트에 실시간 행 추가 (백그라운드 안정 전송)
     forward_to_google_async({
         "action": "survey_submit",
+        "id": submission_id,
+        "submitted_at": record["timestamp"],
+        "company": record["company"],
+        "division": record["division"],
         "department": record["department"],
         "job_group": record["job_group"],
         "position": record["position"],
@@ -254,6 +258,7 @@ def submit_event():
     # 구글 스프레드시트 실시간 전송
     forward_to_google_async({
         "action": "event_submit",
+        "entry_id": entry_id,
         "phone": formatted_phone,
         "survey_id": survey_id,
         "company": target_company,

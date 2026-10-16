@@ -5,6 +5,8 @@
  * 
  * ★ A1~AT1 46개 전체 문항 제목과 작성자 응답 데이터를 100% 1:1로 정확하게 일치시킵니다.
  * ★ 흥국생명 / 흥국화재 스타벅스 이벤트 당첨자 시트 자동 분리 기록 지원
+ * ★ 중복 제출(클라이언트/서버 중복 호출) 완전 차단 (Deduplication)
+ * ★ 구버전 헤더 감지 시 46개 최신 규격 헤더 자동 갱신 지원
  * 
  * 📌 [적용 방법 (1분 소요)]:
  * 1. 구글 스프레드시트 메뉴에서 [확장 프로그램] ➡️ [Apps Script] 클릭
@@ -15,7 +17,7 @@
  * ============================================================================
  */
 
-// 1. A1부터 AT1까지 46개 전체 문항 공식 헤더 목록 (캡처 규격 100% 일치)
+// 1. A1부터 AT1까지 46개 전체 문항 공식 헤더 목록
 var COLUMN_HEADERS = [
   "응답 ID",
   "제출 일시",
@@ -122,7 +124,7 @@ function setupHeaders() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = getSurveyTargetSheet(ss);
   
-  // 1행에 46개 문항 헤더 일괄 입력
+  // 1행에 46개 문항 헤더 일괄 입력 (기존 구버전 헤더를 최신 46개 헤더로 완벽 덮어쓰기)
   sheet.getRange(1, 1, 1, COLUMN_HEADERS.length).setValues([COLUMN_HEADERS]);
   
   // 헤더 서식 지정 (다크 네이비 블루, 화이트 볼드, 수직/수평 중앙 정렬)
@@ -196,12 +198,26 @@ function doPost(e) {
     if (action === 'survey_submit') {
       var sheet = getSurveyTargetSheet(ss);
       
-      var firstCell = String(sheet.getRange(1, 1).getValue() || '');
-      if (sheet.getLastRow() === 0 || firstCell !== '응답 ID') {
+      // 구버전 헤더이거나 헤더가 없을 경우 46개 규격 헤더 자동 생성
+      var lastCol = sheet.getLastColumn();
+      var colDVal = String(sheet.getRange(1, 4).getValue() || '');
+      if (sheet.getLastRow() === 0 || lastCol < COLUMN_HEADERS.length || colDVal.indexOf('실/본부') === -1) {
         setupHeaders();
       }
       
       var submissionId = data.id || ('resp_' + new Date().getTime());
+      
+      // [핵심] 중복 저장 완전 방지 (CacheService 기반)
+      var cache = CacheService.getScriptCache();
+      if (submissionId && cache.get('seen_' + submissionId)) {
+        return ContentService.createTextOutput(JSON.stringify({
+          success: true,
+          duplicated: true,
+          message: '이미 등록된 응답 ID입니다. (중복 방지 완료)'
+        })).setMimeType(ContentService.MimeType.JSON);
+      }
+      cache.put('seen_' + submissionId, 'true', 300); // 5분간 캐싱
+      
       var nowStr = data.submitted_at || Utilities.formatDate(new Date(), 'Asia/Seoul', 'yyyy-MM-dd HH:mm:ss');
       var answers = data.answers || {};
       
@@ -263,6 +279,19 @@ function doPost(e) {
       var targetCompany = isFire ? '흥국화재' : '흥국생명';
       var targetSheetName = isFire ? '스타벅스_흥국화재' : '스타벅스_흥국생명';
       
+      // [핵심] 중복 응모 완전 방지 (전화번호 기준)
+      var phone = String(data.phone || '').replace(/[^0-9]/g, '');
+      var cache = CacheService.getScriptCache();
+      var evtKey = 'evt_' + phone + '_' + (data.survey_id || '');
+      if (phone && cache.get(evtKey)) {
+        return ContentService.createTextOutput(JSON.stringify({
+          success: true,
+          duplicated: true,
+          message: '이미 등록된 이벤트 응모입니다. (중복 방지 완료)'
+        })).setMimeType(ContentService.MimeType.JSON);
+      }
+      cache.put(evtKey, 'true', 300);
+      
       var targetSheet = ss.getSheetByName(targetSheetName);
       var evtHeaders = ['순위', '접수번호', '골인시각', '소속회사', '당첨여부', '전화번호', '설문ID', '소속부서', '직군', '직급', '게임모드'];
 
@@ -279,7 +308,6 @@ function doPost(e) {
         targetSheet.setFrozenRows(1);
       }
       
-      var phone = String(data.phone || '').replace(/[^0-9]/g, '');
       var formattedPhone = phone.length === 11 ? 
         phone.slice(0,3) + '-' + phone.slice(3,7) + '-' + phone.slice(7) : 
         (phone.length === 10 ? phone.slice(0,3) + '-' + phone.slice(3,6) + '-' + phone.slice(6) : phone);
@@ -287,7 +315,7 @@ function doPost(e) {
       var nowStr = Utilities.formatDate(new Date(), 'Asia/Seoul', 'yyyy-MM-dd HH:mm:ss');
       var rowCount = targetSheet.getLastRow();
       var rank = data.rank || rowCount;
-      var entryId = 'EVT-' + Utilities.formatDate(new Date(), 'Asia/Seoul', 'yyyyMMdd-') + rowCount;
+      var entryId = data.entry_id || ('EVT-' + Utilities.formatDate(new Date(), 'Asia/Seoul', 'yyyyMMdd-') + rowCount);
       
       var winnerStatus = data.winner_status;
       if (!winnerStatus) {
@@ -338,7 +366,8 @@ function doPost(e) {
 function doGet(e) {
   return ContentService.createTextOutput(JSON.stringify({
     status: 'online',
-    service: '2027 HRD Needs Survey Apps Script Web App',
+    version: '2026.10.16_v2',
+    service: '2027 HRD Needs Survey Apps Script Web App (46 Columns + Auto Headers + Company Sheets)',
     time: new Date().toISOString()
   })).setMimeType(ContentService.MimeType.JSON);
 }
