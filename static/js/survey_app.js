@@ -637,10 +637,36 @@
       }
     }
 
+
+    function getKSTTimestamp() {
+      try {
+        const now = new Date();
+        const formatter = new Intl.DateTimeFormat('ko-KR', {
+          timeZone: 'Asia/Seoul',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false
+        });
+        const parts = formatter.formatToParts(now);
+        const p = {};
+        parts.forEach(part => { p[part.type] = part.value; });
+        let hour = p.hour === '24' ? '00' : p.hour;
+        return `${p.year}-${p.month}-${p.day} ${hour}:${p.minute}:${p.second}`;
+      } catch (err) {
+        const d = new Date(Date.now() + 9 * 3600 * 1000);
+        return d.toISOString().replace('T', ' ').substring(0, 19);
+      }
+    }
     const submissionId = 'resp_' + Date.now();
+    const kstNow = getKSTTimestamp();
     const payload = {
       action: 'survey_submit',
       id: submissionId,
+      submitted_at: kstNow,
       company: answers['q1_company'] || '흥국생명',
       division: answers['q1_division'] || '',
       department: answers['q1_department'] || '기타',

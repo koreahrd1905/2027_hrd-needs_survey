@@ -256,6 +256,8 @@ class BukangLuckyDrawGameV2 {
     this.surveyId = surveyId;
     this.phoneNumber = '';
     this.gameState = 'INPUT';
+    const bodyEl = document.querySelector('.bukang-body');
+    if (bodyEl) bodyEl.classList.add('is-input-state');
     this.distanceTraveled = 0;
     this.swimSpeed = 0;
     this.lastDriveTime = 0;
@@ -309,14 +311,14 @@ class BukangLuckyDrawGameV2 {
         </div>
 
         <!-- Game Screen Wrap -->
-        <div class="bukang-body">
+        <div class="bukang-body is-input-state">
           <!-- Canvas Game Area (1200 x 580) -->
           <canvas id="bukang-canvas" width="1200" height="580"></canvas>
 
           <!-- Interactive Keyboard / Touch Drive Notification Banner -->
-          <div id="bukang-keyboard-guide" style="display:none;position:absolute;top:14px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg, rgba(234, 88, 12, 0.96), rgba(220, 38, 38, 0.96));backdrop-filter:blur(6px);color:white;padding:0.6rem 1.6rem;border-radius:30px;font-size:0.95rem;font-weight:800;box-shadow:0 6px 20px rgba(220,38,38,0.45);border:2px solid #fef08a;z-index:20;display:flex;align-items:center;gap:0.6rem;animation:guidePulse 1.2s infinite alternate;white-space:nowrap;cursor:pointer;">
+          <div id="bukang-keyboard-guide" style="display:none;">
             <span style="font-size:1.2rem;">⌨️ 📱</span>
-            <span>키보드 방향키(▶) 연타! / 모바일: 화면 터치 연타로 부캉이를 달리게 하세요!</span>
+            <span id="bukang-guide-text">키보드 방향키(▶) 연타! / 모바일: 화면 터치 연타로 부캉이를 달리게 하세요!</span>
           </div>
 
           <!-- Speedometer & Progress Bar Overlay -->
@@ -515,6 +517,24 @@ class BukangLuckyDrawGameV2 {
       }
     });
 
+    
+    const bukangBody = document.querySelector('.bukang-body');
+    if (bukangBody) {
+      bukangBody.addEventListener('touchstart', (e) => {
+        if (this.gameState === 'SWIMMING') {
+          if (e.target.closest('#bukang-mute-btn, #bukang-close-top-btn')) return;
+          e.preventDefault();
+          this.triggerDriveImpulse();
+        }
+      }, { passive: false });
+      bukangBody.addEventListener('click', (e) => {
+        if (this.gameState === 'SWIMMING') {
+          if (e.target.closest('#bukang-mute-btn, #bukang-close-top-btn')) return;
+          this.triggerDriveImpulse();
+        }
+      });
+    }
+
     this.canvas.addEventListener('touchstart', (e) => {
       if (this.gameState === 'SWIMMING') {
         e.preventDefault();
@@ -603,9 +623,19 @@ class BukangLuckyDrawGameV2 {
     // Hide input panel
     document.getElementById('bukang-input-view').style.display = 'none';
 
+    // Hide input state for responsive landscape
+    const bodyEl = document.querySelector('.bukang-body');
+    if (bodyEl) bodyEl.classList.remove('is-input-state');
+
     // Show Guide & Progress HUD
     const guideEl = document.getElementById('bukang-keyboard-guide');
-    if (guideEl) guideEl.style.display = 'flex';
+    if (guideEl) {
+      guideEl.style.display = 'flex';
+      const guideText = document.getElementById('bukang-guide-text');
+      if (guideText && window.innerWidth <= 768) {
+        guideText.innerText = '화면을 빠르게 연속 터치하여 부캉이를 달리게 하세요! ⚡';
+      }
+    }
     const progressWrap = document.getElementById('bukang-progress-bar-wrap');
     if (progressWrap) progressWrap.style.display = 'block';
 

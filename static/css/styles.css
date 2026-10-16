@@ -1403,3 +1403,364 @@ body {
   }
 }
 
+
+
+/* ==========================================================================
+   부캉이 게임 반응형 모바일 & 폴더블 지원 (Galaxy Fold 가로/세로/펼침 완벽 최적화)
+   ========================================================================== */
+
+/* 터치 제스처 반응성 강화 (300ms 딜레이 방지) */
+.bukang-modal-overlay,
+.bukang-modal-box,
+.bukang-body,
+#bukang-canvas {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 기본 가이드 배너 스타일 (인라인 충돌 해소 및 안전 정렬) */
+#bukang-keyboard-guide {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, rgba(234, 88, 12, 0.96), rgba(220, 38, 38, 0.96));
+  backdrop-filter: blur(6px);
+  color: white;
+  padding: 0.6rem 1.6rem;
+  border-radius: 30px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  box-shadow: 0 6px 20px rgba(220,38,38,0.45);
+  border: 2px solid #fef08a;
+  z-index: 20;
+  align-items: center;
+  gap: 0.6rem;
+  animation: guidePulse 1.2s infinite alternate;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+/* 1. 모바일 세로 모드 & 폴드 접힘/펼침 세로 화면 (화면 너비 768px 이하) */
+@media (max-width: 768px) {
+  .bukang-modal-overlay {
+    padding: 0.4rem;
+  }
+  
+  .bukang-modal-box {
+    width: 96vw !important;
+    max-width: 560px !important;
+    max-height: 94vh !important;
+    border-radius: 16px !important;
+  }
+
+  .bukang-header {
+    padding: 0.55rem 0.85rem !important;
+    gap: 0.45rem !important;
+    flex-wrap: nowrap !important;
+  }
+
+  .bukang-icon {
+    font-size: 1.5rem !important;
+  }
+
+  .bukang-title h3 {
+    font-size: 0.92rem !important;
+    line-height: 1.25 !important;
+    margin: 0 !important;
+  }
+
+  .bukang-title p {
+    font-size: 0.72rem !important;
+    margin-top: 0.1rem !important;
+    line-height: 1.2 !important;
+  }
+
+  .bukang-btn-icon {
+    width: 30px !important;
+    height: 30px !important;
+    font-size: 0.9rem !important;
+  }
+
+  #bukang-canvas {
+    width: 100% !important;
+    max-height: 28vh !important;
+    aspect-ratio: 1200 / 580 !important;
+    object-fit: contain !important;
+  }
+
+  .bukang-input-panel {
+    padding: 0.65rem 0.85rem 0.85rem !important;
+  }
+
+  .shark-badge {
+    font-size: 0.72rem !important;
+    padding: 0.15rem 0.55rem !important;
+    margin-bottom: 0.2rem !important;
+  }
+
+  .bukang-guide-card h4 {
+    font-size: 0.92rem !important;
+    margin: 0.15rem 0 !important;
+    line-height: 1.3 !important;
+  }
+
+  .bukang-guide-card p {
+    font-size: 0.8rem !important;
+    margin: 0.15rem 0 0.5rem 0 !important;
+    line-height: 1.4 !important;
+  }
+
+  .phone-input-row {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 0.45rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .phone-input-row .input-icon {
+    display: none !important;
+  }
+
+  #bukang-phone-input {
+    flex: 1 !important;
+    min-width: 0 !important;
+    padding: 0.6rem 0.5rem !important;
+    font-size: 0.98rem !important;
+    border-radius: 10px !important;
+  }
+
+  .bukang-start-btn {
+    flex-shrink: 0 !important;
+    padding: 0.6rem 0.95rem !important;
+    font-size: 0.88rem !important;
+    border-radius: 10px !important;
+  }
+
+  /* 안내 문구 박스 축소 최적화 */
+  .bukang-guide-card > div[style*="background:#f0f9ff"] {
+    margin-top: 0.5rem !important;
+    padding: 0.4rem 0.7rem !important;
+    font-size: 0.74rem !important;
+    line-height: 1.4 !important;
+    border-radius: 8px !important;
+  }
+
+  /* 키보드 / 터치 가이드 배너 축소 */
+  #bukang-keyboard-guide {
+    top: 8px !important;
+    font-size: 0.76rem !important;
+    padding: 0.35rem 0.75rem !important;
+    max-width: 92% !important;
+    white-space: normal !important;
+    text-align: center !important;
+    border-radius: 20px !important;
+    gap: 0.4rem !important;
+  }
+
+  /* 진행률 게이지 HUD 축소 */
+  #bukang-progress-bar-wrap {
+    bottom: 8px !important;
+    left: 8px !important;
+    right: 8px !important;
+    padding: 0.4rem 0.75rem !important;
+    border-radius: 12px !important;
+  }
+
+  #bukang-progress-bar-wrap span {
+    font-size: 0.74rem !important;
+  }
+}
+
+/* 2. 삼성 갤럭시 폴드 가로 모드 (Landscape: 화면 높이 550px 이하) - 캡처 2 완벽 해결 */
+@media (orientation: landscape) and (max-height: 550px) {
+  .bukang-modal-overlay {
+    padding: 0.25rem !important;
+  }
+
+  .bukang-modal-box {
+    width: 98vw !important;
+    max-width: 920px !important;
+    height: 96vh !important;
+    max-height: 96vh !important;
+    border-radius: 12px !important;
+  }
+
+  .bukang-header {
+    padding: 0.35rem 0.75rem !important;
+    flex-wrap: nowrap !important;
+    min-height: 38px !important;
+  }
+
+  .bukang-icon {
+    font-size: 1.25rem !important;
+  }
+
+  .bukang-title h3 {
+    font-size: 0.85rem !important;
+    margin: 0 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .bukang-title p {
+    display: none !important; /* 가로 높이 확보를 위해 부제 숨김 */
+  }
+
+  .bukang-btn-icon {
+    width: 26px !important;
+    height: 26px !important;
+    font-size: 0.8rem !important;
+  }
+
+  /* 가로 모드 입력 상태: 캔버스와 입력창을 좌우 2분할(Row) 배치하여 스크롤 없이 한눈에 표시 */
+  .bukang-body.is-input-state {
+    flex-direction: row !important;
+    align-items: stretch !important;
+    justify-content: center !important;
+    height: calc(96vh - 40px) !important;
+    max-height: calc(96vh - 40px) !important;
+    overflow: hidden !important;
+  }
+
+  .bukang-body.is-input-state #bukang-canvas {
+    flex: 1.1 !important;
+    max-width: 52% !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    object-fit: contain !important;
+    border-radius: 0 !important;
+  }
+
+  .bukang-body.is-input-state .bukang-input-panel {
+    flex: 0.9 !important;
+    max-width: 48% !important;
+    height: 100% !important;
+    padding: 0.4rem 0.75rem !important;
+    border-top: none !important;
+    border-left: 1px solid #e2e8f0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    overflow-y: auto !important;
+  }
+
+  .bukang-body.is-input-state .shark-badge {
+    font-size: 0.68rem !important;
+    padding: 0.1rem 0.45rem !important;
+    margin-bottom: 0.15rem !important;
+  }
+
+  .bukang-body.is-input-state .bukang-guide-card h4 {
+    font-size: 0.82rem !important;
+    margin: 0.1rem 0 !important;
+    line-height: 1.25 !important;
+  }
+
+  .bukang-body.is-input-state .bukang-guide-card p {
+    font-size: 0.74rem !important;
+    margin: 0.1rem 0 0.35rem 0 !important;
+    line-height: 1.35 !important;
+  }
+
+  .bukang-body.is-input-state .phone-input-row {
+    gap: 0.35rem !important;
+    width: 100% !important;
+  }
+
+  .bukang-body.is-input-state .phone-input-row .input-icon {
+    display: none !important;
+  }
+
+  .bukang-body.is-input-state #bukang-phone-input {
+    padding: 0.45rem 0.5rem !important;
+    font-size: 0.86rem !important;
+  }
+
+  .bukang-body.is-input-state .bukang-start-btn {
+    padding: 0.45rem 0.75rem !important;
+    font-size: 0.82rem !important;
+    white-space: nowrap !important;
+  }
+
+  .bukang-body.is-input-state .bukang-guide-card > div[style*="background:#f0f9ff"] {
+    margin-top: 0.3rem !important;
+    padding: 0.3rem 0.5rem !important;
+    font-size: 0.68rem !important;
+    line-height: 1.3 !important;
+  }
+
+  /* 가로 모드 게임 중(SWIMMING): 캔버스 전체 화면 극대화 */
+  .bukang-body:not(.is-input-state) {
+    height: calc(96vh - 40px) !important;
+    max-height: calc(96vh - 40px) !important;
+  }
+
+  .bukang-body:not(.is-input-state) #bukang-canvas {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    object-fit: contain !important;
+  }
+
+  #bukang-keyboard-guide {
+    top: 6px !important;
+    padding: 0.25rem 0.75rem !important;
+    font-size: 0.75rem !important;
+    border-radius: 16px !important;
+  }
+
+  #bukang-progress-bar-wrap {
+    bottom: 6px !important;
+    left: 8px !important;
+    right: 8px !important;
+    padding: 0.3rem 0.75rem !important;
+    border-radius: 10px !important;
+  }
+
+  #bukang-progress-bar-wrap span {
+    font-size: 0.72rem !important;
+  }
+
+  .result-card {
+    padding: 0.8rem 1.2rem !important;
+    max-height: 92vh !important;
+    overflow-y: auto !important;
+  }
+
+  .result-title {
+    font-size: 1.15rem !important;
+    margin-bottom: 0.35rem !important;
+  }
+
+  .result-sub-text {
+    font-size: 0.82rem !important;
+    margin-bottom: 0.45rem !important;
+  }
+
+  .entry-receipt {
+    padding: 0.45rem 0.75rem !important;
+    margin-bottom: 0.45rem !important;
+    font-size: 0.75rem !important;
+  }
+}
+
+/* 3. 초슬림 화면 (Galaxy Fold 전면 커버 디스플레이 가로폭 360px 이하) */
+@media (max-width: 360px) {
+  .phone-input-row {
+    flex-direction: column !important;
+    gap: 0.4rem !important;
+  }
+
+  #bukang-phone-input {
+    width: 100% !important;
+  }
+
+  .bukang-start-btn {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+}

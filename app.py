@@ -6,7 +6,11 @@ import os
 import json
 import time
 import threading
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
+KST = timezone(timedelta(hours=9))
+
+def get_kst_now_str():
+    return datetime.now(KST).strftime("%Y-%m-%d %H:%M:%S")
 from flask import Flask, jsonify, request, send_file, send_from_directory
 
 app = Flask(__name__, static_folder="static", static_url_path="/static")
@@ -103,9 +107,11 @@ def submit_survey():
     
     submission_id = data.get("id") or f"resp_{int(time.time()*1000)}"
     ans = data.get("answers", {})
+    kst_now = get_kst_now_str()
+    submitted_at = data.get("submitted_at") or kst_now
     record = {
         "id": submission_id,
-        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "timestamp": submitted_at,
         "company": data.get("company") or ans.get("q1_company") or "흥국생명",
         "division": data.get("division") or ans.get("q1_division") or "",
         "department": data.get("department") or ans.get("q1_department") or "기타",
@@ -123,7 +129,7 @@ def submit_survey():
     forward_to_google_async({
         "action": "survey_submit",
         "id": submission_id,
-        "submitted_at": record["timestamp"],
+        "submitted_at": submitted_at,
         "company": record["company"],
         "division": record["division"],
         "department": record["department"],
@@ -246,7 +252,7 @@ def submit_event():
         "department": matched_resp.get("department", data.get("department", "미입력")),
         "job_group": matched_resp.get("job_group", data.get("job_group", "미입력")),
         "position": matched_resp.get("position", data.get("position", "미입력")),
-        "submitted_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "submitted_at": data.get("submitted_at") or get_kst_now_str(),
         "winner_status": winner_status,
         "is_winner": is_winner,
         "rank": rank,
