@@ -324,12 +324,51 @@
 
           if (q.sub_question) {
             const sq = q.sub_question;
-            html += `
-              <div id="sub-wrap-${q.id}" style="display:none;background:#fef2f2;border:1.5px solid #fecaca;border-radius:12px;padding:1.1rem 1.35rem;margin-top:1.1rem;box-shadow:0 2px 6px rgba(220,38,38,0.04);">
-                <div style="font-size:0.95rem;font-weight:700;color:#991b1b;margin-bottom:0.6rem;display:flex;align-items:center;gap:0.4rem;">
-                  <span>↳</span> [Q${sq.number}] ${sq.title}
+            const isLikertNegativeTrigger = sq.condition_trigger && sq.condition_trigger.length > 0;
+            const isAlwaysVisible = !isLikertNegativeTrigger || ['q8_1', 'q17_1', 'q18_1', 'q26_1', 'q11_1', 'q12_1', 'q13_1'].includes(sq.id);
+            const initialDisplay = isAlwaysVisible ? 'display:block;' : 'display:none;';
+            const triggersStr = isLikertNegativeTrigger ? JSON.stringify(sq.condition_trigger).replace(/"/g, '&quot;') : '';
+
+            const wrapBg = isLikertNegativeTrigger ? '#fef2f2' : '#f8fafc';
+            const wrapBorder = isLikertNegativeTrigger ? '#fecaca' : '#bfdbfe';
+            const wrapBorderLeft = isLikertNegativeTrigger ? '#dc2626' : '#2563eb';
+            const badgeBg = isLikertNegativeTrigger ? '#dc2626' : '#2563eb';
+            const titleColor = isLikertNegativeTrigger ? '#991b1b' : '#1e3a8a';
+
+            let placeholder = '사유 또는 의견을 작성해 주세요.';
+            if (sq.id === 'q18_1') {
+              placeholder = '희망하시는 교육 대상과 주제를 자유롭게 작성해 주십시오.';
+            } else if (sq.id === 'q8_1' || sq.id === 'q17_1' || sq.id === 'q26_1') {
+              placeholder = '기타 의견이 있으신 경우 자유롭게 작성해 주십시오.';
+            } else if (sq.id === 'q11_1' || sq.id === 'q12_1' || sq.id === 'q13_1') {
+              placeholder = '개선되었으면 하는 사항이 있다면 자유롭게 작성하여 주세요.';
+            }
+
+            let innerInput = '';
+            if (sq.type === 'single_choice' && sq.options) {
+              innerInput = `
+                <div class="option-grid" style="margin-top:0.6rem;display:grid;grid-template-columns:repeat(auto-fill, minmax(220px, 1fr));gap:0.5rem;">
+                  ${sq.options.map(sOpt => `
+                    <label class="option-card-label" style="font-size:0.88rem;padding:0.65rem 0.85rem;border-radius:8px;border:1px solid #cbd5e1;display:flex;align-items:center;gap:0.5rem;cursor:pointer;background:white;">
+                      <input type="radio" name="${sq.id}" value="${sOpt}" style="margin:0;" />
+                      <span>${sOpt}</span>
+                    </label>
+                  `).join('')}
                 </div>
-                <textarea name="${sq.id}" rows="2" placeholder="사유 또는 구체적인 개선 의견을 입력해 주십시오..." class="textarea-styled" style="border-color:#fca5a5;"></textarea>
+              `;
+            } else {
+              innerInput = `
+                <textarea name="${sq.id}" rows="2" placeholder="${placeholder}" class="textarea-styled" style="border:1.5px solid ${wrapBorder};background:white;margin-top:0.35rem;border-radius:8px;width:100%;box-sizing:border-box;"></textarea>
+              `;
+            }
+
+            html += `
+              <div class="sub-q-wrap" id="sub-wrap-${q.id}" data-parent="${q.id}" data-triggers="${triggersStr}" style="${initialDisplay}background:${wrapBg};border:1.5px solid ${wrapBorder};border-left:4.5px solid ${wrapBorderLeft};border-radius:12px;padding:1.1rem 1.35rem;margin-top:1.1rem;box-shadow:0 2px 6px rgba(0,0,0,0.03);transition:all 0.3s ease;">
+                <div style="font-size:0.95rem;font-weight:700;color:${titleColor};margin-bottom:0.5rem;display:flex;align-items:center;gap:0.45rem;">
+                  <span style="background:${badgeBg};color:white;padding:0.15rem 0.55rem;border-radius:5px;font-size:0.8rem;font-weight:800;">${sq.number}</span>
+                  <span>${sq.title}</span>
+                </div>
+                ${innerInput}
               </div>
             `;
           }
@@ -354,11 +393,33 @@
         const qid = e.target.name;
         const val = e.target.value;
         const subWrap = document.getElementById(`sub-wrap-${qid}`);
-        if (subWrap) {
-          if (val.includes('그렇지 않다') || val.includes('불만족') || val.includes('1점') || val.includes('2점')) {
+        if (subWrap && subWrap.dataset.triggers) {
+          try {
+            const triggers = JSON.parse(subWrap.dataset.triggers);
+            const isNegative = val.includes('그렇지 않다') || val.includes('불만족') || val.includes('1점') || val.includes('2점') || (Array.isArray(triggers) && triggers.includes(val));
+            if (isNegative) {
+              subWrap.style.display = 'block';
+            } else {
+              subWrap.style.display = 'none';
+              subWrap.querySelectorAll('input[type="radio"]').forEach(r => { r.checked = false; });
+              subWrap.querySelectorAll('textarea').forEach(t => { t.value = ''; });
+            }
+          } catch(err) {
+            console.warn('trigger parse err:', err);
+          }
+        }
+      });
+    });
+
+    // Checkbox '기타' Focus Handler
+    document.querySelectorAll('input[type="checkbox"]').forEach(chk => {
+      chk.addEventListener('change', (e) => {
+        if (e.target.value && e.target.value.includes('기타')) {
+          const subWrap = document.getElementById(`sub-wrap-${e.target.name}`);
+          if (subWrap) {
             subWrap.style.display = 'block';
-          } else {
-            subWrap.style.display = 'none';
+            const ta = subWrap.querySelector('textarea');
+            if (ta && e.target.checked) ta.focus();
           }
         }
       });
