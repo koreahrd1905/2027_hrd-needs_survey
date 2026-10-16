@@ -141,15 +141,7 @@
         const q3 = (sec.questions || []).find(q => q.id === 'q3');
 
         if (q1) {
-          const compOpts = q1.company_options || [
-            "흥국생명", "흥국화재", "흥국증권", "흥국자산운용", "고려저축은행", "예가람저축은행", "티시스", "기타"
-          ];
-          const deptOpts = q1.options || [
-            "관리부문 (선임계리, 준법감시, 감사, 경영기획, 경영지원, 리스크관리, IT, 정보보호, 자산운용 등)",
-            "업무부문 (상품전략, 고객업무, 소비자보호 등)",
-            "영업부문 (마케팅, GA영업, 전략영업, 다채널영업 등)",
-            "기타"
-          ];
+          const compOpts = q1.company_options || ["흥국생명", "흥국화재"];
 
           html += `
             <div class="question-card" id="q-card-q1">
@@ -157,56 +149,78 @@
                 <span class="question-num-badge">1</span>
                 <div class="question-title-text">${q1.title} <span class="req-star">*</span></div>
               </div>
-              <div class="demographics-grid-row" style="margin-top:0.85rem;">
+              <div class="demographics-grid-row" style="margin-top:0.85rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1rem;">
+                <!-- 1. 소속 회사 (콤보 상자) -->
                 <div class="demographic-card-box">
                   <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.95rem;font-weight:700;color:#1e3a8a;margin-bottom:0.6rem;">
-                    <span>🏢</span> ${q1.company_label || '소속 회사'} <span class="req-star">*</span>
+                    <span>🏢</span> ${q1.company_label || '소속 회사 (콤보 상자)'} <span class="req-star">*</span>
                   </label>
                   <select name="q1_company" id="select-q1-company" required class="select-styled">
                     <option value="" disabled selected>-- 소속 회사를 선택해 주십시오 --</option>
                     ${compOpts.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
                   </select>
+                  <div style="font-size:0.76rem;color:#64748b;margin-top:0.35rem;">* 소속 법인을 선택하십시오.</div>
                 </div>
+
+                <!-- 2. 실/본부 (콤보 상자) -->
                 <div class="demographic-card-box">
                   <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.95rem;font-weight:700;color:#1e3a8a;margin-bottom:0.6rem;">
-                    <span>📁</span> ${q1.dept_label || '소속 부문'} <span class="req-star">*</span>
+                    <span>🏛️</span> ${q1.division_label || '실/본부 (콤보 상자)'} <span class="req-star">*</span>
                   </label>
-                  <select name="q1_department" id="select-q1-department" required class="select-styled">
-                    <option value="" disabled selected>-- 소속 부문을 선택해 주십시오 --</option>
-                    ${deptOpts.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                  <select name="q1_division" id="select-q1-division" required disabled class="select-styled" style="background:#f8fafc;">
+                    <option value="" disabled selected>-- 회사를 먼저 선택해 주십시오 --</option>
                   </select>
+                  <div style="font-size:0.76rem;color:#64748b;margin-top:0.35rem;">* 소속 실/본부를 선택하십시오.</div>
+                </div>
+
+                <!-- 3. 소속 부서 (콤보 상자) -->
+                <div class="demographic-card-box">
+                  <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.95rem;font-weight:700;color:#1e3a8a;margin-bottom:0.6rem;">
+                    <span>📁</span> ${q1.dept_label || '소속 부서 (콤보 상자)'} <span class="req-star">*</span>
+                  </label>
+                  <select name="q1_department" id="select-q1-department" required disabled class="select-styled" style="background:#f8fafc;">
+                    <option value="" disabled selected>-- 실/본부를 먼저 선택해 주십시오 --</option>
+                  </select>
+                  <div style="font-size:0.76rem;color:#64748b;margin-top:0.35rem;">* 소속 부서(팀)를 선택하십시오.</div>
                 </div>
               </div>
             </div>
           `;
         }
 
-        if (q2 && q3) {
+                if (q2 && q3) {
           html += `
-            <div class="demographics-grid-row">
-              <div class="question-card demographic-card-box" id="q-card-q2" style="margin-bottom:0;border-bottom:none;">
-                <div class="question-title-row">
-                  <span class="question-num-badge">2</span>
-                  <div class="question-title-text">${q2.title} <span class="req-star">*</span></div>
-                </div>
-                <div style="margin-top:0.75rem;">
-                  <select name="q2" id="select-q2" required class="select-styled">
-                    <option value="" disabled selected>-- 직군을 선택해 주십시오 --</option>
-                    ${(q2.options || []).map(opt => `<option value="${opt}">${opt}</option>`).join('')}
-                  </select>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.15rem;margin-top:1.15rem;align-items:stretch;">
+              <!-- Q2 Card (직군) -->
+              <div class="demographic-card-box" id="q-card-q2" style="margin:0;box-sizing:border-box;background:#f8fafc;border:1.5px solid #bfdbfe;border-radius:12px;padding:1.35rem 1.4rem;display:flex;flex-direction:column;justify-content:space-between;">
+                <div>
+                  <div class="question-title-row" style="display:flex;align-items:flex-start;gap:0.6rem;margin-bottom:0.75rem;">
+                    <span class="question-num-badge" style="background:#1e40af;color:white;font-weight:800;border-radius:6px;padding:0.2rem 0.6rem;font-size:0.85rem;flex-shrink:0;">2</span>
+                    <div class="question-title-text" style="font-size:1.02rem;font-weight:700;color:#0f172a;line-height:1.5;">${q2.title} <span class="req-star" style="color:#dc2626;">*</span></div>
+                  </div>
+                  <div style="margin-top:0.75rem;">
+                    <select name="q2" id="select-q2" required disabled class="select-styled" style="width:100%;background:#f8fafc;box-sizing:border-box;">
+                      <option value="" disabled selected>-- 회사를 먼저 선택해 주십시오 --</option>
+                    </select>
+                    <div style="font-size:0.76rem;color:#64748b;margin-top:0.35rem;">* 소속 회사에 따른 직군 구분을 선택하십시오.</div>
+                  </div>
                 </div>
               </div>
 
-              <div class="question-card demographic-card-box" id="q-card-q3" style="margin-bottom:0;border-bottom:none;">
-                <div class="question-title-row">
-                  <span class="question-num-badge">3</span>
-                  <div class="question-title-text">${q3.title} <span class="req-star">*</span></div>
-                </div>
-                <div style="margin-top:0.75rem;">
-                  <select name="q3" id="select-q3" required class="select-styled">
-                    <option value="" disabled selected>-- 직급/직책을 선택해 주십시오 --</option>
-                    ${(q3.options || []).map(opt => `<option value="${opt}">${opt}</option>`).join('')}
-                  </select>
+              <!-- Q3 Card (직급/직책) -->
+              <div class="demographic-card-box" id="q-card-q3" style="margin:0;box-sizing:border-box;background:#f8fafc;border:1.5px solid #bfdbfe;border-radius:12px;padding:1.35rem 1.4rem;display:flex;flex-direction:column;justify-content:space-between;">
+                <div>
+                  <div class="question-title-row" style="display:flex;align-items:flex-start;gap:0.6rem;margin-bottom:0.75rem;">
+                    <span class="question-num-badge" style="background:#1e40af;color:white;font-weight:800;border-radius:6px;padding:0.2rem 0.6rem;font-size:0.85rem;flex-shrink:0;">3</span>
+                    <div class="question-title-text" style="font-size:1.02rem;font-weight:700;color:#0f172a;line-height:1.5;">${q3.title} <span class="req-star" style="color:#dc2626;">*</span></div>
+                  </div>
+                  <div style="margin-top:0.75rem;">
+                    <select name="q3" id="select-q3" required class="select-styled" style="width:100%;background:white;box-sizing:border-box;">
+                      <option value="" disabled selected>-- 직급/직책을 선택해 주십시오 --</option>
+                      ${(q3.options || []).map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                    </select>
+                    <div style="font-size:0.76rem;color:#64748b;margin-top:0.35rem;">* 현재 본인의 직급/직책을 선택하십시오.</div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -262,7 +276,7 @@
               <div class="option-grid-5">
                 ${(q.options || []).map(opt => `
                   <label class="option-card-label-5">
-                    <input type="radio" name="${q.id}" value="${opt}" required />
+                    <input type="radio" name="${q.id}" value="${opt}" ${q.required ? "required" : ""} />
                     <span>${opt}</span>
                   </label>
                 `).join('')}
@@ -379,11 +393,119 @@
       });
     });
 
+    // Dynamic Org Cascading (Company -> Division -> Department) & Job Group (Q2)
+    const selComp = document.getElementById('select-q1-company');
+    const selDiv = document.getElementById('select-q1-division');
+    const selDept = document.getElementById('select-q1-department');
+    const selJg = document.getElementById('select-q2');
+
+    const q1Meta = (questionsData && questionsData[0]?.questions?.find(q => q.id === 'q1')) || {};
+    const q2Meta = (questionsData && questionsData[0]?.questions?.find(q => q.id === 'q2')) || {};
+    const orgData = q1Meta.org_structure || {};
+    const jobGroupMap = q2Meta.company_job_groups || {
+      '흥국생명': ['① 일반직', '② 사무직', '③ 기타'],
+      '흥국화재': ['① 일반직', '② 영업직', '③ 사무지원직', '④ 기타(SIU직 등)']
+    };
+
+    if (selComp) {
+      selComp.addEventListener('change', () => {
+        const comp = selComp.value;
+
+        // 1. Division
+        if (selDiv) {
+          selDiv.innerHTML = '<option value="" disabled selected>-- 실/본부를 선택해 주십시오 (콤보 상자) --</option>';
+          const divisions = orgData[comp] ? Object.keys(orgData[comp]).sort() : [];
+          divisions.forEach(d => {
+            const opt = document.createElement('option');
+            opt.value = d;
+            opt.textContent = d;
+            selDiv.appendChild(opt);
+          });
+          selDiv.disabled = (divisions.length === 0);
+          selDiv.style.background = 'white';
+        }
+
+        // 2. Department Reset
+        if (selDept) {
+          selDept.innerHTML = '<option value="" disabled selected>-- 실/본부를 먼저 선택해 주십시오 --</option>';
+          selDept.disabled = true;
+          selDept.style.background = '#f8fafc';
+        }
+
+        // 3. Job Group (Q2)
+        if (selJg) {
+          selJg.innerHTML = '<option value="" disabled selected>-- 직군을 선택해 주십시오 --</option>';
+          const list = jobGroupMap[comp] || ['① 일반직', '② 사무직', '③ 기타'];
+          list.forEach(jg => {
+            const opt = document.createElement('option');
+            opt.value = jg;
+            opt.textContent = jg;
+            selJg.appendChild(opt);
+          });
+          selJg.disabled = false;
+          selJg.style.background = 'white';
+        }
+      });
+    }
+
+    if (selDiv) {
+      selDiv.addEventListener('change', () => {
+        const comp = selComp ? selComp.value : '';
+        const div = selDiv.value;
+        if (selDept && orgData[comp] && orgData[comp][div]) {
+          selDept.innerHTML = '<option value="" disabled selected>-- 소속 부서를 선택해 주십시오 (콤보 상자) --</option>';
+          const depts = orgData[comp][div];
+          depts.forEach(d => {
+            const opt = document.createElement('option');
+            opt.value = d;
+            opt.textContent = d;
+            selDept.appendChild(opt);
+          });
+          selDept.disabled = false;
+          selDept.style.background = 'white';
+        }
+      });
+    }
+
+    // Button 1: 설문 응답 제출
     const btnSubmit = document.getElementById('btn-submit-survey');
     if (btnSubmit) {
       btnSubmit.addEventListener('click', async (e) => {
         e.preventDefault();
+        if (window.isSurveySubmitted) {
+          showToast('이미 설문 응답이 정상 제출되었습니다. 우측의 [이벤트(커피쿠폰) 응모 하기] 버튼을 눌러주십시오.');
+          return;
+        }
         await submitSurveyForm();
+      });
+    }
+
+    // Button 2: 이벤트(커피쿠폰) 응모 하기
+    const btnEvent = document.getElementById('btn-event-entry');
+    if (btnEvent) {
+      btnEvent.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (!window.isSurveySubmitted) {
+          showToast('⚠️ 설문응답 제출 후 응모 해 주세요');
+          // Highlight submit button
+          const sBtn = document.getElementById('btn-submit-survey');
+          if (sBtn) {
+            sBtn.style.transform = 'scale(1.05)';
+            sBtn.style.boxShadow = '0 0 20px #ef4444';
+            setTimeout(() => {
+              sBtn.style.transform = '';
+              sBtn.style.boxShadow = '';
+            }, 1200);
+          }
+          return;
+        }
+
+        // Open Bukang game popup
+        if (window.bukangGame) {
+          window.bukangGame.open(window.submittedSurveyId || 'resp_' + Date.now());
+        } else {
+          renderSurveyCompletionView();
+        }
       });
     }
   }
@@ -402,8 +524,9 @@
 
         if (q.id === 'q1' || q.type === 'company_and_department') {
           const comp = form.querySelector('[name="q1_company"]')?.value;
+          const div = form.querySelector('[name="q1_division"]')?.value;
           const dept = form.querySelector('[name="q1_department"]')?.value;
-          isFilled = !!(comp && dept && comp.trim() && dept.trim());
+          isFilled = !!(comp && div && dept && comp.trim() && div.trim() && dept.trim());
         } else if (q.type === 'select') {
           const val = form.querySelector(`select[name="${q.id}"]`)?.value;
           isFilled = !!(val && val.trim());
@@ -455,6 +578,8 @@
 
     const payload = {
       action: 'survey_submit',
+      company: answers['q1_company'] || '흥국생명',
+      division: answers['q1_division'] || '',
       department: answers['q1_department'] || '기타',
       job_group: answers['q2'] || '일반직',
       position: answers['q3'] || '대리',
@@ -465,16 +590,35 @@
     };
 
     const btnSubmit = document.getElementById('btn-submit-survey');
-    btnSubmit.disabled = true;
-    btnSubmit.innerHTML = '<span>⏳</span> 설문 응답을 등록 중입니다...';
+    if (btnSubmit) {
+      btnSubmit.disabled = true;
+      btnSubmit.innerHTML = '<span>⏳</span> 설문 응답을 등록 중입니다...';
+    }
 
-    const googleUrl = window.GOOGLE_SCRIPT_URL && window.GOOGLE_SCRIPT_URL.startsWith('http') 
+    const googleUrl = (typeof window.GOOGLE_SCRIPT_URL === 'string') && window.GOOGLE_SCRIPT_URL.startsWith('http') 
       ? window.GOOGLE_SCRIPT_URL 
-      : null;
+      : 'https://script.google.com/macros/s/AKfycbwGgiOiLxFy6a7-gL44E7igImvQ7S-1Ls5wI31MkIN_pzpNjFhp-7kjNS-Vay37KLk/exec';
 
+    // 1. [핵심] 구글 스프레드시트로 브라우저에서 직접 무조건 즉시 전송 (Dual Direct Dispatch)
+    if (googleUrl) {
+      try {
+        fetch(googleUrl, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        }).then(() => {
+          console.log('✅ [구글 시트 실시간 전송 성공] 데이터가 구글 스프레드시트로 즉시 발송되었습니다.');
+        }).catch(err => {
+          console.warn('Google direct fetch warning:', err);
+        });
+      } catch(e) {
+        console.warn('Google direct dispatch exception:', e);
+      }
+    }
+
+    // 2. 서버 API로 응답 저장 (로컬 DB 및 백업 보관)
     let res = null;
-
-    // 1순위: Render 서버 API로 전송 (서버가 구글 시트와 로컬에 안정 전달 -> CORS 에러 0%)
     try {
       const serverRes = await fetch('/api/survey/submit', {
         method: 'POST',
@@ -485,24 +629,7 @@
         res = await serverRes.json();
       }
     } catch(err) {
-      console.warn('Server API fetch warning, trying fallback:', err);
-    }
-
-    // 2순위: 서버 실패 시 구글 앱스 스크립트 직접 전송 시도
-    if (!res || !res.success) {
-      if (googleUrl) {
-        try {
-          await fetch(googleUrl, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify(payload)
-          });
-          res = { success: true, id: 'resp_' + Date.now() };
-        } catch(e) {
-          console.warn('Google direct fetch warning:', e);
-        }
-      }
+      console.warn('Server API fetch warning:', err);
     }
 
     // 3순위 (절대 안전망): 사용자의 설문 완료가 에러로 중단되지 않고 100% 럭키드로우로 연결
@@ -515,20 +642,33 @@
     
     window.currentSurveySubmission = {
       id: res.id,
+      company: payload.company || '흥국생명',
       department: payload.department,
       job_group: payload.job_group,
       position: payload.position
     };
 
-    if (window.bukangGame) {
-      setTimeout(() => {
-        window.bukangGame.open(res.id);
-      }, 300);
-    } else {
-      setTimeout(() => {
-        renderSurveyCompletionView();
-      }, 500);
+    // 설문 응답 제출 완료 상태 설정
+    window.isSurveySubmitted = true;
+    window.submittedSurveyId = res.id;
+
+    // 설문 제출 버튼 상태 업데이트
+    if (btnSubmit) {
+      btnSubmit.disabled = true;
+      btnSubmit.style.background = '#10b981';
+      btnSubmit.style.boxShadow = '0 6px 18px rgba(16,185,129,0.35)';
+      btnSubmit.style.cursor = 'default';
+      btnSubmit.innerHTML = '<span>✅</span> 설문 응답 제출 완료';
     }
+
+    // 이벤트 응모 버튼 하이라이트 안내
+    const btnEvt = document.getElementById('btn-event-entry');
+    if (btnEvt) {
+      btnEvt.style.animation = 'pulse 1.5s infinite';
+      btnEvt.innerHTML = '<span>🎁</span> 지금 바로 이벤트(커피쿠폰) 응모 하기!';
+    }
+
+    showToast('🎉 설문 응답이 성공적으로 등록되었습니다! 이제 우측의 [이벤트(커피쿠폰) 응모 하기] 버튼을 눌러주십시오.');
   }
 
   document.addEventListener('DOMContentLoaded', () => {

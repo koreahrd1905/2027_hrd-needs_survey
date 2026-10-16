@@ -10,7 +10,7 @@
   <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
   
   <!-- Stylesheet -->
-  <link rel="stylesheet" href="/static/css/styles.css">
+  <link rel="stylesheet" href="/static/css/styles.css?v=1792137686">
   
   <style>
     /* Dedicated Respondent Mode Polish */
@@ -671,7 +671,8 @@
         </h1>
         <p class="banner-desc-text">
           2027년 전사 인재육성계획 수립에 앞서 임직원 여러분의 소중한 의견을 반영하고자 설문조사를 실시합니다.<br>
-          <span style="display:inline-block;margin-top:0.45rem;color:#bfdbfe;font-weight:600;">귀하의 솔직하고 적극적인 참여를 부탁드립니다.</span>
+          <span style="display:inline-block;margin-top:0.45rem;color:#bfdbfe;font-weight:600;">귀하의 솔직하고 적극적인 참여를 부탁드립니다.</span><br>
+          <span style="display:inline-block;margin-top:0.45rem;color:#fef08a;font-weight:700;font-size:0.95rem;">• 설문문항은 (<span style="color:#f97316;font-weight:900;">*</span>) 필수답변 문항과 선택답변 문항으로 구분 (응답 소요시간: 5분)</span>
         </p>
 
         <!-- 3 Info Cards (Balanced 3-column Grid) -->
@@ -682,7 +683,7 @@
           </div>
           <div class="banner-info-card">
             <div class="banner-info-label">📅 설문 기간</div>
-            <div class="banner-info-val">2026년 10월 15일 ~ 10월 23일</div>
+            <div class="banner-info-val">2026년 10월 19일 ~   </div>
           </div>
           <div class="banner-info-card">
             <div class="banner-info-label">🎁 참여 혜택</div>
@@ -702,11 +703,19 @@
 
   </main>
 
-  <!-- Submit Bottom Floating Bar -->
+  <!-- Submit Bottom Floating Bar with 2 Dedicated Buttons -->
   <div class="submit-bar" id="submit-bar" style="display:none;">
-    <button class="btn-submit-survey" id="btn-submit-survey">
-      <span>🎉</span> 설문 제출 및 스타벅스 커피쿠폰 이벤트 응모하기
-    </button>
+    <div style="display:flex;justify-content:center;align-items:center;gap:1.25rem;flex-wrap:wrap;max-width:850px;margin:0 auto;">
+      <!-- Button 1: 설문 응답 제출 -->
+      <button type="button" class="btn-action-survey" id="btn-submit-survey" style="background:linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);color:white;border:none;padding:1.05rem 2.8rem;font-size:1.15rem;font-weight:800;border-radius:14px;cursor:pointer;box-shadow:0 6px 20px rgba(30,64,175,0.35);transition:all 0.25s ease;display:inline-flex;align-items:center;gap:0.6rem;">
+        <span>📝</span> 설문 응답 제출
+      </button>
+
+      <!-- Button 2: 이벤트(커피쿠폰) 응모 하기 -->
+      <button type="button" class="btn-action-event" id="btn-event-entry" style="background:linear-gradient(135deg, #059669 0%, #047857 100%);color:white;border:none;padding:1.05rem 2.8rem;font-size:1.15rem;font-weight:800;border-radius:14px;cursor:pointer;box-shadow:0 6px 20px rgba(5,150,105,0.35);transition:all 0.25s ease;display:inline-flex;align-items:center;gap:0.6rem;">
+        <span>☕</span> 이벤트(커피쿠폰) 응모 하기
+      </button>
+    </div>
   </div>
 
   <!-- Toast Notification -->
@@ -714,7 +723,43 @@
 
   <!-- Scripts -->
   <script src="/config.js"></script>
-  <script src="/static/js/bukang_game.js"></script>
-  <script src="/static/js/survey_app.js"></script>
+    <script src="/static/js/bukang_game_v1.js?v=20261016_v3"></script>
+  <script src="/static/js/bukang_game_v2.js?v=20261016_v3"></script>
+  <script>
+    // 부캉이 게임 버전 동적 스위처 (1: 기존 추첨 모드, 2: 실시간 선착순 레이스)
+    (function() {
+      function activateVersion(ver) {
+        window.ACTIVE_GAME_VERSION = ver;
+        if (ver === 1 && window.bukangGameV1) {
+          window.bukangGame = window.bukangGameV1;
+          console.log('🎮 [부캉이 게임 1] 활성화 완료 (기존 추첨 모드)');
+        } else if (ver === 2 && window.bukangGameV2) {
+          window.bukangGame = window.bukangGameV2;
+          console.log('🎮 [부캉이 게임 2] 활성화 완료 (실시간 선착순 레이스)');
+        } else {
+          window.bukangGame = window.bukangGameV2 || window.bukangGameV1;
+        }
+      }
+
+      var urlParams = new URLSearchParams(window.location.search);
+      var urlVer = urlParams.get('game');
+      if (urlVer) {
+        activateVersion(parseInt(urlVer));
+      } else {
+        activateVersion(2);
+        if (window.fetch) {
+          fetch('/api/event/settings')
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+              if (d && d.success && d.settings && d.settings.game_version) {
+                activateVersion(parseInt(d.settings.game_version));
+              }
+            })
+            .catch(function(e) {});
+        }
+      }
+    })();
+  </script>
+  <script src="/static/js/survey_app.js?v=1792130651"></script>
 </body>
 </html>

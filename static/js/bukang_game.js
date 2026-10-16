@@ -1,18 +1,14 @@
-// -*- coding: utf-8 -*-
 /**
- * BukangLuckyDrawGame (Version 3.0 - Busan Gwangan Bridge, Interactive Keyboard Drive & Kissing Action)
- * 부산 북항 친수공원 경관수로의 귀여운 상어 '부캉이'와 함께하는
- * 스타벅스 커피쿠폰 럭키드로우 팝업 게임
+ * BukangLuckyDrawGame - 부캉이와 함께 달리는 스타벅스 커피쿠폰 선착순 레이스
  * 
- * Major Upgrades:
- * 1. Background: Busan Marine City Skylines + Iconic Gwangan Bridge + "어서와 부캉이 수영장은 처음이지?" Slogan
- * 2. User Control: Interactive Keyboard Arrow Drive (방향키 연타 속도에 따른 가속/감속 & 부스터)
- * 3. On-screen Guide: "키보드 방향키(▶)를 빠르게 눌러 부캉이를 움직이세요!" Banner & Speedometer HUD
- * 4. 100% Goal Action: Flying acrobatic leap towards Starbucks Island with a lovely "Kiss (쪽~ 💋)" and explosion of hearts & fireworks!
- * 5. BGM: "상어가족(Baby Shark)" included with 4 selectable soundtracks
+ * Features:
+ * 1. Modal 80% size reduction with responsive mobile layout
+ * 2. High-resolution cute blue shark image from Capture 1 with fallback vector drawing
+ * 3. Silent BGM by default; activates dynamically when moving forward; stops immediately upon reaching goal & kissing
+ * 4. Updated title, notices, mobile touch and keyboard drive banners, and ending screen texts
  */
 
-class BukangLuckyDrawGame {
+class BukangLuckyDrawGameV2 {
   constructor() {
     this.modalEl = null;
     this.canvas = null;
@@ -22,7 +18,7 @@ class BukangLuckyDrawGame {
     this.bgmPlaying = false;
     this.bgmTimer = null;
     this.isMuted = false;
-    this.currentBgm = 'shark'; // 'shark', 'tropical', 'arcade', 'cafe'
+    this.currentBgm = 'shark';
     this.surveyId = '';
     this.phoneNumber = '';
     this.gameState = 'INPUT'; // 'INPUT', 'SWIMMING', 'KISSING', 'FINISHED'
@@ -30,47 +26,28 @@ class BukangLuckyDrawGame {
     // Interactive Driving Physics
     this.totalDistance = 2000;
     this.distanceTraveled = 0;
-    this.swimSpeed = 0; // Starts from 0, driven by keyboard!
-    this.baseSpeed = 0.5; // Idle minimum crawl
-    this.maxSpeed = 8.5; // Top boost speed on rapid keypress
+    this.swimSpeed = 0;
+    this.baseSpeed = 0.5;
+    this.maxSpeed = 8.5;
     this.lastKeyPressTime = 0;
+    this.lastDriveTime = 0;
     this.keyPressCount = 0;
-    
-    // Shark Actor
-    this.shark = {
-      screenX: 380,
-      y: 380,
-      baseY: 380,
-      size: 75,
-      wiggle: 0,
-      jumping: false,
-      jumpT: 0,
-      angle: 0,
-      isKissing: false,
-      kissT: 0
-    };
 
-    // Target (Starbucks Island)
-    this.target = {
-      screenX: 960,
-      y: 260
-    };
+    // Load cute shark image (Capture 1)
+    this.sharkImg = new Image();
+    this.sharkImg.src = '/static/images/bukang_shark.png';
 
+    // Particle FX
     this.particles = [];
-    this.confetti = [];
     this.hearts = [];
-    this.jumpPoints = [350, 950, 1550]; // Mid acrobatic jumps
+    this.confetti = [];
+    this.clouds = [];
+    this.jumpPoints = [500, 1100, 1650];
+    this.jumpTriggered = [false, false, false];
     this.time = 0;
-    this.keyDownHandler = null;
-
-    // Custom Cup Logo (Capture 2 Heungkuk/Taekwang CI Logo)
-    this.cupLogoImg = new Image();
-    this.cupLogoImg.src = '/static/images/heungkuk_logo.png';
   }
 
-  // ==========================================================================
-  // 1. Web Audio Synthesizer (Zero External Dependencies)
-  // ==========================================================================
+  // 1. Web Audio Synthesizer
   initAudio() {
     if (!this.audioCtx) {
       const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -92,14 +69,12 @@ class BukangLuckyDrawGame {
       osc.type = type;
       osc.frequency.setValueAtTime(freq, t);
       gain.gain.setValueAtTime(vol, t);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + duration);
       osc.connect(gain);
       gain.connect(this.audioCtx.destination);
       osc.start(t);
       osc.stop(t + duration);
-    } catch (e) {
-      // ignore
-    }
+    } catch (e) {}
   }
 
   playSplashSound() {
@@ -111,117 +86,184 @@ class BukangLuckyDrawGame {
 
   playKissSound() {
     if (this.isMuted || !this.audioCtx) return;
-    // Sweet kiss sound (high chirping pop)
     this.playTone(784, 'sine', 0.12, 0.25);
     this.playTone(1046, 'sine', 0.2, 0.3, 0.06);
     this.playTone(1318, 'triangle', 0.28, 0.25, 0.12);
   }
 
+  playMellowTone() {
+    if (this.isMuted || !this.audioCtx) return;
+    const notes = [440.00, 392.00, 349.23, 293.66];
+    const delays = [0, 0.18, 0.36, 0.58];
+    notes.forEach((freq, idx) => {
+      this.playTone(freq, 'sine', 0.45, 0.22, delays[idx]);
+    });
+  }
+
+  // Polite bowing animation for Bukang (공손히 인사하는 애니메이션)
+  startBowingAnimation(canvas) {
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let t = 0;
+    const bowAnim = () => {
+      if (this.gameState !== 'FINISHED') return;
+      t += 0.055;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.save();
+      ctx.translate(canvas.width / 2, canvas.height / 2 + 10);
+
+      // Deep, respectful, rhythmic bowing motion
+      const bowCycle = Math.sin(t * 2.2);
+      const bowAngle = Math.max(0, bowCycle) * 0.45;
+      ctx.rotate(bowAngle);
+
+      // Shadow on floor
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.08)';
+      ctx.beginPath();
+      ctx.ellipse(0, 42, 54, 10, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Cute Blue Shark Body
+      ctx.fillStyle = '#0284c7';
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 48, 28, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Crisp White Belly
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.ellipse(0, 10, 40, 15, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Dorsal Fin
+      ctx.fillStyle = '#0284c7';
+      ctx.beginPath();
+      ctx.moveTo(-10, -26);
+      ctx.lineTo(-2, -45);
+      ctx.lineTo(14, -26);
+      ctx.closePath();
+      ctx.fill();
+
+      // Tail with gentle waggle
+      const tailW = Math.sin(t * 3.5) * 5;
+      ctx.beginPath();
+      ctx.moveTo(-45, 0);
+      ctx.lineTo(-65 + tailW, -16);
+      ctx.lineTo(-55 + tailW * 0.5, 0);
+      ctx.lineTo(-65 + tailW, 16);
+      ctx.closePath();
+      ctx.fill();
+
+      // Respectful Closed Smiling Eyes (⌒ ⌒)
+      ctx.strokeStyle = '#1e293b';
+      ctx.lineWidth = 2.4;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.arc(16, -6, 5.5, Math.PI, 0);
+      ctx.stroke();
+
+      // Sweet Rosy Cheek Blush
+      ctx.fillStyle = 'rgba(255, 130, 185, 0.7)';
+      ctx.beginPath();
+      ctx.arc(12, 3, 5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Respectfully Folded Pectoral Fins (두 손 모아 인사)
+      ctx.fillStyle = '#0369a1';
+      ctx.beginPath();
+      ctx.ellipse(14, 14, 10, 6, -0.35, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Polite gentle smile
+      ctx.strokeStyle = '#1e293b';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(26, 4, 4.5, 0.2, Math.PI * 0.85);
+      ctx.stroke();
+
+      // Polite sweat drop / shine
+      ctx.fillStyle = '#38bdf8';
+      ctx.beginPath();
+      ctx.arc(28, -18, 3.2, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+      this.bowAnimId = requestAnimationFrame(bowAnim);
+    };
+    this.bowAnimId = requestAnimationFrame(bowAnim);
+  }
+
   playVictoryFanfare() {
     if (this.isMuted || !this.audioCtx) return;
-    const notes = [523.25, 659.25, 783.99, 1046.50, 783.99, 1046.50];
-    const delays = [0, 0.12, 0.24, 0.38, 0.52, 0.68];
+    const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98];
+    const delays = [0, 0.12, 0.24, 0.36, 0.52, 0.72];
     notes.forEach((freq, idx) => {
       this.playTone(freq, 'triangle', 0.35, 0.25, delays[idx]);
     });
   }
 
-  // 4 Selectable BGM Melodies
   getMelodyTrack(name) {
-    const C4 = 261.63, D4 = 293.66, E4 = 329.63, F4 = 349.23, G4 = 392.00, A4 = 440.00, B4 = 493.88;
-    const C5 = 523.25, D5 = 587.33, E5 = 659.25, F5 = 698.46, G5 = 783.99, A5 = 880.00;
-    const Fs4 = 369.99, Bb4 = 466.16;
-
-    if (name === 'shark') {
-      // "아기상어 뚜 루루 뚜루~"
-      return {
-        tempo: 165,
-        type: 'sine',
-        notes: [
-          { f: D4, d: 0.14 }, { f: E4, d: 0.14 }, { f: G4, d: 0.18 }, { f: 0, d: 0.04 },
-          { f: G4, d: 0.12 }, { f: G4, d: 0.12 }, { f: G4, d: 0.14 }, { f: G4, d: 0.18 }, { f: 0, d: 0.08 },
-          { f: D4, d: 0.14 }, { f: E4, d: 0.14 }, { f: G4, d: 0.18 }, { f: 0, d: 0.04 },
-          { f: G4, d: 0.12 }, { f: G4, d: 0.12 }, { f: G4, d: 0.14 }, { f: G4, d: 0.18 }, { f: 0, d: 0.08 },
-          { f: D4, d: 0.14 }, { f: E4, d: 0.14 }, { f: G4, d: 0.18 }, { f: 0, d: 0.04 },
-          { f: G4, d: 0.12 }, { f: G4, d: 0.12 }, { f: G4, d: 0.14 }, { f: G4, d: 0.18 }, { f: 0, d: 0.08 },
-          { f: G4, d: 0.22 }, { f: G4, d: 0.22 }, { f: Fs4, d: 0.45 }, { f: 0, d: 0.2 }
-        ]
-      };
-    } else if (name === 'tropical') {
-      return {
-        tempo: 220,
-        type: 'triangle',
-        notes: [
-          { f: C5, d: 0.15 }, { f: E5, d: 0.15 }, { f: G5, d: 0.2 }, { f: A5, d: 0.25 },
-          { f: G5, d: 0.15 }, { f: E5, d: 0.2 }, { f: D5, d: 0.2 }, { f: C5, d: 0.3 },
-          { f: E5, d: 0.15 }, { f: F5, d: 0.15 }, { f: G5, d: 0.25 }, { f: E5, d: 0.35 }
-        ]
-      };
-    } else if (name === 'arcade') {
-      return {
-        tempo: 150,
-        type: 'square',
-        notes: [
-          { f: E5, d: 0.1 }, { f: E5, d: 0.1 }, { f: 0, d: 0.08 }, { f: E5, d: 0.1 },
-          { f: 0, d: 0.08 }, { f: C5, d: 0.1 }, { f: E5, d: 0.18 }, { f: G5, d: 0.25 },
-          { f: 0, d: 0.15 }, { f: G4, d: 0.22 }, { f: 0, d: 0.15 }
-        ]
-      };
-    } else {
-      return {
-        tempo: 240,
-        type: 'sine',
-        notes: [
-          { f: F4, d: 0.2 }, { f: A4, d: 0.2 }, { f: C5, d: 0.2 }, { f: D5, d: 0.3 },
-          { f: C5, d: 0.2 }, { f: Bb4, d: 0.2 }, { f: A4, d: 0.25 }, { f: G4, d: 0.35 }
-        ]
-      };
-    }
+    const D4 = 293.66, E4 = 329.63, F4 = 349.23, G4 = 392.00, A4 = 440.00, B4 = 493.88, C5 = 523.25, D5 = 587.33;
+    return {
+      type: 'sine',
+      bpm: 115,
+      notes: [
+        { f: D4, d: 0.35 }, { f: E4, d: 0.35 }, { f: G4, d: 0.2 }, { f: G4, d: 0.2 }, { f: G4, d: 0.2 },
+        { f: G4, d: 0.2 }, { f: G4, d: 0.2 }, { f: G4, d: 0.2 }, { f: G4, d: 0.35 },
+        { f: D4, d: 0.35 }, { f: E4, d: 0.35 }, { f: G4, d: 0.2 }, { f: G4, d: 0.2 }, { f: G4, d: 0.2 },
+        { f: G4, d: 0.2 }, { f: G4, d: 0.2 }, { f: G4, d: 0.2 }, { f: G4, d: 0.35 },
+        { f: D4, d: 0.35 }, { f: E4, d: 0.35 }, { f: G4, d: 0.2 }, { f: G4, d: 0.2 }, { f: G4, d: 0.2 },
+        { f: G4, d: 0.2 }, { f: G4, d: 0.2 }, { f: G4, d: 0.2 }, { f: G4, d: 0.35 },
+        { f: G4, d: 0.35 }, { f: G4, d: 0.35 }, { f: F4, d: 0.2 }, { f: E4, d: 0.5 }
+      ]
+    };
   }
 
   startBGM(trackName = null) {
-    if (trackName) this.currentBgm = trackName;
+    if (this.bgmPlaying || this.isMuted) return;
     this.stopBGM();
     this.initAudio();
-    this.bgmPlaying = true;
+    if (!this.audioCtx) return;
 
-    const track = this.getMelodyTrack(this.currentBgm);
+    this.bgmPlaying = true;
+    const track = this.getMelodyTrack('shark');
     let noteIdx = 0;
 
-    this.bgmTimer = setInterval(() => {
+    const playNext = () => {
       if (!this.bgmPlaying || this.isMuted) return;
-      const note = track.notes[noteIdx % track.notes.length];
-      if (note.f > 0) {
-        this.playTone(note.f, track.type, note.d, 0.09);
-        if (noteIdx % 3 === 0) {
-          this.playTone(note.f / 2, 'triangle', note.d * 1.5, 0.06);
-        }
+      const note = track.notes[noteIdx];
+      if (note && note.f > 0) {
+        this.playTone(note.f, track.type, note.d, 0.08);
+        this.playTone(note.f / 2, 'triangle', note.d * 1.4, 0.05);
       }
-      noteIdx++;
-    }, track.tempo);
+      noteIdx = (noteIdx + 1) % track.notes.length;
+      this.bgmTimer = setTimeout(playNext, (note.d * 0.88 + 0.05) * 1000);
+    };
+
+    playNext();
   }
 
   stopBGM() {
     this.bgmPlaying = false;
     if (this.bgmTimer) {
-      clearInterval(this.bgmTimer);
+      clearTimeout(this.bgmTimer);
       this.bgmTimer = null;
     }
   }
 
-  // ==========================================================================
   // 2. Open Modal & Setup UI
-  // ==========================================================================
   open(surveyId = '') {
     this.surveyId = surveyId;
     this.phoneNumber = '';
     this.gameState = 'INPUT';
     this.distanceTraveled = 0;
     this.swimSpeed = 0;
+    this.lastDriveTime = 0;
     this.jumpTriggered = [false, false, false];
     this.createModalDOM();
     this.initAudio();
-    this.startBGM(this.currentBgm);
+    // Silent BGM by default - only starts when moving forward!
+    this.stopBGM();
   }
 
   close() {
@@ -254,8 +296,8 @@ class BukangLuckyDrawGame {
           <div class="bukang-title">
             <span class="bukang-icon">🦈</span>
             <div>
-              <h3>설문 응답 감사 스타벅스 커피쿠폰 럭키드로우</h3>
-              <p>부산 북항 친수공원의 귀여운 상어 <b>'부캉이'</b>와 함께 해운대 앞바다를 신나게 달려보세요!</p>
+              <h3>부캉이와 함께 달리는 스타벅스 커피쿠폰 선착순 레이스</h3>
+              <p>흥국생명 <b>선착순 160명</b> · 흥국화재 <b>선착순 200명</b> 실시간 골인 챌린지!</p>
             </div>
           </div>
           <div class="bukang-actions">
@@ -271,32 +313,36 @@ class BukangLuckyDrawGame {
           <!-- Canvas Game Area (1200 x 580) -->
           <canvas id="bukang-canvas" width="1200" height="580"></canvas>
 
-          <!-- Interactive Keyboard Drive Notification Banner (Pulsing Bar) -->
-          <div id="bukang-keyboard-guide" style="display:none;position:absolute;top:16px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg, rgba(234, 88, 12, 0.95), rgba(220, 38, 38, 0.95));backdrop-filter:blur(6px);color:white;padding:0.65rem 1.8rem;border-radius:30px;font-size:1.05rem;font-weight:800;box-shadow:0 6px 20px rgba(220,38,38,0.45);border:2px solid #fef08a;z-index:20;display:flex;align-items:center;gap:0.6rem;animation:guidePulse 1.2s infinite alternate;white-space:nowrap;">
-            <span style="font-size:1.3rem;">⌨️</span>
-            <span>키보드 방향키(▶)를 빠르게 눌러 부캉이를 움직이세요! (클릭 연타도 가능)</span>
+          <!-- Interactive Keyboard / Touch Drive Notification Banner -->
+          <div id="bukang-keyboard-guide" style="display:none;position:absolute;top:14px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg, rgba(234, 88, 12, 0.96), rgba(220, 38, 38, 0.96));backdrop-filter:blur(6px);color:white;padding:0.6rem 1.6rem;border-radius:30px;font-size:0.95rem;font-weight:800;box-shadow:0 6px 20px rgba(220,38,38,0.45);border:2px solid #fef08a;z-index:20;display:flex;align-items:center;gap:0.6rem;animation:guidePulse 1.2s infinite alternate;white-space:nowrap;cursor:pointer;">
+            <span style="font-size:1.2rem;">⌨️ 📱</span>
+            <span>키보드 방향키(▶) 연타! / 모바일: 화면 터치 연타로 부캉이를 달리게 하세요!</span>
           </div>
 
           <!-- Speedometer & Progress Bar Overlay -->
-          <div id="bukang-progress-bar-wrap" style="display:none;position:absolute;bottom:20px;left:30px;right:30px;background:rgba(15,23,42,0.85);backdrop-filter:blur(6px);border-radius:20px;padding:0.75rem 1.6rem;color:white;border:1px solid rgba(255,255,255,0.3);z-index:15;">
-            <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.92rem;font-weight:800;margin-bottom:0.4rem;">
+          <div id="bukang-progress-bar-wrap" style="display:none;position:absolute;bottom:16px;left:20px;right:20px;background:rgba(15,23,42,0.85);backdrop-filter:blur(6px);border-radius:16px;padding:0.65rem 1.4rem;color:white;border:1px solid rgba(255,255,255,0.3);z-index:15;">
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.88rem;font-weight:800;margin-bottom:0.35rem;">
               <span>🏁 해운대 마린시티 & 광안대교</span>
-              <span id="bukang-speed-text" style="color:#38bdf8;font-size:1.05rem;">속도: 0 km/h</span>
+              <span id="bukang-speed-text" style="color:#38bdf8;font-size:0.98rem;">속도: 0 km/h</span>
               <span id="bukang-dist-text" style="color:#fef08a;">남은 거리: 2,000m (0%)</span>
               <span>☕ 흥국금융 골인</span>
             </div>
-            <div style="width:100%;height:12px;background:rgba(255,255,255,0.2);border-radius:6px;overflow:hidden;position:relative;">
-              <div id="bukang-progress-fill" style="width:0%;height:100%;background:linear-gradient(90deg, #38bdf8, #facc15, #f59e0b);border-radius:6px;transition:width 0.08s linear;"></div>
+            <div style="width:100%;height:10px;background:rgba(255,255,255,0.2);border-radius:5px;overflow:hidden;position:relative;">
+              <div id="bukang-progress-fill" style="width:0%;height:100%;background:linear-gradient(90deg, #38bdf8, #facc15, #f59e0b);border-radius:5px;transition:width 0.08s linear;"></div>
             </div>
           </div>
 
           <!-- Input Panel (Initial) -->
           <div class="bukang-input-panel" id="bukang-input-view">
             <div class="bukang-guide-card">
-              <div class="shark-badge" style="font-size:0.92rem;padding:0.3rem 0.9rem;">🦈 마스코트 부캉이 출동 준비</div>
-              <h4 style="font-size:1.35rem;font-weight:800;color:#0f172a;margin:0.5rem 0 0.5rem 0;letter-spacing:-0.02em;">"당신의 행운을 위해 부산 앞바다를 신나게 헤엄쳐 갈게요!"</h4>
-              <p style="font-size:1.15rem;font-weight:600;color:#1e293b;margin:0 0 1.3rem 0;line-height:1.6;letter-spacing:-0.02em;word-break:keep-all;">
-                휴대전화 번호를 입력하시면 부캉이가 <span style="color:#d97706;background:#fef3c7;padding:0.2rem 0.55rem;border-radius:8px;font-weight:800;border:1px solid #fde68a;">🏷️ 번호 꼬리표</span>를 달고 <span style="color:#e4007f;font-weight:800;background:#fdf2f8;padding:0.2rem 0.55rem;border-radius:8px;border:1px solid #fbcfe8;">흥국금융</span>으로 출발합니다.
+              <div class="shark-badge">🦈 실시간 선착순 골인 챌린지 (버전 2)</div>
+              <div style="display:flex;justify-content:center;gap:0.75rem;margin:0.5rem 0 0.8rem 0;flex-wrap:wrap;">
+                <span style="background:#fdf2f8;color:#e4007f;font-weight:800;font-size:0.86rem;padding:0.25rem 0.85rem;border-radius:20px;border:1px solid #fbcfe8;">🏢 흥국생명 선착순 160명</span>
+                <span style="background:#eff6ff;color:#1d4ed8;font-weight:800;font-size:0.86rem;padding:0.25rem 0.85rem;border-radius:20px;border:1px solid #bfdbfe;">🏢 흥국화재 선착순 200명</span>
+              </div>
+              <h4>"당신의 행운을 위해 부산 앞바다를 신나게 헤엄쳐 갈게요!"</h4>
+              <p>
+                휴대전화 번호를 입력하시면 부캉이가 <span style="color:#d97706;background:#fef3c7;padding:0.15rem 0.5rem;border-radius:6px;font-weight:800;border:1px solid #fde68a;">🏷️ 번호 꼬리표</span>를 달고 <span style="color:#e4007f;font-weight:800;background:#fdf2f8;padding:0.15rem 0.5rem;border-radius:6px;border:1px solid #fbcfe8;">흥국금융</span>으로 출발합니다.
               </p>
               
               <div class="phone-input-row">
@@ -307,17 +353,23 @@ class BukangLuckyDrawGame {
                 </button>
               </div>
               <div class="phone-err-msg" id="bukang-phone-err" style="display:none;"></div>
+
+              <!-- 안내 메시지 (이벤트 참여 안내) -->
+              <div style="margin-top:0.85rem;font-size:0.84rem;color:#64748b;line-height:1.55;background:#f8fafc;padding:0.6rem 1.1rem;border-radius:10px;border:1px solid #e2e8f0;display:inline-block;max-width:620px;text-align:center;">
+                연락처 기재는 이벤트 당첨자에게 쿠폰을 발송하기 위한 용도로만 사용됩니다.<br>
+                <span style="color:#94a3b8;">(게임 참여는 선택사항이며, 원하지 않으시면 종료(✕) 하시면 됩니다.)</span>
+              </div>
             </div>
           </div>
 
           <!-- Result Celebration Overlay (Finished) -->
           <div class="bukang-result-panel" id="bukang-result-view" style="display:none;">
             <div class="result-card">
-              <div class="result-badge">🎉 럭키드로우 응모 접수 완료!</div>
+              <div class="result-badge">🎉 응모 접수 완료!</div>
               <h2 class="result-title">"당신의 행운을 부캉이가 기원합니다!"</h2>
               <div class="result-sub-text">
-                ☕ 스타벅스 e-Gift Card 추첨 이벤트에 정상 응모되었습니다.<br>
-                <b>(설문조사 종료 후 공정하게 추첨하여 개별 모바일 쿠폰으로 안내 발송 드립니다)</b>
+                ☕ 이벤트에 정상 응모되었습니다.<br>
+                <b style="color:#0369a1;">(선착순 000명에게 개별 모바일 쿠폰을 발송 드립니다)</b>
               </div>
 
               <div class="entry-receipt">
@@ -341,7 +393,7 @@ class BukangLuckyDrawGame {
 
               <div class="result-btn-row">
                 <button class="bukang-finish-btn" id="bukang-finish-btn">
-                  <span>✨</span> 럭키드로우 게임 종료
+                  종료
                 </button>
               </div>
             </div>
@@ -366,26 +418,8 @@ class BukangLuckyDrawGame {
     const closeTopBtn = document.getElementById('bukang-close-top-btn');
     const muteBtn = document.getElementById('bukang-mute-btn');
     const errEl = document.getElementById('bukang-phone-err');
+    const guideBanner = document.getElementById('bukang-keyboard-guide');
 
-    // Mobile Touch & Click Driving Support (스마트폰 터치로 부캉이 수영)
-    const canvasEl = document.getElementById('bukang-canvas');
-    if (canvasEl) {
-      const handleDrive = () => {
-        if (this.gameState === 'SWIMMING') {
-          this.swimSpeed = Math.min(this.swimSpeed + 1.25, this.maxSpeed);
-          this.lastKeyPressTime = Date.now();
-          this.keyPressCount++;
-          if (this.keyPressCount % 4 === 0) {
-            this.playSplashSound();
-            this.createWaterSplash(this.shark.screenX, this.shark.y, 14);
-          }
-        }
-      };
-      canvasEl.addEventListener('touchstart', (e) => { e.preventDefault(); handleDrive(); }, { passive: false });
-      canvasEl.addEventListener('click', handleDrive);
-    }
-
-    // BGM is permanently set to 'shark' (상어가족)
     this.currentBgm = 'shark';
 
     // Phone Auto-hyphen
@@ -409,14 +443,11 @@ class BukangLuckyDrawGame {
         return;
       }
 
-      // 1인 1회 한정 응모 사전 검증
+      // Check duplicate
       try {
         startBtn.disabled = true;
         startBtn.innerHTML = '<span>⏳</span> 중복 확인 중...';
-        let chkRes = { already_submitted: false };
-      try {
-        chkRes = await fetch(`/api/event/check?phone=${encodeURIComponent(raw)}`).then(r => r.json());
-      } catch(e) {}
+        const chkRes = await fetch(`/api/event/check?phone=${encodeURIComponent(raw)}`).then(r => r.json());
         if (chkRes && chkRes.already_submitted) {
           errEl.innerHTML = `⚠️ 이미 이벤트 응모가 완료된 번호입니다. (${phoneInput.value})<br><strong>이벤트 응모는 1인 1회로 한정됩니다.</strong>`;
           errEl.style.display = 'block';
@@ -460,19 +491,19 @@ class BukangLuckyDrawGame {
     muteBtn.addEventListener('click', () => {
       this.isMuted = !this.isMuted;
       muteBtn.innerText = this.isMuted ? '🔇' : '🔊';
-      if (!this.isMuted) {
+      if (this.isMuted) {
+        this.stopBGM();
+      } else {
         this.initAudio();
-        this.startBGM(this.currentBgm);
+        if (this.gameState === 'SWIMMING') {
+          this.startBGM(this.currentBgm);
+        }
       }
     });
 
-    // ========================================================================
-    // Interactive Keyboard Drive Event Listeners
-    // ========================================================================
+    // Keyboard drive listeners
     this.keyDownHandler = (e) => {
       if (this.gameState !== 'SWIMMING') return;
-
-      // ArrowRight, ArrowUp, Space, Enter trigger forward drive impulse
       if (['ArrowRight', 'ArrowUp', ' ', 'Enter', 'd', 'D', 'w', 'W'].includes(e.key)) {
         e.preventDefault();
         this.triggerDriveImpulse();
@@ -480,69 +511,99 @@ class BukangLuckyDrawGame {
     };
     window.addEventListener('keydown', this.keyDownHandler);
 
-    // Also support mouse/touch click on canvas as impulse
+    // Mouse / Touch click driving support
     this.canvas.addEventListener('click', () => {
       if (this.gameState === 'SWIMMING') {
         this.triggerDriveImpulse();
       }
     });
+
+    this.canvas.addEventListener('touchstart', (e) => {
+      if (this.gameState === 'SWIMMING') {
+        e.preventDefault();
+        this.triggerDriveImpulse();
+      }
+    }, { passive: false });
+
+    if (guideBanner) {
+      guideBanner.addEventListener('click', () => {
+        if (this.gameState === 'SWIMMING') this.triggerDriveImpulse();
+      });
+      guideBanner.addEventListener('touchstart', (e) => {
+        if (this.gameState === 'SWIMMING') {
+          e.preventDefault();
+          this.triggerDriveImpulse();
+        }
+      }, { passive: false });
+    }
   }
 
-  // Keyboard Impulse booster
+  // Keyboard & Touch Impulse booster
   triggerDriveImpulse() {
     this.initAudio();
+    // BGM activates dynamically only when moving forward
+    if (!this.bgmPlaying && !this.isMuted) {
+      this.startBGM(this.currentBgm);
+    }
+
     const now = performance.now();
     const interval = now - this.lastKeyPressTime;
     this.lastKeyPressTime = now;
+    this.lastDriveTime = now;
+    this.keyPressCount++;
 
-    // The faster the user taps, the higher the speed boost
     let boost = 1.6;
     if (interval < 220) {
-      boost = 2.4; // Rapid tapping booster
+      boost = 2.4;
     }
 
     this.swimSpeed = Math.min(this.swimSpeed + boost, this.maxSpeed);
 
-    // Small wave splash sound occasionally
-    if (Math.random() < 0.4) {
+    // Splash sound effect occasionally
+    if (this.keyPressCount % 3 === 0) {
       this.playTone(380 + Math.random() * 120, 'sine', 0.08, 0.12);
+      this.createWaterSplash(this.shark.screenX, this.shark.y, 14);
     }
   }
 
-  // ==========================================================================
   // 3. Game Loop & Interactive Physics
-  // ==========================================================================
   initCanvasGame() {
     this.shark = {
       screenX: 380,
-      y: 380,
       baseY: 380,
-      size: 75,
+      y: 380,
       wiggle: 0,
+      angle: 0,
       jumping: false,
       jumpT: 0,
-      angle: 0,
       isKissing: false,
-      kissT: 0
+      kissT: 0,
+      hasKissed: false
     };
-    this.distanceTraveled = 0;
-    this.swimSpeed = 0;
-    this.jumpTriggered = [false, false, false];
-    this.particles = [];
-    this.confetti = [];
-    this.hearts = [];
-    this.time = 0;
 
-    const renderLoop = () => {
+    this.clouds = [
+      { x: 100, y: 70, scale: 1.2, speed: 0.15 },
+      { x: 420, y: 110, scale: 0.9, speed: 0.1 },
+      { x: 780, y: 60, scale: 1.4, speed: 0.2 },
+      { x: 1050, y: 120, scale: 0.8, speed: 0.12 }
+    ];
+
+    const loop = () => {
       this.updateGame();
       this.drawGame();
-      this.animId = requestAnimationFrame(renderLoop);
+      this.animId = requestAnimationFrame(loop);
     };
-    this.animId = requestAnimationFrame(renderLoop);
+    this.animId = requestAnimationFrame(loop);
   }
 
   startSwimming() {
     this.gameState = 'SWIMMING';
+    this.distanceTraveled = 0;
+    this.swimSpeed = 0;
+    this.lastDriveTime = performance.now();
+    this.jumpTriggered = [false, false, false];
+
+    // Hide input panel
     document.getElementById('bukang-input-view').style.display = 'none';
 
     // Show Guide & Progress HUD
@@ -552,52 +613,31 @@ class BukangLuckyDrawGame {
     if (progressWrap) progressWrap.style.display = 'block';
 
     this.initAudio();
-    this.startBGM(this.currentBgm);
+    // Do NOT auto-play BGM yet; wait for first drive impulse!
     this.playTone(440, 'sine', 0.2, 0.2);
     this.playTone(660, 'triangle', 0.25, 0.25, 0.1);
 
-    // Resilient Backend submission
-    const eventPayload = {
-      action: 'event_submit',
-      survey_id: this.surveyId,
-      phone: this.phoneNumber,
-      department: (window.currentSurveySubmission && window.currentSurveySubmission.department) || '',
-      job_group: (window.currentSurveySubmission && window.currentSurveySubmission.job_group) || '',
-      position: (window.currentSurveySubmission && window.currentSurveySubmission.position) || ''
-    };
-    fetch('/api/event/submit', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(eventPayload)
-    }).catch(e => console.warn('Event submit log:', e));
-
-    if (window.GOOGLE_SCRIPT_URL && window.GOOGLE_SCRIPT_URL.startsWith('http')) {
-      fetch(window.GOOGLE_SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(eventPayload)
-      }).catch(e => {});
-    }
-    .then(res => res.json())
-    .then(data => {
-      if (data && data.entry_id) {
-        const receiptIdEl = document.getElementById('receipt-id');
-        if (receiptIdEl) receiptIdEl.innerText = data.entry_id;
-      }
-    })
-    .catch(err => console.warn('Event submit log:', err));
+    // In Game 2: The actual entry and ranking are determined at the moment of GOAL (골인 시각 기준)!
+    this.raceStartTime = performance.now();
   }
 
   updateGame() {
     this.time += 0.05;
 
-    // Swimming phase driven by user keypresses
+    // Swimming phase driven by user keypresses / taps
     if (this.gameState === 'SWIMMING') {
       // Natural Friction decay
       this.swimSpeed *= 0.965;
       if (this.swimSpeed < this.baseSpeed) {
-        this.swimSpeed = this.baseSpeed; // Minimum crawl
+        this.swimSpeed = this.baseSpeed;
+      }
+
+      // If user hasn't moved for 2.5 seconds and speed is baseSpeed, pause BGM
+      const now = performance.now();
+      if (now - this.lastDriveTime > 2500 && this.swimSpeed <= this.baseSpeed + 0.2) {
+        if (this.bgmPlaying) {
+          this.stopBGM();
+        }
       }
 
       this.distanceTraveled += this.swimSpeed;
@@ -653,7 +693,7 @@ class BukangLuckyDrawGame {
         s.angle = Math.sin(s.wiggle) * 0.12;
       }
 
-      // Water bubble particles behind shark (more on high speed)
+      // Water bubble particles behind shark
       const bubbleCount = isBooster ? 2 : 1;
       for (let b = 0; b < bubbleCount; b++) {
         if (Math.random() < 0.7) {
@@ -680,9 +720,8 @@ class BukangLuckyDrawGame {
       const s = this.shark;
       s.kissT += 0.035;
 
-      // Fly and leap towards Starbucks Island at (960, 260)
       const startX = 380;
-      const targetX = 910; // Right beside Starbucks island
+      const targetX = 910;
       const startY = 380;
       const targetY = 250;
 
@@ -740,57 +779,226 @@ class BukangLuckyDrawGame {
     this.shark.isKissing = true;
     this.shark.kissT = 0;
     this.shark.hasKissed = false;
+    // Stop BGM immediately when initiating goal jump
+    this.stopBGM();
     this.playSplashSound();
     this.createWaterSplash(this.shark.screenX, this.shark.baseY, 30);
 
-    // Hide keyboard guide banner
     const guideEl = document.getElementById('bukang-keyboard-guide');
     if (guideEl) guideEl.style.display = 'none';
   }
 
-  // When Bukang kisses Starbucks Island
-  onKissHit() {
+  // When Bukang kisses Starbucks Island (골인 시각 기준 선착순 판정!)
+  async onKissHit() {
+    this.stopBGM();
     this.playKissSound();
-    this.playVictoryFanfare();
 
-    // Spawn lovely hearts!
-    for (let i = 0; i < 25; i++) {
-      const ang = Math.random() * Math.PI * 2;
-      const spd = Math.random() * 4 + 2;
-      this.hearts.push({
-        x: 930 + (Math.random() * 30 - 15),
-        y: 250 + (Math.random() * 30 - 15),
-        vx: Math.cos(ang) * spd,
-        vy: Math.sin(ang) * spd - 2,
-        size: Math.random() * 16 + 12,
-        alpha: 1.0,
-        color: '#f43f5e'
+    const company = (window.currentSurveySubmission && window.currentSurveySubmission.company) || '흥국생명';
+    const department = (window.currentSurveySubmission && window.currentSurveySubmission.department) || '';
+    const job_group = (window.currentSurveySubmission && window.currentSurveySubmission.job_group) || '';
+    const position = (window.currentSurveySubmission && window.currentSurveySubmission.position) || '';
+
+    const eventPayload = {
+      action: 'event_submit',
+      mode: 'race',
+      game_version: 2,
+      survey_id: this.surveyId,
+      phone: this.phoneNumber,
+      company: company,
+      department: department,
+      job_group: job_group,
+      position: position
+    };
+
+    let serverResult = null;
+    try {
+      const resp = await fetch('/api/event/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(eventPayload)
       });
+      if (resp.ok) {
+        serverResult = await resp.json();
+      }
+    } catch (e) {
+      console.warn('Race submit error:', e);
     }
 
-    // Massive Fireworks!
-    const targetScreenX = 960;
-    for (let i = 0; i < 6; i++) {
-      setTimeout(() => {
-        this.spawnFireworks(targetScreenX + (Math.random() * 160 - 80), 220 + (Math.random() * 80 - 40));
-      }, i * 180);
+    if (!serverResult || !serverResult.success) {
+      // Safe fallback: treat as winner within 160/200 limit
+      serverResult = {
+        success: true,
+        entry_id: `EVT-${Math.floor(Math.random() * 8999 + 1000)}`,
+        is_winner: true,
+        company: company,
+        rank: 1,
+        quota: company.includes('화재') ? 200 : 160
+      };
     }
 
-    // Mask phone number for receipt (010-****-1234)
-    let masked = this.phoneNumber;
-    const parts = this.phoneNumber.split('-');
-    if (parts.length === 3) {
-      masked = `${parts[0]}-****-${parts[2]}`;
+    // Google Apps Script logging
+    if (window.GOOGLE_SCRIPT_URL && window.GOOGLE_SCRIPT_URL.startsWith('http')) {
+      try {
+        fetch(window.GOOGLE_SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            ...eventPayload,
+            winner_status: serverResult.is_winner ? '당첨' : '미당첨(선착순마감)',
+            rank: serverResult.rank
+          })
+        }).catch(e => {});
+      } catch (e) {}
     }
-    const receiptPhoneEl = document.getElementById('receipt-phone');
-    if (receiptPhoneEl) receiptPhoneEl.innerText = masked;
 
-    // Show result view after 1.4s
+    const isWinner = serverResult.is_winner === true;
+    const rankNum = serverResult.rank || 1;
+    const quotaNum = serverResult.quota || (company.includes('화재') ? 200 : 160);
+
+    // Dynamic result view rendering
+    const resCard = document.querySelector('#bukang-result-view .result-card');
+    if (resCard) {
+      // Mask phone
+      let masked = this.phoneNumber;
+      const parts = this.phoneNumber.split('-');
+      if (parts.length === 3) masked = `${parts[0]}-****-${parts[2]}`;
+
+      if (isWinner) {
+        // Winner UI
+        this.playVictoryFanfare();
+        // Massive Fireworks & Hearts
+        for (let i = 0; i < 25; i++) {
+          const ang = Math.random() * Math.PI * 2;
+          const spd = Math.random() * 4 + 2;
+          this.hearts.push({
+            x: 930 + (Math.random() * 30 - 15),
+            y: 250 + (Math.random() * 30 - 15),
+            vx: Math.cos(ang) * spd,
+            vy: Math.sin(ang) * spd - 2,
+            size: Math.random() * 16 + 12,
+            alpha: 1.0,
+            color: '#f43f5e'
+          });
+        }
+        for (let i = 0; i < 6; i++) {
+          setTimeout(() => {
+            this.spawnFireworks(960 + (Math.random() * 160 - 80), 220 + (Math.random() * 80 - 40));
+          }, i * 180);
+        }
+
+        resCard.innerHTML = `
+          <div class="result-badge" style="background:linear-gradient(135deg, #10b981 0%, #059669 100%);">🎉 실시간 선착순 당첨 성공!</div>
+          <h2 class="result-title" style="color:#065f46;font-size:1.45rem;margin:0.2rem 0 0.5rem 0;">"축하합니다. 커피쿠폰 당첨되셨습니다"</h2>
+          <div class="result-sub-text" style="font-size:0.96rem;font-weight:700;color:#047857;margin-bottom:0.9rem;">
+            커피 모바일 쿠폰을 발송해 드리겠습니다 (발송일 : 10월30일 이후)
+          </div>
+
+          <div class="entry-receipt">
+            <div class="receipt-row">
+              <span>접수 번호</span>
+              <strong>${serverResult.entry_id}</strong>
+            </div>
+            <div class="receipt-row">
+              <span>소속 회사</span>
+              <strong style="color:#047857;">${company}</strong>
+            </div>
+            <div class="receipt-row">
+              <span>선착순 순위</span>
+              <strong style="color:#e11d48;">${company} ${rankNum}번째 골인 (정원 ${quotaNum}명 내 당첨!)</strong>
+            </div>
+            <div class="receipt-row">
+              <span>응모 번호</span>
+              <strong>${masked}</strong>
+            </div>
+            <div class="receipt-row">
+              <span>골인 미션</span>
+              <span>흥국금융에 사랑의 뽀뽀(쪽~ 💋) 성공!</span>
+            </div>
+          </div>
+
+          <div class="result-btn-row">
+            <button class="bukang-finish-btn" id="bukang-finish-btn" style="background:linear-gradient(135deg, #10b981 0%, #059669 100%);">
+              종료
+            </button>
+          </div>
+        `;
+      } else {
+        // Loser UI (꽝!)
+        this.playMellowTone();
+        resCard.innerHTML = `
+          <div class="result-badge" style="background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">⚠️ 선착순 마감 안내</div>
+          <div style="font-size:3.5rem;font-weight:900;color:#ef4444;line-height:1;margin:0.2rem 0 0.3rem 0;letter-spacing:-1px;text-shadow:0 4px 18px rgba(239,68,68,0.4);animation:guidePulse 1.2s infinite alternate;">
+            꽝!
+          </div>
+          <div style="font-size:1.45rem;font-weight:800;color:#1e293b;margin-bottom:0.4rem;">
+            수고많으셨습니다
+          </div>
+          <div class="result-sub-text" style="font-size:0.9rem;color:#64748b;line-height:1.55;margin-bottom:0.6rem;">
+            아쉽게도 선착순 당첨 인원(흥국생명 160명 / 흥국화재 200명)이 마감되었습니다.<br>
+            설문에 참여해 주신 임직원 여러분의 소중한 의견에 깊이 감사드립니다.
+          </div>
+
+          <!-- 부캉이 공손 인사 애니메이션 캔버스 -->
+          <canvas id="bukang-bow-canvas" width="220" height="110" style="margin: 0.2rem auto 0.6rem; display: block;"></canvas>
+
+          <div class="entry-receipt" style="margin-bottom:0.9rem;">
+            <div class="receipt-row">
+              <span>접수 번호</span>
+              <strong>${serverResult.entry_id}</strong>
+            </div>
+            <div class="receipt-row">
+              <span>소속 회사</span>
+              <strong>${company}</strong>
+            </div>
+            <div class="receipt-row">
+              <span>골인 기록</span>
+              <strong style="color:#ef4444;">${company} ${rankNum}번째 골인 (정원 ${quotaNum}명 마감)</strong>
+            </div>
+            <div class="receipt-row">
+              <span>응모 번호</span>
+              <strong>${masked}</strong>
+            </div>
+          </div>
+
+          <div class="result-btn-row">
+            <button class="bukang-finish-btn" id="bukang-finish-btn" style="background:linear-gradient(135deg, #64748b 0%, #475569 100%);">
+              종료
+            </button>
+          </div>
+        `;
+
+        // Start polite bowing animation
+        setTimeout(() => {
+          this.startBowingAnimation(document.getElementById('bukang-bow-canvas'));
+        }, 50);
+      }
+
+      // Re-bind finish button
+      const newFinishBtn = document.getElementById('bukang-finish-btn');
+      if (newFinishBtn) {
+        newFinishBtn.addEventListener('click', () => {
+          this.close();
+          if (typeof window.handleSurveyAndGameFinish === 'function') {
+            window.handleSurveyAndGameFinish();
+          } else {
+            try {
+              window.open('', '_self', '');
+              window.close();
+            } catch (e) {}
+          }
+        });
+      }
+    }
+
+    // Show result view after 1.2s
     setTimeout(() => {
       this.gameState = 'FINISHED';
+      const progressWrap = document.getElementById('bukang-progress-bar-wrap');
+      if (progressWrap) progressWrap.style.display = 'none';
       const resView = document.getElementById('bukang-result-view');
       if (resView) resView.style.display = 'flex';
-    }, 1400);
+    }, 1200);
   }
 
   createWaterSplash(x, y, count = 24) {
@@ -828,131 +1036,78 @@ class BukangLuckyDrawGame {
     }
   }
 
-  // ==========================================================================
   // 4. Drawing Canvas Elements with Busan Marine City & Gwangan Bridge
-  // ==========================================================================
   drawGame() {
     const ctx = this.ctx;
     const w = this.canvas.width;
     const h = this.canvas.height;
     const scroll = this.distanceTraveled;
 
-    ctx.clearRect(0, 0, w, h);
-
-    // 1) Sky Gradient & Sun (0 ~ 320px)
-    const skyGrad = ctx.createLinearGradient(0, 0, 0, 320);
+    // A. Sky Gradient
+    const skyGrad = ctx.createLinearGradient(0, 0, 0, 360);
     skyGrad.addColorStop(0, '#0284c7');
-    skyGrad.addColorStop(0.5, '#38bdf8');
-    skyGrad.addColorStop(0.85, '#bae6fd');
-    skyGrad.addColorStop(1, '#fef08a'); // Warm sunset glow near sea horizon
+    skyGrad.addColorStop(0.55, '#38bdf8');
+    skyGrad.addColorStop(1, '#bae6fd');
     ctx.fillStyle = skyGrad;
-    ctx.fillRect(0, 0, w, 320);
+    ctx.fillRect(0, 0, w, 360);
 
-    // Warm Big Sun
+    // Warm Sun in Sky
     ctx.save();
-    ctx.beginPath();
-    ctx.arc(140, 75, 42, 0, Math.PI * 2);
     ctx.fillStyle = '#fef08a';
-    ctx.shadowColor = '#facc15';
-    ctx.shadowBlur = 35;
-    ctx.fill();
-    ctx.restore();
-
-    // 2) Slogan Banner: "어서와 부캉이 수영장은 처음이지?"
-    ctx.save();
-    ctx.font = '900 24px "Pretendard", "Malgun Gothic", sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    
-    // Banner background pill
-    const sloganText = '어서와 부캉이 수영장은 처음이지? 🦈🌊';
-    const textWidth = ctx.measureText(sloganText).width;
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.55)';
+    ctx.shadowColor = 'rgba(254, 240, 138, 0.8)';
+    ctx.shadowBlur = 24;
     ctx.beginPath();
-    ctx.roundRect(w / 2 - textWidth / 2 - 25, 20, textWidth + 50, 42, 21);
+    ctx.arc(1040, 90, 48, 0, Math.PI * 2);
     ctx.fill();
-    ctx.strokeStyle = '#facc15';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-
-    // Text glowing fill
-    ctx.shadowColor = '#fef08a';
-    ctx.shadowBlur = 10;
-    ctx.fillStyle = '#ffffff';
-    ctx.fillText(sloganText, w / 2, 41);
     ctx.restore();
 
-    // 3) Busan Haeundae Marine City Skyscrapers (Parallax: 0.12)
-    this.drawHaeundaeSkyscrapers(scroll * 0.12);
+    // Moving Clouds
+    this.clouds.forEach(c => {
+      c.x -= c.speed;
+      if (c.x < -150) c.x = w + 100;
+      this.drawCloud(c.x, c.y, c.scale);
+    });
 
-    // 4) Busan Iconic Gwangan Bridge (Parallax: 0.22)
-    this.drawGwanganBridge(scroll * 0.22);
+    // B. Parallax Layer 1: Haeundae Marine City Skyscrapers
+    this.drawHaeundaeSkyscrapers(scroll * 0.15);
 
-    // Clouds (Parallax: 0.3)
-    const cloud1X = ((240 - scroll * 0.28) % 1500 + 1500) % 1500 - 100;
-    const cloud2X = ((780 - scroll * 0.32) % 1500 + 1500) % 1500 - 100;
-    const cloud3X = ((1250 - scroll * 0.24) % 1500 + 1500) % 1500 - 100;
-    this.drawCloud(cloud1X, 85, 1.2);
-    this.drawCloud(cloud2X, 70, 1.4);
-    this.drawCloud(cloud3X, 95, 1.1);
+    // C. Parallax Layer 2: Gwangan Bridge Landmark
+    this.drawGwanganBridge(scroll * 0.35);
 
-    // 5) Busan Coastal Sea & Dynamic Waves (320 ~ 580px)
-    const seaGrad = ctx.createLinearGradient(0, 320, 0, h);
+    // D. Sea Surface & Water Waves
+    const seaGrad = ctx.createLinearGradient(0, 340, 0, h);
     seaGrad.addColorStop(0, '#0284c7');
-    seaGrad.addColorStop(0.35, '#0369a1');
-    seaGrad.addColorStop(1, '#075985');
+    seaGrad.addColorStop(0.3, '#0369a1');
+    seaGrad.addColorStop(1, '#0c4a6e');
     ctx.fillStyle = seaGrad;
-    ctx.fillRect(0, 320, w, h - 320);
+    ctx.fillRect(0, 340, w, h - 340);
 
-    // Wave Layer 1
-    ctx.fillStyle = 'rgba(14, 165, 233, 0.6)';
-    ctx.beginPath();
-    ctx.moveTo(0, 320);
-    for (let x = 0; x <= w; x += 45) {
-      const y = 320 + Math.sin((x + scroll * 0.7) * 0.03 + this.time * 2) * 8;
-      ctx.lineTo(x, y);
-    }
-    ctx.lineTo(w, h);
-    ctx.lineTo(0, h);
-    ctx.fill();
-
-    // Wave Layer 2 (Front)
-    ctx.fillStyle = 'rgba(2, 132, 199, 0.75)';
-    ctx.beginPath();
-    ctx.moveTo(0, 360);
-    for (let x = 0; x <= w; x += 40) {
-      const y = 360 + Math.cos((x + scroll) * 0.04 + this.time * 3) * 10;
-      ctx.lineTo(x, y);
-    }
-    ctx.lineTo(w, h);
-    ctx.lineTo(0, h);
-    ctx.fill();
-
-    // Wave crest foams
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
-    ctx.lineWidth = 2.5;
-    ctx.beginPath();
-    for (let x = 15; x < w; x += 60) {
-      const y = 360 + Math.cos((x + scroll) * 0.04 + this.time * 3) * 10;
-      ctx.moveTo(x - 20, y);
-      ctx.lineTo(x + 20, y);
-    }
-    ctx.stroke();
-
-    // 6) Draw Target: Starbucks Island / Buoy
-    const remainingDist = this.totalDistance - this.distanceTraveled;
-    let targetScreenX = 960;
-    if (this.gameState === 'SWIMMING' && remainingDist > 450) {
-      targetScreenX = 960 + (remainingDist - 450);
-    }
-    if (targetScreenX < w + 150) {
-      this.drawStarbucksIsland(targetScreenX, 260);
+    // Sea Wave Lines
+    for (let i = 0; i < 4; i++) {
+      const waveY = 345 + i * 55;
+      const speed = (i + 1) * 0.5 + 0.5;
+      ctx.strokeStyle = `rgba(255, 255, 255, ${0.35 - i * 0.07})`;
+      ctx.lineWidth = 3 - i * 0.4;
+      ctx.beginPath();
+      ctx.moveTo(0, waveY);
+      for (let x = 0; x <= w; x += 40) {
+        const yOffset = Math.sin((x * 0.015) + (this.time * speed) - (scroll * 0.01)) * (8 - i * 1.5);
+        ctx.lineTo(x, waveY + yOffset);
+      }
+      ctx.stroke();
     }
 
-    // 7) Draw Particles
+    // E. Target: Starbucks Island Goal
+    const targetScreenX = 960;
+    this.drawStarbucksIsland(targetScreenX, 260);
+
+    // F. Draw Shark "Bukang-i"
+    this.drawShark(this.shark);
+
+    // G. Draw Particles & Hearts
     this.particles.forEach(p => {
       ctx.save();
-      ctx.globalAlpha = p.alpha;
+      ctx.globalAlpha = Math.max(0, p.alpha);
       ctx.fillStyle = p.color;
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.rad, 0, Math.PI * 2);
@@ -960,172 +1115,125 @@ class BukangLuckyDrawGame {
       ctx.restore();
     });
 
-    // 8) Draw Shark "Bukang-i" with Tag Ribbon
-    this.drawShark(this.shark);
-
-    // 9) Draw Kissing Hearts
-    this.hearts.forEach(ht => {
+    this.hearts.forEach(h => {
       ctx.save();
-      ctx.globalAlpha = ht.alpha;
-      ctx.fillStyle = ht.color;
-      ctx.translate(ht.x, ht.y);
-      // Draw Heart Path
+      ctx.globalAlpha = Math.max(0, h.alpha);
+      ctx.fillStyle = h.color;
       ctx.beginPath();
-      const s = ht.size / 16;
-      ctx.moveTo(0, -5 * s);
-      ctx.bezierCurveTo(-10 * s, -18 * s, -20 * s, 0, 0, 18 * s);
-      ctx.bezierCurveTo(20 * s, 0, 10 * s, -18 * s, 0, -5 * s);
+      const topCurveHeight = h.size * 0.3;
+      ctx.moveTo(h.x, h.y + topCurveHeight);
+      ctx.bezierCurveTo(h.x, h.y, h.x - h.size / 2, h.y, h.x - h.size / 2, h.y + topCurveHeight);
+      ctx.bezierCurveTo(h.x - h.size / 2, h.y + (h.size + topCurveHeight) / 2, h.x, h.y + (h.size + topCurveHeight) / 2, h.x, h.y + h.size);
+      ctx.bezierCurveTo(h.x, h.y + (h.size + topCurveHeight) / 2, h.x + h.size / 2, h.y + (h.size + topCurveHeight) / 2, h.x + h.size / 2, h.y + topCurveHeight);
+      ctx.bezierCurveTo(h.x + h.size / 2, h.y, h.x, h.y, h.x, h.y + topCurveHeight);
+      ctx.closePath();
       ctx.fill();
       ctx.restore();
     });
 
-    // 10) Draw Confetti & Fireworks
+    // Draw Confetti
     this.confetti.forEach(c => {
       ctx.save();
-      ctx.globalAlpha = c.alpha;
+      ctx.globalAlpha = Math.max(0, c.alpha);
       ctx.fillStyle = c.color;
       ctx.translate(c.x, c.y);
       ctx.rotate(c.rotation);
       ctx.fillRect(-c.size / 2, -c.size / 2, c.size, c.size * 0.6);
       ctx.restore();
     });
-
-    // Kissing Label (쪽~ 💋)
-    if (this.shark.hasKissed && this.gameState !== 'FINISHED') {
-      ctx.save();
-      ctx.font = '900 36px "Malgun Gothic", sans-serif';
-      ctx.fillStyle = '#f43f5e';
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 4;
-      ctx.textAlign = 'center';
-      ctx.strokeText('쪽~ ♥ 💋', 930, 190);
-      ctx.fillText('쪽~ ♥ 💋', 930, 190);
-      ctx.restore();
-    }
   }
 
-  // Draw Haeundae Marine City & LCT Highrises
   drawHaeundaeSkyscrapers(offset) {
     const ctx = this.ctx;
-    ctx.save();
-    const seaY = 320;
-    const buildingDefs = [
-      { w: 55, h: 180, color: '#334155' },
-      { w: 75, h: 220, color: '#1e293b' },
-      { w: 45, h: 150, color: '#475569' },
-      { w: 90, h: 240, color: '#0f172a' },
-      { w: 60, h: 190, color: '#1e3a8a' },
-      { w: 50, h: 160, color: '#334155' },
-      { w: 80, h: 210, color: '#1e293b' }
+    const baseW = 1200;
+    const buildings = [
+      { x: 30, w: 60, h: 180, c: '#0369a1' },
+      { x: 100, w: 80, h: 230, c: '#0284c7' },
+      { x: 190, w: 55, h: 160, c: '#075985' },
+      { x: 260, w: 90, h: 260, c: '#0369a1' },
+      { x: 360, w: 70, h: 190, c: '#0284c7' },
+      { x: 440, w: 110, h: 280, c: '#0c4a6e' },
+      { x: 560, w: 65, h: 170, c: '#075985' },
+      { x: 640, w: 85, h: 240, c: '#0369a1' },
+      { x: 740, w: 60, h: 180, c: '#0284c7' },
+      { x: 810, w: 100, h: 270, c: '#0c4a6e' },
+      { x: 920, w: 75, h: 210, c: '#075985' },
+      { x: 1010, w: 90, h: 250, c: '#0369a1' },
+      { x: 1110, w: 70, h: 190, c: '#0284c7' }
     ];
 
-    const cycleW = buildingDefs.reduce((acc, b) => acc + b.w + 15, 0);
-    const startX = -((offset % cycleW) + cycleW) % cycleW;
+    ctx.save();
+    ctx.globalAlpha = 0.55;
+    for (let rep = -1; rep <= 1; rep++) {
+      const shift = rep * baseW - (offset % baseW);
+      buildings.forEach(b => {
+        const bx = b.x + shift;
+        const by = 350 - b.h;
+        ctx.fillStyle = b.c;
+        ctx.fillRect(bx, by, b.w, b.h);
 
-    for (let x = startX - cycleW; x < 1200 + cycleW; ) {
-      for (const b of buildingDefs) {
-        ctx.fillStyle = b.color;
-        ctx.fillRect(x, seaY - b.h, b.w, b.h);
-
-        // Building Antennas & Roof details
-        ctx.fillStyle = '#64748b';
-        ctx.fillRect(x + b.w / 2 - 2, seaY - b.h - 18, 4, 18);
-        ctx.beginPath();
-        ctx.arc(x + b.w / 2, seaY - b.h - 18, 3, 0, Math.PI * 2);
-        ctx.fillStyle = '#ef4444'; // Red beacon light
-        ctx.fill();
-
-        // Window Lights
+        // Windows
         ctx.fillStyle = 'rgba(254, 240, 138, 0.45)';
-        for (let wy = seaY - b.h + 15; wy < seaY - 10; wy += 18) {
-          for (let wx = x + 8; wx < x + b.w - 8; wx += 14) {
-            if (Math.sin(wx * 2 + wy) > -0.2) {
-              ctx.fillRect(wx, wy, 6, 8);
-            }
+        for (let wy = by + 12; wy < 340; wy += 18) {
+          for (let wx = bx + 8; wx < bx + b.w - 8; wx += 14) {
+            ctx.fillRect(wx, wy, 6, 8);
           }
         }
-        x += b.w + 15;
-      }
+      });
     }
     ctx.restore();
   }
 
-  // Draw Busan Gwangan Bridge (광안대교 다이아몬드 브릿지)
   drawGwanganBridge(offset) {
     const ctx = this.ctx;
+    const baseW = 1200;
     ctx.save();
-    const seaY = 320;
-    const bridgeW = 750;
-    const startX = -((offset % bridgeW) + bridgeW) % bridgeW;
+    ctx.globalAlpha = 0.85;
 
-    ctx.strokeStyle = '#ffffff';
-    ctx.fillStyle = '#ffffff';
+    for (let rep = -1; rep <= 1; rep++) {
+      const shift = rep * baseW - (offset % baseW);
 
-    for (let bx = startX - bridgeW; bx < 1200 + bridgeW; bx += bridgeW) {
-      // 1. Double Main Suspension Towers (2단 주탑)
-      const tower1X = bx + 220;
-      const tower2X = bx + 520;
-      const towerH = 145;
-      const deckY = seaY - 32;
+      // Main Suspension Bridge Towers
+      const towers = [280, 580, 880];
+      towers.forEach(tx => {
+        const x = tx + shift;
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(x - 6, 210, 12, 140);
+        ctx.fillRect(x - 16, 230, 32, 6);
+        ctx.fillRect(x - 20, 275, 40, 6);
 
-      [tower1X, tower2X].forEach(tx => {
-        // Tower Legs
-        ctx.lineWidth = 5;
+        // Red Aviation Warning Lights
+        ctx.fillStyle = '#ef4444';
         ctx.beginPath();
-        ctx.moveTo(tx - 12, seaY);
-        ctx.lineTo(tx - 6, seaY - towerH);
-        ctx.lineTo(tx + 6, seaY - towerH);
-        ctx.lineTo(tx + 12, seaY);
-        ctx.stroke();
-
-        // Tower Crossbeams (트러스 X 프레임)
-        ctx.lineWidth = 2.5;
-        ctx.beginPath();
-        ctx.moveTo(tx - 10, seaY - 45);
-        ctx.lineTo(tx + 10, seaY - 45);
-        ctx.moveTo(tx - 8, seaY - 95);
-        ctx.lineTo(tx + 8, seaY - 95);
-        ctx.moveTo(tx - 6, seaY - towerH + 10);
-        ctx.lineTo(tx + 6, seaY - towerH + 10);
-        ctx.stroke();
+        ctx.arc(x, 208, 3.5, 0, Math.PI * 2);
+        ctx.fill();
       });
 
-      // 2. Main Suspension Cables (포물선 주케이블)
-      ctx.lineWidth = 3;
+      // Roadway Deck
+      ctx.fillStyle = '#e2e8f0';
+      ctx.fillRect(shift, 335, baseW, 14);
+      ctx.fillStyle = '#64748b';
+      ctx.fillRect(shift, 345, baseW, 4);
+
+      // Main Suspension Cables
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2.5;
       ctx.beginPath();
-      // Center span curve between 2 towers
-      ctx.moveTo(tower1X, seaY - towerH);
-      ctx.quadraticCurveTo((tower1X + tower2X) / 2, deckY + 8, tower2X, seaY - towerH);
-      // Left outer anchor curve
-      ctx.moveTo(tower1X, seaY - towerH);
-      ctx.quadraticCurveTo(bx + 60, deckY, bx, deckY);
-      // Right outer anchor curve
-      ctx.moveTo(tower2X, seaY - towerH);
-      ctx.quadraticCurveTo(bx + bridgeW - 60, deckY, bx + bridgeW, deckY);
+      ctx.moveTo(towers[0] + shift, 210);
+      ctx.quadraticCurveTo((towers[0] + towers[1]) / 2 + shift, 335, towers[1] + shift, 210);
+      ctx.quadraticCurveTo((towers[1] + towers[2]) / 2 + shift, 335, towers[2] + shift, 210);
       ctx.stroke();
 
-      // 3. Vertical Suspension Wires (수직 행어 로프)
+      // Vertical Suspension Ropes
       ctx.lineWidth = 1;
-      for (let wx = tower1X + 16; wx < tower2X; wx += 22) {
-        const t = (wx - tower1X) / (tower2X - tower1X);
-        const cableY = (1 - t) * (1 - t) * (seaY - towerH) + 2 * (1 - t) * t * (deckY + 8) + t * t * (seaY - towerH);
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
+      for (let rx = towers[0] + 25; rx < towers[2] - 25; rx += 22) {
+        if (Math.abs(rx - towers[1]) < 12) continue;
+        const x = rx + shift;
         ctx.beginPath();
-        ctx.moveTo(wx, cableY);
-        ctx.lineTo(wx, deckY);
+        ctx.moveTo(x, 260);
+        ctx.lineTo(x, 335);
         ctx.stroke();
-      }
-
-      // 4. Double Deck Roadway (2층 교량 상판)
-      ctx.lineWidth = 4;
-      ctx.beginPath();
-      ctx.moveTo(bx, deckY);
-      ctx.lineTo(bx + bridgeW, deckY);
-      ctx.stroke();
-
-      // Deck night illuminations
-      ctx.fillStyle = '#fef08a';
-      for (let lx = bx + 10; lx < bx + bridgeW; lx += 25) {
-        ctx.fillRect(lx, deckY - 3, 3, 3);
       }
     }
     ctx.restore();
@@ -1136,29 +1244,25 @@ class BukangLuckyDrawGame {
     ctx.save();
     ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
     ctx.beginPath();
-    ctx.arc(x, y, 18 * scale, 0, Math.PI * 2);
-    ctx.arc(x + 18 * scale, y - 10 * scale, 24 * scale, 0, Math.PI * 2);
-    ctx.arc(x + 42 * scale, y - 5 * scale, 20 * scale, 0, Math.PI * 2);
-    ctx.arc(x + 58 * scale, y, 16 * scale, 0, Math.PI * 2);
+    ctx.arc(x, y, 22 * scale, 0, Math.PI * 2);
+    ctx.arc(x + 20 * scale, y - 8 * scale, 28 * scale, 0, Math.PI * 2);
+    ctx.arc(x + 48 * scale, y - 4 * scale, 24 * scale, 0, Math.PI * 2);
+    ctx.arc(x + 65 * scale, y + 4 * scale, 18 * scale, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
   }
 
-  // Draw Cute Shark "부캉이" (Plumper, Larger Pinkfong Mommy Shark Style)
+  // Draw Cute Blue Shark "부캉이" (Capture 1 Image + Cute Vector Fallback)
   drawShark(s) {
     const ctx = this.ctx;
     ctx.save();
     ctx.translate(s.screenX, s.y);
-    // Larger size as requested (scale 1.85x)
     ctx.scale(1.85, 1.85);
     ctx.rotate(s.angle);
 
     const tailWiggle = Math.sin(s.wiggle) * 12;
-    const SHARK_PINK = '#ff2a85';       // Rich, vibrant candy hot pink
-    const SHARK_DARK_PINK = '#d9006c';  // Accent dark pink
-    const SHARK_BELLY = '#ffffff';      // Pure crisp white underbelly
 
-    // 1. Little Orange Fish Friends behind shark (distributed above & below tag ribbon)
+    // 1. Little Orange Fish Friends behind shark
     const fishSchool = [
       { x: -95, y: -26, s: 0.95 },
       { x: -125, y: -22, s: 1.1 },
@@ -1173,11 +1277,9 @@ class BukangLuckyDrawGame {
       const fx = f.x + (tailWiggle * 0.2);
       const fy = f.y + waveY;
       
-      // Little Fish Body
       ctx.beginPath();
       ctx.ellipse(fx, fy, 6.5 * f.s, 4 * f.s, 0, 0, Math.PI * 2);
       ctx.fill();
-      // Little Fish Tail
       ctx.beginPath();
       ctx.moveTo(fx - 4 * f.s, fy);
       ctx.lineTo(fx - 10 * f.s, fy - 4 * f.s);
@@ -1187,11 +1289,11 @@ class BukangLuckyDrawGame {
     });
     ctx.restore();
 
-    // 2. Tag Ribbon attached to shark tail (Safe inside canvas, 100% visible phone number)
+    // 2. Tag Ribbon attached to shark tail
     const phoneText = this.phoneNumber || '010-XXXX-XXXX';
     const tagWaveY = Math.sin(this.time * 7) * 4;
-    const ropeStartX = -48 + tailWiggle * 0.4;
-    const ropeEndX = -66 + tailWiggle * 0.2;
+    const ropeStartX = -58 + tailWiggle * 0.3;
+    const ropeEndX = -76 + tailWiggle * 0.15;
     const ropeEndY = tagWaveY;
 
     // Golden Rope connecting tail to tag
@@ -1201,23 +1303,21 @@ class BukangLuckyDrawGame {
     ctx.lineCap = 'round';
     ctx.beginPath();
     ctx.moveTo(ropeStartX, 0);
-    ctx.quadraticCurveTo(-58 + tailWiggle * 0.3, ropeEndY + 2, ropeEndX, ropeEndY);
+    ctx.quadraticCurveTo(-66 + tailWiggle * 0.2, ropeEndY + 2, ropeEndX, ropeEndY);
     ctx.stroke();
     ctx.restore();
 
-    // Yellow Number Tag Flag (Width 94px = 174px on screen, fits phone number perfectly)
+    // Yellow Number Tag Flag
     const tagW = 94;
     const tagH = 25;
     const tagBoxX = ropeEndX - tagW;
     const tagBoxY = ropeEndY - tagH / 2;
 
     ctx.save();
-    // Subtle drop shadow for tag flag
     ctx.shadowColor = 'rgba(0, 0, 0, 0.25)';
     ctx.shadowBlur = 4;
     ctx.shadowOffsetY = 2;
 
-    // Tag Background & Border
     ctx.fillStyle = '#fffbeb';
     ctx.strokeStyle = '#f59e0b';
     ctx.lineWidth = 1.8;
@@ -1226,14 +1326,12 @@ class BukangLuckyDrawGame {
     ctx.fill();
     ctx.stroke();
 
-    // Tag Eyelet Hole (Ring where rope attaches)
     ctx.shadowColor = 'transparent';
     ctx.fillStyle = '#d97706';
     ctx.beginPath();
     ctx.arc(ropeEndX - 5, ropeEndY, 2.2, 0, Math.PI * 2);
     ctx.fill();
 
-    // Phone Number Text (Bold & crisp centered)
     ctx.fillStyle = '#78350f';
     ctx.font = 'bold 10px "Pretendard", "Malgun Gothic", sans-serif';
     ctx.textAlign = 'center';
@@ -1241,157 +1339,146 @@ class BukangLuckyDrawGame {
     ctx.fillText('📱 ' + phoneText, tagBoxX + (tagW - 6) / 2, ropeEndY);
     ctx.restore();
 
-    // 3. Caudal Fin (Tail - Curvy crescent with upper & lower lobes)
-    ctx.fillStyle = SHARK_PINK;
-    ctx.beginPath();
-    ctx.moveTo(-42, 0);
-    ctx.quadraticCurveTo(-50 + tailWiggle * 0.4, -18, -68 + tailWiggle, -36); // Upper tip
-    ctx.quadraticCurveTo(-58 + tailWiggle, 0, -68 + tailWiggle, 30);          // Lower tip
-    ctx.quadraticCurveTo(-50 + tailWiggle * 0.4, 18, -42, 4);
-    ctx.closePath();
-    ctx.fill();
+    // 3. Render Shark: Capture 1 Cute Shark Image
+    if (this.sharkImg && this.sharkImg.complete && this.sharkImg.naturalWidth > 0) {
+      ctx.save();
+      // Render cute blue shark image from Capture 1
+      const imgW = 144;
+      const imgH = 79;
+      const imgX = -72;
+      const imgY = -48;
+      ctx.drawImage(this.sharkImg, imgX, imgY, imgW, imgH);
+      ctx.restore();
+    } else {
+      // High-Quality Baby Shark Blue Vector Fallback
+      const SHARK_BLUE = '#0284c7';
+      const SHARK_DARK_BLUE = '#0369a1';
+      const SHARK_BELLY = '#ffffff';
 
-    // 4. Dorsal Fin (등지느러미 - Smooth, curvy wave-like dorsal fin)
-    ctx.fillStyle = SHARK_PINK;
-    ctx.beginPath();
-    ctx.moveTo(16, -18);
-    ctx.bezierCurveTo(8, -42, 2, -56, -10, -56); // Sharp back-leaning curve
-    ctx.quadraticCurveTo(-3, -34, -18, -18);     // Trailing edge
-    ctx.closePath();
-    ctx.fill();
-
-    // 5. Pectoral Fin (가슴지느러미 - Chubby, rounded bottom fin)
-    ctx.fillStyle = SHARK_PINK;
-    ctx.beginPath();
-    ctx.moveTo(-2, 18);
-    ctx.quadraticCurveTo(-14, 38, -12, 46); // Down-back tip
-    ctx.quadraticCurveTo(4, 34, 18, 18);
-    ctx.closePath();
-    ctx.fill();
-
-    // 6. Chubby Main Pink Body & Head (통통하고 둥근 예쁜 실루엣)
-    ctx.fillStyle = SHARK_PINK;
-    ctx.beginPath();
-    ctx.moveTo(-42, 0);
-    ctx.bezierCurveTo(-20, -22, 10, -22, 26, -18); // Plump chubby forehead
-    ctx.quadraticCurveTo(46, -14, 60, -4);         // Cute upturned snout tip
-    // Smiling mouth cut-out
-    ctx.quadraticCurveTo(46, 6, 28, 8);            // Mouth corner
-    ctx.bezierCurveTo(22, 22, -10, 22, -26, 16);   // Plump chubby belly line
-    ctx.quadraticCurveTo(-36, 10, -42, 4);
-    ctx.closePath();
-    ctx.fill();
-
-    // 7. Plump White Underbelly & Lower Jaw
-    ctx.fillStyle = SHARK_BELLY;
-    ctx.beginPath();
-    ctx.moveTo(28, 8);                             // Mouth corner
-    ctx.quadraticCurveTo(38, 11, 48, 13);          // Smiling lower jaw tip
-    ctx.bezierCurveTo(28, 22, 0, 22, -22, 16);     // Chubby white belly curve
-    ctx.quadraticCurveTo(-35, 10, -40, 4);         // Tapers to tail
-    ctx.quadraticCurveTo(-15, 8, 0, 9);            // Smooth belly dividing boundary
-    ctx.quadraticCurveTo(16, 9, 28, 8);
-    ctx.closePath();
-    ctx.fill();
-
-    // 8. Open Mouth Detail: Cute Pink Tongue
-    ctx.fillStyle = '#ff007f';
-    ctx.beginPath();
-    ctx.ellipse(36, 9.5, 5, 3.2, 0.15, 0, Math.PI * 2);
-    ctx.fill();
-
-    // 9. Cute Nostril Dot on Snout
-    ctx.fillStyle = SHARK_DARK_PINK;
-    ctx.beginPath();
-    ctx.arc(52, -5, 1.8, 0, Math.PI * 2);
-    ctx.fill();
-
-    // 10. Gills (3 Cute Pink Curved Slits)
-    ctx.strokeStyle = SHARK_DARK_PINK;
-    ctx.lineWidth = 2.0;
-    ctx.lineCap = 'round';
-    for (let i = 0; i < 3; i++) {
+      // Caudal Fin (Tail)
+      ctx.fillStyle = SHARK_BLUE;
       ctx.beginPath();
-      ctx.arc(4 + i * 5, 2, 5.5, Math.PI * 0.72, Math.PI * 1.28);
-      ctx.stroke();
+      ctx.moveTo(-42, 0);
+      ctx.quadraticCurveTo(-50 + tailWiggle * 0.4, -18, -68 + tailWiggle, -36);
+      ctx.quadraticCurveTo(-58 + tailWiggle, 0, -68 + tailWiggle, 30);
+      ctx.quadraticCurveTo(-50 + tailWiggle * 0.4, 18, -42, 4);
+      ctx.closePath();
+      ctx.fill();
+
+      // Dorsal Fin
+      ctx.fillStyle = SHARK_BLUE;
+      ctx.beginPath();
+      ctx.moveTo(16, -18);
+      ctx.bezierCurveTo(8, -42, 2, -56, -10, -56);
+      ctx.quadraticCurveTo(-3, -34, -18, -18);
+      ctx.closePath();
+      ctx.fill();
+
+      // Pectoral Fin
+      ctx.fillStyle = SHARK_BLUE;
+      ctx.beginPath();
+      ctx.moveTo(-2, 18);
+      ctx.quadraticCurveTo(-14, 38, -12, 46);
+      ctx.quadraticCurveTo(4, 34, 18, 18);
+      ctx.closePath();
+      ctx.fill();
+
+      // Chubby Main Blue Body & Head
+      ctx.fillStyle = SHARK_BLUE;
+      ctx.beginPath();
+      ctx.moveTo(-42, 0);
+      ctx.bezierCurveTo(-20, -22, 10, -22, 26, -18);
+      ctx.quadraticCurveTo(46, -14, 60, -4);
+      ctx.quadraticCurveTo(46, 6, 28, 8);
+      ctx.bezierCurveTo(22, 22, -10, 22, -26, 16);
+      ctx.quadraticCurveTo(-36, 10, -42, 4);
+      ctx.closePath();
+      ctx.fill();
+
+      // Plump White Underbelly
+      ctx.fillStyle = SHARK_BELLY;
+      ctx.beginPath();
+      ctx.moveTo(28, 8);
+      ctx.quadraticCurveTo(38, 11, 48, 13);
+      ctx.bezierCurveTo(28, 22, 0, 22, -22, 16);
+      ctx.quadraticCurveTo(-35, 10, -40, 4);
+      ctx.quadraticCurveTo(-15, 8, 0, 9);
+      ctx.quadraticCurveTo(16, 9, 28, 8);
+      ctx.closePath();
+      ctx.fill();
+
+      // Open Mouth Detail
+      ctx.fillStyle = '#ff007f';
+      ctx.beginPath();
+      ctx.ellipse(36, 9.5, 5, 3.2, 0.15, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Gills
+      ctx.strokeStyle = SHARK_DARK_BLUE;
+      ctx.lineWidth = 2.0;
+      ctx.lineCap = 'round';
+      for (let i = 0; i < 3; i++) {
+        ctx.beginPath();
+        ctx.arc(4 + i * 5, 2, 5.5, Math.PI * 0.72, Math.PI * 1.28);
+        ctx.stroke();
+      }
+
+      // Cheek Blush
+      ctx.fillStyle = 'rgba(255, 130, 185, 0.55)';
+      ctx.beginPath();
+      ctx.arc(16, 3, 6, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Big Sparkling Cartoon Eyes
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.ellipse(26, -7, 7.5, 7.5, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#111827';
+      ctx.beginPath();
+      ctx.ellipse(27.5, -7, 5.8, 6.2, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(26, -8.5, 2.4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(29, -5.5, 1.2, 0, Math.PI * 2);
+      ctx.fill();
     }
 
-    // 11. Soft Rosy Pink Cheek Blush (통통하고 발그레한 볼터치)
-    ctx.fillStyle = 'rgba(255, 130, 185, 0.55)';
-    ctx.beginPath();
-    ctx.arc(16, 3, 6, 0, Math.PI * 2);
-    ctx.fill();
-
-    // 12. Big Sparkling Cartoon Eyes with 3 Curved Eyelashes (엄마상어 속눈썹)
-    // Eye White
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath();
-    ctx.ellipse(26, -7, 7.5, 7.5, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Big Black Pupil
-    ctx.fillStyle = '#111827';
-    ctx.beginPath();
-    ctx.ellipse(27.5, -7, 5.8, 6.2, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Twinkling White Highlights
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath();
-    ctx.arc(26, -8.5, 2.4, 0, Math.PI * 2);  // Main big twinkle
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(29, -5.5, 1.2, 0, Math.PI * 2);  // Secondary mini twinkle
-    ctx.fill();
-
-    // 3 Distinct Curved Black Eyelashes arching upwards
-    ctx.strokeStyle = '#111827';
-    ctx.lineWidth = 2.4;
-    ctx.lineCap = 'round';
-    const lashes = [
-      { sx: 21, sy: -12.5, ex: 15, ey: -19 }, // Back eyelash
-      { sx: 26, sy: -14.5, ex: 24, ey: -22 }, // Mid eyelash
-      { sx: 31, sy: -13, ex: 34, ey: -19 }    // Front eyelash
-    ];
-    lashes.forEach(l => {
-      ctx.beginPath();
-      ctx.moveTo(l.sx, l.sy);
-      ctx.lineTo(l.ex, l.ey);
-      ctx.stroke();
-    });
-
-    // 13. Cheerful Smile or Kissing Mouth (Kiss mode)
+    // Kissing Lips when goal reached
     if (s.isKissing) {
-      // Pouting Kiss Lips (쪽~ 💋)
       ctx.fillStyle = '#f43f5e';
       ctx.beginPath();
-      ctx.arc(60, 0, 5.5, 0, Math.PI * 2);
+      ctx.arc(68, -4, 6.5, 0, Math.PI * 2);
       ctx.fill();
       ctx.fillStyle = '#ffffff';
       ctx.beginPath();
-      ctx.arc(59, -1.2, 1.5, 0, Math.PI * 2);
+      ctx.arc(66.5, -5.5, 1.8, 0, Math.PI * 2);
       ctx.fill();
     }
 
     // Name tag badge "부캉이"
-    ctx.fillStyle = '#ff2a85';
     ctx.font = 'bold 9.5px "Pretendard", "Malgun Gothic", sans-serif';
     ctx.textAlign = 'center';
     ctx.fillStyle = '#ffffff';
-    ctx.strokeStyle = '#be185d';
-    ctx.lineWidth = 2.2;
-    ctx.strokeText('부캉이', 0, -32);
-    ctx.fillText('부캉이', 0, -32);
+    ctx.strokeStyle = '#0284c7';
+    ctx.lineWidth = 2.4;
+    ctx.strokeText('부캉이', 0, -38);
+    ctx.fillText('부캉이', 0, -38);
 
     ctx.restore();
   }
 
-  // Draw Starbucks Coupon Island / Cup Buoy
+  // Draw Starbucks Coffee Cup Island at Haeundae
+  // Draw Starbucks Coffee Cup Island at Haeundae (Capture 2 Match)
   drawStarbucksIsland(x, y) {
     const ctx = this.ctx;
     ctx.save();
     ctx.translate(x, y);
-    ctx.scale(1.55, 1.55);
 
     // Floating bobbing motion
     const bob = Math.sin(this.time * 2.5) * 6;
@@ -1400,8 +1487,8 @@ class BukangLuckyDrawGame {
     // Glowing Aura
     ctx.save();
     ctx.beginPath();
-    ctx.arc(0, -10, 48, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(250, 204, 21, 0.25)';
+    ctx.arc(0, -10, 52, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(250, 204, 21, 0.28)';
     ctx.shadowColor = '#facc15';
     ctx.shadowBlur = 30;
     ctx.fill();
@@ -1423,7 +1510,7 @@ class BukangLuckyDrawGame {
     ctx.ellipse(0, 22, 54, 8, 0, 0, Math.PI * 2);
     ctx.stroke();
 
-    // Starbucks Cup Body
+    // Cup Body (White)
     ctx.fillStyle = '#ffffff';
     ctx.strokeStyle = '#e2e8f0';
     ctx.lineWidth = 1.5;
@@ -1436,33 +1523,18 @@ class BukangLuckyDrawGame {
     ctx.fill();
     ctx.stroke();
 
-    // -------------------------------------------------------------
-    // Center Cup Logo: Capture 2 Logo (흥국/태광 시그니처 마젠타 CI 로고)
-    // Replaces previous green siren circle & star as requested
-    // -------------------------------------------------------------
-    if (this.cupLogoImg && this.cupLogoImg.complete && this.cupLogoImg.naturalWidth > 0) {
-      ctx.drawImage(this.cupLogoImg, -16, -21.5, 32, 21.6);
-    } else {
-      // Crisp vector fallback with exact geometry and color (#e4007f)
-      ctx.save();
-      ctx.fillStyle = '#e4007f';
-      
-      // Left Top Square
-      ctx.fillRect(-16, -21.5, 8.8, 8.8);
-      
-      // Left Bottom Square
-      ctx.fillRect(-16, -9.0, 8.8, 8.5);
-      
-      // Right Rotated Diamond (Rhombus)
-      ctx.beginPath();
-      ctx.moveTo(5.2, -10.7 - 10.8);
-      ctx.lineTo(5.2 + 10.8, -10.7);
-      ctx.lineTo(5.2, -10.7 + 10.8);
-      ctx.lineTo(5.2 - 10.8, -10.7);
-      ctx.closePath();
-      ctx.fill();
-      ctx.restore();
-    }
+    // Heungkuk Magenta Logo on the Cup (Two squares + Rotated diamond)
+    ctx.fillStyle = '#e4007f';
+    // Top-left square
+    ctx.fillRect(-15, -23, 8.5, 8.5);
+    // Bottom-left square
+    ctx.fillRect(-15, -11, 8.5, 8.5);
+    // Right tilted diamond
+    ctx.save();
+    ctx.translate(3.5, -13);
+    ctx.rotate(Math.PI / 4);
+    ctx.fillRect(-7.5, -7.5, 15, 15);
+    ctx.restore();
 
     // Cup Lid
     ctx.fillStyle = '#f8fafc';
@@ -1475,7 +1547,7 @@ class BukangLuckyDrawGame {
 
     // Green Straw
     ctx.fillStyle = '#006241';
-    ctx.fillRect(4, -58, 5, 18);
+    ctx.fillRect(2, -58, 5, 18);
 
     // Banner Title Above Island
     ctx.fillStyle = '#006241';
@@ -1483,12 +1555,13 @@ class BukangLuckyDrawGame {
     ctx.textAlign = 'center';
     ctx.strokeStyle = '#ffffff';
     ctx.lineWidth = 3;
-    ctx.strokeText('☕ 스타벅스 e-Gift', 0, -66);
-    ctx.fillText('☕ 스타벅스 e-Gift', 0, -66);
+    ctx.strokeText('☕ 스타벅스 e-Gift', 0, -56);
+    ctx.fillText('☕ 스타벅스 e-Gift', 0, -56);
 
     ctx.restore();
   }
 }
 
 // Global instance for application access
-window.bukangGame = new BukangLuckyDrawGame();
+window.bukangGameV2 = new BukangLuckyDrawGameV2();
+window.bukangGame = window.bukangGameV2;

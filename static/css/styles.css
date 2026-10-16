@@ -1040,7 +1040,7 @@ body {
 }
 
 /* ==========================================================================
-   BUKANG-I LUCKY DRAW GAME POPUP STYLES (부산 북항 부캉이 상어 게임)
+   BUKANG-I RACE GAME POPUP STYLES (부산 북항 부캉이 상어 선착순 레이스) - 80% 축소 최적화
    ========================================================================== */
 .bukang-modal-overlay {
   position: fixed;
@@ -1054,7 +1054,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 1rem;
+  padding: 0.75rem;
   animation: bukangFadeIn 0.3s ease-out;
 }
 
@@ -1065,11 +1065,11 @@ body {
 
 .bukang-modal-box {
   background: #ffffff;
-  width: 96vw;
-  max-width: 1280px;
-  max-height: 94vh;
-  border-radius: 24px;
-  box-shadow: 0 30px 80px -15px rgba(2, 132, 199, 0.45), 0 0 0 2px rgba(186, 230, 253, 0.8);
+  width: 88vw;
+  max-width: 1024px; /* 기존 1280px의 80% 크기 축소 */
+  max-height: 86vh;
+  border-radius: 20px;
+  box-shadow: 0 25px 60px -15px rgba(2, 132, 199, 0.45), 0 0 0 2px rgba(186, 230, 253, 0.8);
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -1078,35 +1078,35 @@ body {
 .bukang-header {
   background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
   color: white;
-  padding: 1.25rem 2rem;
+  padding: 0.85rem 1.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .bukang-title {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.85rem;
 }
 
 .bukang-icon {
-  font-size: 2.6rem;
+  font-size: 2.1rem;
   line-height: 1;
   filter: drop-shadow(0 2px 4px rgba(0,0,0,0.25));
 }
 
 .bukang-title h3 {
-  font-size: 1.35rem;
+  font-size: 1.15rem;
   font-weight: 800;
-  margin: 0 0 0.25rem 0;
+  margin: 0 0 0.2rem 0;
   color: #ffffff;
 }
 
 .bukang-title p {
-  font-size: 0.92rem;
+  font-size: 0.82rem;
   margin: 0;
   color: #e0f2fe;
 }
@@ -1114,7 +1114,7 @@ body {
 .bukang-actions {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.5rem;
 }
 
 .bukang-btn-icon {
@@ -1122,13 +1122,13 @@ body {
   color: white;
   border: 1px solid rgba(255, 255, 255, 0.35);
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   transition: all 0.2s ease;
 }
 
@@ -1149,19 +1149,20 @@ body {
 
 #bukang-canvas {
   width: 100%;
-  max-width: 1240px;
+  max-width: 980px;
   height: auto;
   aspect-ratio: 1200 / 580;
   display: block;
   background: #38bdf8;
-  border-radius: 8px;
+  border-radius: 6px;
+  cursor: pointer;
 }
 
 /* Input Panel Overlay */
 .bukang-input-panel {
   width: 100%;
   background: #ffffff;
-  padding: 1.25rem 1.75rem 1.5rem;
+  padding: 1rem 1.4rem 1.25rem;
   border-top: 1px solid #e2e8f0;
 }
 
@@ -1173,49 +1174,49 @@ body {
   display: inline-block;
   background: #e0f2fe;
   color: #0369a1;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 800;
-  padding: 0.2rem 0.75rem;
+  padding: 0.18rem 0.7rem;
   border-radius: 20px;
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.35rem;
 }
 
 .bukang-guide-card h4 {
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   font-weight: 800;
   color: #0f172a;
-  margin: 0 0 0.45rem 0;
+  margin: 0.3rem 0 0.35rem 0;
   letter-spacing: -0.02em;
 }
 
 .bukang-guide-card p {
-  font-size: 1.15rem;
+  font-size: 0.98rem;
   font-weight: 600;
   color: #1e293b;
-  margin: 0 0 1.3rem 0;
-  line-height: 1.6;
+  margin: 0 0 1rem 0;
+  line-height: 1.55;
 }
 
 .phone-input-row {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 0.75rem;
-  max-width: 580px;
+  gap: 0.65rem;
+  max-width: 500px;
   margin: 0 auto;
 }
 
 .phone-input-row .input-icon {
-  font-size: 1.7rem;
+  font-size: 1.5rem;
 }
 
 #bukang-phone-input {
   flex: 1;
-  padding: 1rem 1.35rem;
-  font-size: 1.25rem;
+  padding: 0.8rem 1.1rem;
+  font-size: 1.12rem;
   font-weight: 700;
   border: 2px solid #bae6fd;
-  border-radius: 14px;
+  border-radius: 12px;
   outline: none;
   text-align: center;
   letter-spacing: 1.5px;
@@ -1227,37 +1228,37 @@ body {
 #bukang-phone-input:focus {
   border-color: #0284c7;
   background: #ffffff;
-  box-shadow: 0 0 0 5px rgba(2, 132, 199, 0.2);
+  box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.2);
 }
 
 .bukang-start-btn {
   background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
   color: white;
   border: none;
-  border-radius: 14px;
-  padding: 1rem 2rem;
-  font-size: 1.15rem;
+  border-radius: 12px;
+  padding: 0.8rem 1.6rem;
+  font-size: 1.02rem;
   font-weight: 800;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  box-shadow: 0 8px 20px rgba(2, 132, 199, 0.38);
+  gap: 0.45rem;
+  box-shadow: 0 6px 16px rgba(2, 132, 199, 0.38);
   transition: all 0.25s ease;
   white-space: nowrap;
 }
 
 .bukang-start-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(2, 132, 199, 0.48);
+  box-shadow: 0 8px 22px rgba(2, 132, 199, 0.48);
   background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
 }
 
 .phone-err-msg {
   color: #ef4444;
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   font-weight: 700;
-  margin-top: 0.6rem;
+  margin-top: 0.5rem;
 }
 
 /* Result Panel Overlay */
@@ -1269,10 +1270,12 @@ body {
   height: 100%;
   background: rgba(15, 23, 42, 0.85);
   backdrop-filter: blur(6px);
+  z-index: 100;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 2rem;
+  padding: 0.75rem;
+  overflow-y: auto;
   animation: bukangResultPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
@@ -1284,9 +1287,9 @@ body {
 .result-card {
   background: #ffffff;
   width: 100%;
-  max-width: 620px;
-  border-radius: 20px;
-  padding: 2.2rem 2.6rem;
+  max-width: 480px;
+  border-radius: 18px;
+  padding: 1.25rem 1.8rem;
   text-align: center;
   box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35);
   border: 3px solid #facc15;
@@ -1296,25 +1299,25 @@ body {
   display: inline-block;
   background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
   color: white;
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   font-weight: 800;
-  padding: 0.3rem 1.1rem;
+  padding: 0.28rem 1rem;
   border-radius: 20px;
-  margin-bottom: 0.85rem;
+  margin-bottom: 0.75rem;
 }
 
 .result-title {
-  font-size: 1.65rem;
+  font-size: 1.45rem;
   font-weight: 900;
   color: #1e3a8a;
-  margin: 0 0 0.75rem 0;
+  margin: 0 0 0.65rem 0;
 }
 
 .result-sub-text {
-  font-size: 1rem;
+  font-size: 0.94rem;
   color: #475569;
   line-height: 1.6;
-  margin-bottom: 1.4rem;
+  margin-bottom: 0.85rem;
 }
 
 .result-sub-text b {
@@ -1325,9 +1328,9 @@ body {
   background: #f8fafc;
   border: 1px dashed #cbd5e1;
   border-radius: 10px;
-  padding: 0.85rem 1.25rem;
-  margin-bottom: 1.5rem;
-  font-size: 0.86rem;
+  padding: 0.75rem 1.15rem;
+  margin-bottom: 0.95rem;
+  font-size: 0.84rem;
   text-align: left;
 }
 
@@ -1335,7 +1338,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.3rem 0;
+  padding: 0.28rem 0;
   border-bottom: 1px solid #f1f5f9;
 }
 
@@ -1350,7 +1353,7 @@ body {
 .receipt-row strong {
   color: #0f172a;
   font-family: monospace;
-  font-size: 0.95rem;
+  font-size: 0.92rem;
 }
 
 .result-btn-row {
@@ -1363,7 +1366,7 @@ body {
   color: white;
   border: none;
   border-radius: 12px;
-  padding: 0.95rem 2.2rem;
+  padding: 0.85rem 2.4rem;
   font-size: 1.05rem;
   font-weight: 800;
   cursor: pointer;
@@ -1380,5 +1383,23 @@ body {
 @keyframes guidePulse {
   0% { transform: translateX(-50%) scale(0.97); box-shadow: 0 4px 15px rgba(220, 38, 38, 0.4); }
   100% { transform: translateX(-50%) scale(1.03); box-shadow: 0 8px 30px rgba(234, 88, 12, 0.75); }
+}
+
+/* 2-Column Responsive Grid for Demographics Q2 (직군) & Q3 (직급/직책) */
+.demographics-grid-row,
+.demographics-grid-2col {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+  align-items: stretch;
+}
+
+@media (max-width: 768px) {
+  .demographics-grid-row,
+  .demographics-grid-2col {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
 }
 

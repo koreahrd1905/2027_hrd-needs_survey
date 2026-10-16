@@ -18,6 +18,7 @@ os.makedirs(DATA_DIR, exist_ok=True)
 QUESTIONS_FILE = os.path.join(DATA_DIR, "questions.json")
 RESPONSES_FILE = os.path.join(DATA_DIR, "responses.json")
 EVENT_ENTRIES_FILE = os.path.join(DATA_DIR, "event_entries.json")
+EVENT_SETTINGS_FILE = os.path.join(DATA_DIR, "event_settings.json")
 
 def get_google_script_url():
     # 1. config.js에서 읽기
@@ -101,16 +102,19 @@ def submit_survey():
     responses = load_json(RESPONSES_FILE, [])
     
     submission_id = f"resp_{int(time.time())}_{len(responses) + 1}"
+    ans = data.get("answers", {})
     record = {
         "id": submission_id,
         "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "department": data.get("department", "기타"),
-        "job_group": data.get("job_group", "일반직"),
-        "position": data.get("position", "대리"),
+        "company": data.get("company") or ans.get("q1_company") or "흥국생명",
+        "division": data.get("division") or ans.get("q1_division") or "",
+        "department": data.get("department") or ans.get("q1_department") or "기타",
+        "job_group": data.get("job_group") or ans.get("q2") or "일반직",
+        "position": data.get("position") or ans.get("q3") or "대리",
         "delivery_mode": data.get("delivery_mode", "온·오프라인 블렌디드 러닝"),
         "open_needs": data.get("open_needs", ""),
         "open_feedback": data.get("open_feedback", ""),
-        "answers": data.get("answers", {})
+        "answers": ans
     }
     responses.append(record)
     save_json(RESPONSES_FILE, responses)
@@ -148,6 +152,33 @@ def check_event_phone():
             })
     return jsonify({"success": True, "already_submitted": False})
 
+
+def get_event_settings():
+    default_settings = {
+        "game_version": 2,
+        "quota_life": 160,
+        "quota_fire": 200,
+        "updated_at": "2026-10-16T18:50:00"
+    }
+    return load_json(EVENT_SETTINGS_FILE, default_settings)
+
+@app.route("/api/event/settings", methods=["GET", "POST"])
+def event_settings_api():
+    settings = get_event_settings()
+    if request.method == "POST":
+        data = request.json or {}
+        if "game_version" in data:
+            settings["game_version"] = int(data["game_version"])
+        if "quota_life" in data:
+            settings["quota_life"] = int(data["quota_life"])
+        if "quota_fire" in data:
+            settings["quota_fire"] = int(data["quota_fire"])
+        from datetime import datetime
+        settings["updated_at"] = datetime.now().isoformat()
+        save_json(EVENT_SETTINGS_FILE, settings)
+        return jsonify({"success": True, "message": "이벤트 설정이 즉시 반영되었습니다.", "settings": settings})
+    return jsonify({"success": True, "settings": settings})
+
 @app.route("/api/event/submit", methods=["POST"])
 def submit_event():
     data = request.json or {}
@@ -173,31 +204,78 @@ def submit_event():
     responses = load_json(RESPONSES_FILE, [])
     matched_resp = next((r for r in responses if r.get("id") == survey_id), {})
     
+    game_version = int(data.get("game_version", 1))
+    raw_company = str(data.get("company", "")).strip() or matched_resp.get("company", "흥국생명")
+    # Dynamic Event Settings & Quota Check
+    evt_settings = get_event_settings()
+    target_company = "흥국화재" if "화재" in raw_company else "흥국생명"
+    if "game_version" not in data or not data.get("game_version"):
+        game_version = int(evt_settings.get("game_version", 2))
+    quota_life = int(evt_settings.get("quota_life", 160))
+    quota_fire = int(evt_settings.get("quota_fire", 200))
+    quota = quota_fire if "화재" in target_company else quota_life
+
+    current_company_winners = sum(1 for e in entries if (target_company in e.get("company", "")) and e.get("winner_status") == "당첨")
+
+    is_winner = False
+    if game_version == 2:
+        if current_company_winners < quota:
+            is_winner = True
+            winner_status = "당첨"
+        else:
+            is_winner = False
+            winner_status = "미당첨(선착순마감)"
+        rank = current_company_winners + 1
+        message = "축하합니다. 커피쿠폰 당첨되셨습니다" if is_winner else "꽝! 수고많으셨습니다"
+    else:
+        winner_status = "추첨 대기"
+        rank = len(entries) + 1
+        is_winner = True
+        message = "이벤트 응모가 완료되었습니다."
+
     entry_id = f"EVT-{int(time.time()) % 10000:04d}-{len(entries) + 1:03d}"
     entry = {
         "entry_id": entry_id,
         "phone": formatted_phone,
         "survey_id": survey_id,
+        "company": target_company,
+        "department": matched_resp.get("department", data.get("department", "미입력")),
+        "job_group": matched_resp.get("job_group", data.get("job_group", "미입력")),
+        "position": matched_resp.get("position", data.get("position", "미입력")),
         "submitted_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "department": matched_resp.get("department", "미입력"),
-        "job_group": matched_resp.get("job_group", "미입력"),
-        "position": matched_resp.get("position", "미입력"),
-        "is_winner": "미추첨"
+        "winner_status": winner_status,
+        "is_winner": is_winner,
+        "rank": rank,
+        "game_version": game_version
     }
     entries.append(entry)
     save_json(EVENT_ENTRIES_FILE, entries)
 
-    # 구글 스프레드시트 '스타벅스_이벤트응모자' 시트에 실시간 추가
+    # 구글 스프레드시트 실시간 전송
     forward_to_google_async({
         "action": "event_submit",
         "phone": formatted_phone,
         "survey_id": survey_id,
+        "company": target_company,
         "department": entry["department"],
         "job_group": entry["job_group"],
-        "position": entry["position"]
+        "position": entry["position"],
+        "winner_status": winner_status,
+        "rank": rank,
+        "game_version": game_version
     })
 
-    return jsonify({"success": True, "entry_id": entry_id, "message": "이벤트 응모가 완료되었습니다."})
+    return jsonify({
+        "success": True,
+        "entry_id": entry_id,
+        "is_winner": is_winner,
+        "winner_status": winner_status,
+        "company": target_company,
+        "rank": rank,
+        "quota": quota,
+        "game_version": game_version,
+        "message": message
+    })
 
 @app.route("/health")
 def health():
