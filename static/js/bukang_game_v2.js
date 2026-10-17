@@ -336,6 +336,10 @@ class BukangLuckyDrawGameV2 {
           <div class="bukang-input-panel" id="bukang-input-view">
             <div class="bukang-guide-card">
               <div class="shark-badge">🦈 실시간 선착순 골인 챌린지 (버전 2)</div>
+              <div class="bukang-orient-notice">
+                <span class="orient-icon">📱🔄</span>
+                <span>스마트폰을 <strong>'가로(가로보기)'</strong>로 돌리시면 가장 시원하고 완벽한 레이스를 즐기실 수 있습니다!</span>
+              </div>
 
               
               <p>

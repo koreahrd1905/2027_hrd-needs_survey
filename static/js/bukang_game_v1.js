@@ -234,6 +234,10 @@ class BukangLuckyDrawGame {
           <div class="bukang-input-panel" id="bukang-input-view">
             <div class="bukang-guide-card">
               <div class="shark-badge">🦈 스타벅스 커피쿠폰 추첨모드</div>
+              <div class="bukang-orient-notice">
+                <span class="orient-icon">📱🔄</span>
+                <span>스마트폰을 <strong>'가로(가로보기)'</strong>로 돌리시면 가장 시원하고 완벽한 레이스를 즐기실 수 있습니다!</span>
+              </div>
               
               <p>
                 선물 받을 연락처를 입력 후 <span style="color:#0284c7;background:#e0f2fe;padding:0.15rem 0.55rem;border-radius:6px;font-weight:800;border:1.5px solid #7dd3fc;display:inline-block;box-shadow:0 1px 3px rgba(2,132,199,0.15);">'부캉이 출발'</span> 버튼을 클릭하세요.
