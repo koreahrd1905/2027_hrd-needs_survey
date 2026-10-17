@@ -807,6 +807,20 @@ class BukangLuckyDrawGame {
       if (progressWrap) progressWrap.style.display = 'none';
       const resView = document.getElementById('bukang-result-view');
       if (resView) resView.style.display = 'flex';
+
+      // [교수님 요청] 결과 접수증 화면에서는 우측상단 [X] 종료 버튼을 숨겨 반드시 하단 종료 버튼을 누르도록 유도
+      const topCloseBtn = document.getElementById('bukang-close-top-btn');
+      if (topCloseBtn) topCloseBtn.style.display = 'none';
+
+      // 1인 1회 응모 완료 영구 기록 및 부모 페이지 버튼 즉시 비활성화
+      window.isEventSubmitted = true;
+      try {
+        localStorage.setItem('heungkuk_event_submitted', 'true');
+        sessionStorage.setItem('heungkuk_event_submitted', 'true');
+      } catch (e) {}
+      if (typeof window.markEventAsCompleted === 'function') {
+        window.markEventAsCompleted();
+      }
     }, 1400);
   }
 

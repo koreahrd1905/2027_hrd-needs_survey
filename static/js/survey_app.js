@@ -1,3 +1,26 @@
+  // [1인 1회 응모 엄격 제한] 이벤트 응모 완료 시 버튼 비활성화 함수
+  window.markEventAsCompleted = function() {
+    window.isEventSubmitted = true;
+    try {
+      localStorage.setItem('heungkuk_event_submitted', 'true');
+    } catch (e) {}
+    const btnEvt = document.getElementById('btn-event-entry');
+    if (btnEvt) {
+      btnEvt.disabled = true;
+      btnEvt.style.animation = 'none';
+      btnEvt.style.background = '#64748b';
+      btnEvt.style.boxShadow = 'none';
+      btnEvt.style.cursor = 'not-allowed';
+      btnEvt.style.opacity = '0.85';
+      btnEvt.innerHTML = '<span>✅</span> 이벤트 응모 완료 (1인 1회)';
+      btnEvt.onclick = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        alert('이미 이벤트(커피쿠폰) 응모가 완료되었습니다.\n이벤트는 1인 1회만 응모 가능합니다.');
+      };
+    }
+  };
+
 /**
  * 2027 그룹 인재육성 체계 수립 - 구성원 교육 Needs 설문조사 전용 스크립트
  * (스마트폰 모바일 반응형 완전 대응, Render 서버 프록시 및 구글 시트 연동)
@@ -544,8 +567,17 @@
     // Button 2: 이벤트(커피쿠폰) 응모 하기
     const btnEvent = document.getElementById('btn-event-entry');
     if (btnEvent) {
+      // 이미 응모한 경우 초기 상태 잠금
+      if (localStorage.getItem('heungkuk_event_submitted') === 'true') {
+        window.markEventAsCompleted();
+      }
+
       btnEvent.addEventListener('click', (e) => {
         e.preventDefault();
+        if (window.isEventSubmitted || localStorage.getItem('heungkuk_event_submitted') === 'true') {
+          alert('이미 이벤트(커피쿠폰) 응모가 완료되었습니다.\n이벤트는 1인 1회만 응모 가능합니다.');
+          return;
+        }
         if (!window.isSurveySubmitted) {
           showToast('⚠️ 설문응답 제출 후 응모 해 주세요');
           // Highlight submit button
@@ -748,11 +780,15 @@
       btnSubmit.innerHTML = '<span>✅</span> 설문 응답 제출 완료';
     }
 
-    // 이벤트 응모 버튼 하이라이트 안내
+    // 이벤트 응모 버튼 하이라이트 안내 (이미 응모 완료 시 제외)
     const btnEvt = document.getElementById('btn-event-entry');
     if (btnEvt) {
-      btnEvt.style.animation = 'pulse 1.5s infinite';
-      btnEvt.innerHTML = '<span>🎁</span> 지금 바로 이벤트(커피쿠폰) 응모 하기!';
+      if (window.isEventSubmitted || localStorage.getItem('heungkuk_event_submitted') === 'true') {
+        window.markEventAsCompleted();
+      } else {
+        btnEvt.style.animation = 'pulse 1.5s infinite';
+        btnEvt.innerHTML = '<span>🎁</span> 지금 바로 이벤트(커피쿠폰) 응모 하기!';
+      }
     }
 
     showToast('🎉 설문 응답이 성공적으로 등록되었습니다! 이제 우측의 [이벤트(커피쿠폰) 응모 하기] 버튼을 눌러주십시오.');

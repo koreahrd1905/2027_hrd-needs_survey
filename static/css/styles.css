@@ -1924,3 +1924,85 @@ body {
     justify-content: center !important;
   }
 }
+
+
+/* ==========================================================================
+   Safe flex centering without top-clipping when overflowing (.result-card)
+   ========================================================================== */
+.bukang-result-panel {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  padding: 0.5rem !important;
+}
+
+.bukang-result-panel .result-card {
+  margin: auto !important;
+  max-width: 410px !important;
+  padding: 0.85rem 1.3rem !important;
+  border-radius: 16px !important;
+  box-sizing: border-box !important;
+}
+
+.result-fail-title {
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: #ef4444;
+  line-height: 1;
+  margin: 0.15rem 0 0.25rem 0;
+  letter-spacing: -1px;
+  text-shadow: 0 3px 12px rgba(239, 68, 68, 0.35);
+  animation: guidePulse 1.2s infinite alternate;
+}
+
+/* Mobile & Small Screens (Width <= 768px OR Height <= 700px): 35%~40% Compact Reduction */
+@media (max-width: 768px), (max-height: 700px) {
+  .bukang-result-panel .result-card {
+    max-width: 320px !important;
+    padding: 0.45rem 0.75rem !important;
+    border-radius: 12px !important;
+    margin: auto !important;
+  }
+  .bukang-result-panel .result-badge {
+    font-size: 0.72rem !important;
+    padding: 0.15rem 0.6rem !important;
+    margin-bottom: 0.2rem !important;
+  }
+  .result-fail-title {
+    font-size: 1.65rem !important;
+    margin: 0.05rem 0 !important;
+  }
+  .bukang-result-panel .result-title {
+    font-size: 0.98rem !important;
+    margin-bottom: 0.15rem !important;
+  }
+  .bukang-result-panel .result-sub-text {
+    font-size: 0.72rem !important;
+    line-height: 1.35 !important;
+    margin-bottom: 0.25rem !important;
+  }
+  #bukang-bow-canvas {
+    width: 120px !important;
+    height: 52px !important;
+    margin: 0.1rem auto 0.25rem !important;
+  }
+  .bukang-result-panel .entry-receipt {
+    padding: 0.32rem 0.65rem !important;
+    margin-bottom: 0.38rem !important;
+    font-size: 0.72rem !important;
+    border-radius: 6px !important;
+  }
+  .bukang-result-panel .receipt-row {
+    padding: 0.1rem 0 !important;
+  }
+  .bukang-result-panel .receipt-row strong {
+    font-size: 0.78rem !important;
+  }
+  .bukang-result-panel .bukang-finish-btn {
+    padding: 0.38rem 1.5rem !important;
+    font-size: 0.85rem !important;
+    border-radius: 8px !important;
+  }
+}

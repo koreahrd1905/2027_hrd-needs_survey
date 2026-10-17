@@ -110,7 +110,8 @@ class BukangLuckyDrawGameV2 {
       t += 0.055;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.save();
-      ctx.translate(canvas.width / 2, canvas.height / 2 + 10);
+      ctx.translate(canvas.width / 2, canvas.height / 2 + 5);
+      ctx.scale(0.68, 0.68);
 
       // Deep, respectful, rhythmic bowing motion
       const bowCycle = Math.sin(t * 2.2);
@@ -889,8 +890,8 @@ class BukangLuckyDrawGameV2 {
 
         resCard.innerHTML = `
           <div class="result-badge" style="background:linear-gradient(135deg, #10b981 0%, #059669 100%);">🎉 실시간 선착순 당첨 성공!</div>
-          <h2 class="result-title" style="color:#065f46;font-size:1.45rem;margin:0.2rem 0 0.5rem 0;">"축하합니다. 커피쿠폰 당첨되셨습니다"</h2>
-          <div class="result-sub-text" style="font-size:0.96rem;font-weight:700;color:#047857;margin-bottom:0.9rem;">
+          <h2 class="result-title" style="color:#065f46;font-size:1.22rem;margin:0.15rem 0 0.35rem 0;">"축하합니다. 커피쿠폰 당첨되셨습니다"</h2>
+          <div class="result-sub-text" style="font-size:0.86rem;font-weight:700;color:#047857;margin-bottom:0.65rem;">
             커피 모바일 쿠폰을 발송해 드리겠습니다 (발송일 : 10월30일 이후)
           </div>
 
@@ -998,6 +999,20 @@ class BukangLuckyDrawGameV2 {
       if (progressWrap) progressWrap.style.display = 'none';
       const resView = document.getElementById('bukang-result-view');
       if (resView) resView.style.display = 'flex';
+
+      // [교수님 요청] 결과 접수증 화면에서는 우측상단 [X] 종료 버튼을 숨겨 반드시 하단 종료 버튼을 누르도록 유도
+      const topCloseBtn = document.getElementById('bukang-close-top-btn');
+      if (topCloseBtn) topCloseBtn.style.display = 'none';
+
+      // 1인 1회 응모 완료 영구 기록 및 부모 페이지 버튼 즉시 비활성화
+      window.isEventSubmitted = true;
+      try {
+        localStorage.setItem('heungkuk_event_submitted', 'true');
+        sessionStorage.setItem('heungkuk_event_submitted', 'true');
+      } catch (e) {}
+      if (typeof window.markEventAsCompleted === 'function') {
+        window.markEventAsCompleted();
+      }
     }, 1200);
   }
 

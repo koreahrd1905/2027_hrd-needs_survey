@@ -110,7 +110,8 @@ class BukangLuckyDrawGameV2 {
       t += 0.055;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.save();
-      ctx.translate(canvas.width / 2, canvas.height / 2 + 10);
+      ctx.translate(canvas.width / 2, canvas.height / 2 + 5);
+      ctx.scale(0.68, 0.68);
 
       // Deep, respectful, rhythmic bowing motion
       const bowCycle = Math.sin(t * 2.2);
@@ -933,8 +934,8 @@ class BukangLuckyDrawGameV2 {
 
         resCard.innerHTML = `
           <div class="result-badge" style="background:linear-gradient(135deg, #10b981 0%, #059669 100%);">🎉 실시간 선착순 당첨 성공!</div>
-          <h2 class="result-title" style="color:#065f46;font-size:1.45rem;margin:0.2rem 0 0.5rem 0;">"축하합니다. 커피쿠폰 당첨되셨습니다"</h2>
-          <div class="result-sub-text" style="font-size:0.96rem;font-weight:700;color:#047857;margin-bottom:0.9rem;">
+          <h2 class="result-title" style="color:#065f46;font-size:1.22rem;margin:0.15rem 0 0.35rem 0;">"축하합니다. 커피쿠폰 당첨되셨습니다"</h2>
+          <div class="result-sub-text" style="font-size:0.86rem;font-weight:700;color:#047857;margin-bottom:0.65rem;">
             커피 모바일 쿠폰을 발송해 드리겠습니다 (발송일 : 10월30일 이후)
           </div>
 
@@ -968,44 +969,44 @@ class BukangLuckyDrawGameV2 {
           </div>
         `;
       } else {
-        // Loser UI (꽝!)
+        // Loser UI (꽝!) - [교수님 피드백 반영 35% 이상 컴팩트 축소 & 짤림 완벽 방지]
         this.playMellowTone();
         resCard.innerHTML = `
-          <div class="result-badge" style="background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">⚠️ 선착순 마감 안내</div>
-          <div style="font-size:3.5rem;font-weight:900;color:#ef4444;line-height:1;margin:0.2rem 0 0.3rem 0;letter-spacing:-1px;text-shadow:0 4px 18px rgba(239,68,68,0.4);animation:guidePulse 1.2s infinite alternate;">
+          <div class="result-badge" style="background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%);margin-bottom:0.25rem;">⚠️ 선착순 마감 안내</div>
+          <div class="result-fail-title">
             꽝!
           </div>
-          <div style="font-size:1.45rem;font-weight:800;color:#1e293b;margin-bottom:0.4rem;">
+          <div style="font-size:1.15rem;font-weight:800;color:#1e293b;margin-bottom:0.18rem;">
             수고많으셨습니다
           </div>
-          <div class="result-sub-text" style="font-size:1.05rem;font-weight:700;color:#475569;line-height:1.6;margin-bottom:0.6rem;">
+          <div class="result-sub-text" style="font-size:0.86rem;font-weight:700;color:#475569;line-height:1.45;margin-bottom:0.35rem;">
             소중한 참여에 깊이 감사드립니다
           </div>
 
-          <!-- 부캉이 공손 인사 애니메이션 캔버스 -->
-          <canvas id="bukang-bow-canvas" width="220" height="110" style="margin: 0.2rem auto 0.6rem; display: block;"></canvas>
+          <!-- 부캉이 공손 인사 애니메이션 캔버스 (크기 160x70으로 컴팩트 최적화) -->
+          <canvas id="bukang-bow-canvas" width="160" height="70" style="margin: 0.1rem auto 0.35rem; display: block;"></canvas>
 
-          <div class="entry-receipt" style="margin-bottom:0.9rem;">
-            <div class="receipt-row">
+          <div class="entry-receipt" style="margin-bottom:0.65rem;padding:0.45rem 0.9rem;">
+            <div class="receipt-row" style="padding:0.18rem 0;">
               <span>접수 번호</span>
               <strong>${serverResult.entry_id}</strong>
             </div>
-            <div class="receipt-row">
+            <div class="receipt-row" style="padding:0.18rem 0;">
               <span>소속 회사</span>
               <strong>${company}</strong>
             </div>
-            <div class="receipt-row">
+            <div class="receipt-row" style="padding:0.18rem 0;">
               <span>골인 기록</span>
               <strong style="color:#ef4444;">${company} ${rankNum}번째 골인</strong>
             </div>
-            <div class="receipt-row">
+            <div class="receipt-row" style="padding:0.18rem 0;">
               <span>응모 번호</span>
               <strong>${masked}</strong>
             </div>
           </div>
 
           <div class="result-btn-row">
-            <button class="bukang-finish-btn" id="bukang-finish-btn" style="background:linear-gradient(135deg, #64748b 0%, #475569 100%);">
+            <button class="bukang-finish-btn" id="bukang-finish-btn" style="background:linear-gradient(135deg, #64748b 0%, #475569 100%);padding:0.5rem 2rem;font-size:0.95rem;">
               종료
             </button>
           </div>
@@ -1041,6 +1042,20 @@ class BukangLuckyDrawGameV2 {
       if (progressWrap) progressWrap.style.display = 'none';
       const resView = document.getElementById('bukang-result-view');
       if (resView) resView.style.display = 'flex';
+
+      // [교수님 요청] 결과 접수증 화면에서는 우측상단 [X] 종료 버튼을 숨겨 반드시 하단 종료 버튼을 누르도록 유도
+      const topCloseBtn = document.getElementById('bukang-close-top-btn');
+      if (topCloseBtn) topCloseBtn.style.display = 'none';
+
+      // 1인 1회 응모 완료 영구 기록 및 부모 페이지 버튼 즉시 비활성화
+      window.isEventSubmitted = true;
+      try {
+        localStorage.setItem('heungkuk_event_submitted', 'true');
+        sessionStorage.setItem('heungkuk_event_submitted', 'true');
+      } catch (e) {}
+      if (typeof window.markEventAsCompleted === 'function') {
+        window.markEventAsCompleted();
+      }
     }, 1200);
   }
 
