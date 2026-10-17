@@ -296,10 +296,9 @@ class BukangLuckyDrawGameV2 {
         <!-- Header -->
         <div class="bukang-header">
           <div class="bukang-title">
-            <span class="bukang-icon">🦈</span>
+            <img src="/static/images/bukang_shark.png" alt="부캉이" class="bukang-title-img" style="width:38px;height:auto;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.25));" />
             <div>
-              <h3>부캉이와 함께 달리는 스타벅스 커피쿠폰 선착순 레이스</h3>
-              <p>부산시 친수공원의 귀여운 상어 '부캉이'와 함께 해운대 바다를 신나게 달려보세요</p>
+              <h3 style="margin:0;">부캉이와 함께 달리는 스타벅스 커피쿠폰 선착순 레이스</h3>
             </div>
           </div>
           <div class="bukang-actions">
@@ -317,8 +316,7 @@ class BukangLuckyDrawGameV2 {
 
           <!-- Interactive Keyboard / Touch Drive Notification Banner -->
           <div id="bukang-keyboard-guide" style="display:none;">
-            <span style="font-size:1.2rem;">⌨️ 📱</span>
-            <span id="bukang-guide-text">키보드 방향키(▶) 연타! / 모바일: 화면 터치 연타로 부캉이를 달리게 하세요!</span>
+            <span id="bukang-guide-text"><strong style="background:#fef08a;color:#854d0e;padding:0.12rem 0.45rem;border-radius:6px;font-weight:900;">키보드</strong> 방향키(▶) 연타! &nbsp;/&nbsp; <strong style="background:#fef08a;color:#854d0e;padding:0.12rem 0.45rem;border-radius:6px;font-weight:900;">휴대폰</strong> 화면 터치 연타로 부캉이를 달리게 하세요!</span>
           </div>
 
           <!-- Speedometer & Progress Bar Overlay -->
@@ -339,24 +337,24 @@ class BukangLuckyDrawGameV2 {
             <div class="bukang-guide-card">
               <div class="shark-badge">🦈 실시간 선착순 골인 챌린지 (버전 2)</div>
 
-              <h4>"당신의 행운을 위해 부산 앞바다를 신나게 헤엄쳐 갈게요!"</h4>
+              
               <p>
-                휴대전화 번호를 입력하시면 부캉이가 <span style="color:#d97706;background:#fef3c7;padding:0.15rem 0.5rem;border-radius:6px;font-weight:800;border:1px solid #fde68a;">🏷️ 번호 꼬리표</span>를 달고 <span style="color:#e4007f;font-weight:800;background:#fdf2f8;padding:0.15rem 0.5rem;border-radius:6px;border:1px solid #fbcfe8;">흥국금융</span>으로 출발합니다.
+                선물 받을 연락처를 입력 후 <span style="color:#0284c7;background:#e0f2fe;padding:0.15rem 0.55rem;border-radius:6px;font-weight:800;border:1.5px solid #7dd3fc;display:inline-block;box-shadow:0 1px 3px rgba(2,132,199,0.15);">'부캉이 출발'</span> 버튼을 클릭하세요.
               </p>
               
               <div class="phone-input-row">
                 <span class="input-icon">📱</span>
                 <input type="tel" id="bukang-phone-input" placeholder="010-1234-5678" maxlength="13" autofocus />
                 <button class="bukang-start-btn" id="bukang-start-btn">
-                  <span>🦈</span> START (부캉이 출발!)
+                  <span>🦈</span> 부캉이 출발
                 </button>
               </div>
               <div class="phone-err-msg" id="bukang-phone-err" style="display:none;"></div>
 
-              <!-- 안내 메시지 (이벤트 참여 안내 - 폰트 확대 및 시인성 강화) -->
+              <!-- 안내 메시지 -->
               <div style="margin-top:1.1rem;font-size:0.96rem;font-weight:600;color:#1e3a8a;line-height:1.65;background:#f0f9ff;padding:0.75rem 1.4rem;border-radius:12px;border:1.5px solid #bae6fd;display:inline-block;max-width:640px;text-align:center;box-shadow:0 2px 8px rgba(186,230,253,0.35);">
-                연락처 기재는 이벤트 당첨자에게 쿠폰을 발송하기 위한 용도로만 사용됩니다.<br>
-                <span style="color:#0284c7;font-weight:700;">(게임 참여는 선택사항이며, 원하지 않으시면 종료(✕) 하시면 됩니다.)</span>
+                연락처는 당첨자에게 쿠폰 발송 용도로만 사용됩니다.<br>
+                <span style="color:#0284c7;font-weight:400;">(게임 참여는 선택사항이며, 원하지 않으시면 종료(✕) 하시면 됩니다.)</span>
               </div>
             </div>
           </div>
@@ -460,7 +458,7 @@ class BukangLuckyDrawGameV2 {
           errEl.innerHTML = `⚠️ 이미 이벤트 응모가 완료된 번호입니다. (${phoneInput.value})<br><strong>이벤트 응모는 1인 1회로 한정됩니다.</strong>`;
           errEl.style.display = 'block';
           startBtn.disabled = false;
-          startBtn.innerHTML = '<span>🦈</span> START (부캉이 출발!)';
+          startBtn.innerHTML = '<span>🦈</span> 부캉이 출발';
           phoneInput.focus();
           return;
         }
@@ -469,7 +467,7 @@ class BukangLuckyDrawGameV2 {
       }
 
       startBtn.disabled = false;
-      startBtn.innerHTML = '<span>🦈</span> START (부캉이 출발!)';
+      startBtn.innerHTML = '<span>🦈</span> 부캉이 출발';
       this.phoneNumber = phoneInput.value;
       this.startSwimming();
     });
@@ -650,10 +648,6 @@ class BukangLuckyDrawGameV2 {
     const guideEl = document.getElementById('bukang-keyboard-guide');
     if (guideEl) {
       guideEl.style.display = 'flex';
-      const guideText = document.getElementById('bukang-guide-text');
-      if (guideText && window.innerWidth <= 768) {
-        guideText.innerText = '화면을 빠르게 연속 터치하여 부캉이를 달리게 하세요! ⚡';
-      }
     }
     const progressWrap = document.getElementById('bukang-progress-bar-wrap');
     if (progressWrap) progressWrap.style.display = 'block';
