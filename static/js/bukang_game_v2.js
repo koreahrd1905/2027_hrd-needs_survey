@@ -462,11 +462,11 @@ class BukangLuckyDrawGameV2 {
           <!-- Result Celebration Overlay (Finished) -->
           <div class="bukang-result-panel" id="bukang-result-view" style="display:none;">
             <div class="result-card">
-              <div class="result-badge">🎉 응모 접수 완료!</div>
-              <h2 class="result-title">"당신의 행운을 부캉이가 기원합니다!"</h2>
+              <div class="result-badge">응모 접수 완료</div>
+              <h2 class="result-title">선착순 이벤트에 정상 응모되었습니다</h2>
               <div class="result-sub-text">
-                ☕ 이벤트에 정상 응모되었습니다.<br>
-                <b style="color:#0369a1;">(선착순 000명에게 개별 모바일 쿠폰을 발송 드립니다)</b>
+                선착순 000명에게 모바일 쿠폰을 보내드립니다<br>
+                <span style="color:#0284c7;font-weight:600;font-size:0.86rem;">(발송일 : 10월 30일 이후)</span>
               </div>
 
               <div class="entry-receipt">
