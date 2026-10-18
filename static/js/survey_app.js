@@ -12,12 +12,30 @@
       btnEvt.style.boxShadow = 'none';
       btnEvt.style.cursor = 'not-allowed';
       btnEvt.style.opacity = '0.85';
+      btnEvt.style.pointerEvents = 'auto';
       btnEvt.innerHTML = '<span>✅</span> 이벤트 응모 완료 (1인 1회)';
       btnEvt.onclick = function(e) {
         e.preventDefault();
         e.stopPropagation();
         alert('이미 이벤트(커피쿠폰) 응모가 완료되었습니다.\n이벤트는 1인 1회만 응모 가능합니다.');
       };
+    }
+  };
+
+  // 이벤트 응모 버튼 활성화 함수 (설문 완료 시 호출)
+  window.activateEventButton = function() {
+    const btnEvt = document.getElementById('btn-event-entry');
+    if (btnEvt) {
+      btnEvt.disabled = false;
+      btnEvt.style.animation = 'pulse 1.5s infinite';
+      btnEvt.style.background = 'linear-gradient(135deg, #059669 0%, #047857 100%)';
+      btnEvt.style.color = '#ffffff';
+      btnEvt.style.boxShadow = '0 6px 20px rgba(5,150,105,0.45)';
+      btnEvt.style.cursor = 'pointer';
+      btnEvt.style.opacity = '1';
+      btnEvt.style.pointerEvents = 'auto';
+      btnEvt.innerHTML = '<span>🎁</span> 지금 바로 이벤트(커피쿠폰) 응모 하기!';
+      btnEvt.onclick = null;
     }
   };
 
@@ -592,14 +610,13 @@
     // Button 2: 이벤트(커피쿠폰) 응모 하기
     const btnEvent = document.getElementById('btn-event-entry');
     if (btnEvent) {
-      // 이미 응모한 경우 초기 상태 잠금
-      if (sessionStorage.getItem('heungkuk_event_submitted') === 'true') {
+      if (window.isEventSubmitted) {
         window.markEventAsCompleted();
       }
 
       btnEvent.addEventListener('click', (e) => {
         e.preventDefault();
-        if (window.isEventSubmitted || sessionStorage.getItem('heungkuk_event_submitted') === 'true') {
+        if (window.isEventSubmitted) {
           alert('이미 이벤트(커피쿠폰) 응모가 완료되었습니다.\n이벤트는 1인 1회만 응모 가능합니다.');
           return;
         }
@@ -805,13 +822,22 @@
       btnSubmit.innerHTML = '<span>✅</span> 설문 응답 제출 완료';
     }
 
-    // 이벤트 응모 버튼 하이라이트 안내 (이미 응모 완료 시 제외)
-    const btnEvt = document.getElementById('btn-event-entry');
-    if (btnEvt) {
-      if (window.isEventSubmitted || sessionStorage.getItem('heungkuk_event_submitted') === 'true') {
-        window.markEventAsCompleted();
-      } else {
+    // 이벤트 응모 버튼 하이라이트 및 확실한 100% 활성화 보장
+    window.isEventSubmitted = false;
+    try { sessionStorage.removeItem('heungkuk_event_submitted'); } catch(e){}
+    if (typeof window.activateEventButton === 'function') {
+      window.activateEventButton();
+    } else {
+      const btnEvt = document.getElementById('btn-event-entry');
+      if (btnEvt) {
+        btnEvt.disabled = false;
         btnEvt.style.animation = 'pulse 1.5s infinite';
+        btnEvt.style.background = 'linear-gradient(135deg, #059669 0%, #047857 100%)';
+        btnEvt.style.color = '#ffffff';
+        btnEvt.style.boxShadow = '0 6px 20px rgba(5,150,105,0.45)';
+        btnEvt.style.cursor = 'pointer';
+        btnEvt.style.opacity = '1';
+        btnEvt.style.pointerEvents = 'auto';
         btnEvt.innerHTML = '<span>🎁</span> 지금 바로 이벤트(커피쿠폰) 응모 하기!';
       }
     }
