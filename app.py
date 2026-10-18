@@ -108,7 +108,11 @@ def submit_survey():
     submission_id = data.get("id") or f"resp_{int(time.time()*1000)}"
     ans = data.get("answers", {})
     kst_now = get_kst_now_str()
-    submitted_at = data.get("submitted_at") or kst_now
+    raw_sub_at = data.get("submitted_at")
+    if not raw_sub_at or "T" in str(raw_sub_at) or "Z" in str(raw_sub_at):
+        submitted_at = kst_now
+    else:
+        submitted_at = str(raw_sub_at)
     record = {
         "id": submission_id,
         "timestamp": submitted_at,

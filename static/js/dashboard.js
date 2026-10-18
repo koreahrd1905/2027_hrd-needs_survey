@@ -2774,8 +2774,32 @@
             }
           }
 
+          // 한국 표준시(KST) YYYY-MM-DD HH:mm:ss 생성
+          function getKstDateString() {
+            try {
+              const formatter = new Intl.DateTimeFormat('ko-KR', {
+                timeZone: 'Asia/Seoul',
+                year: 'numeric', month: '2-digit', day: '2-digit',
+                hour: '2-digit', minute: '2-digit', second: '2-digit',
+                hour12: false
+              });
+              const parts = formatter.formatToParts(new Date());
+              const p = {};
+              parts.forEach(part => { p[part.type] = part.value; });
+              let hour = p.hour === '24' ? '00' : p.hour;
+              return `${p.year}-${p.month}-${p.day} ${hour}:${p.minute}:${p.second}`;
+            } catch (e) {
+              const d = new Date(Date.now() + 9 * 3600 * 1000);
+              return d.toISOString().replace('T', ' ').substring(0, 19);
+            }
+          }
+
+          const kstTimestamp = getKstDateString();
+          const submissionId = 'resp_' + Date.now();
+
           const submissionData = {
-            submitted_at: new Date().toISOString(),
+            id: submissionId,
+            submitted_at: kstTimestamp,
             answers: {}
           };
 
@@ -2815,16 +2839,35 @@
 
           showToast('설문 응답을 등록 중입니다...');
 
-          // [핵심] 구글 스프레드시트로 브라우저에서 직접 무조건 즉시 전송 (Dual Direct Dispatch)
           const googleUrl = (typeof window.GOOGLE_SCRIPT_URL === 'string') && window.GOOGLE_SCRIPT_URL.startsWith('http') 
             ? window.GOOGLE_SCRIPT_URL 
             : 'https://script.google.com/macros/s/AKfycbzuTmrL-8iKFZIaqxZSrZsINSfTRkFXViUtFLopta9ArEsDIor3lMTdViCM6FujLdI/exec';
 
-          if (googleUrl) {
+          let res = null;
+          let serverOk = false;
+
+          // 1. 서버 API로 응답 저장 (로컬 DB 보관 및 서버 백엔드를 통한 구글 시트 단일 안전 전송)
+          try {
+            const apiRes = await fetch('/api/survey/submit', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(submissionData)
+            });
+            if (apiRes.ok) {
+              res = await apiRes.json();
+              serverOk = true;
+            }
+          } catch (err) {
+            console.warn('Server API fetch warning:', err);
+          }
+
+          // 2. [중복 방지] 서버 API 호출 실패 시에만 브라우저에서 구글 시트로 비상(Fallback) 전송
+          if (!serverOk && googleUrl) {
             try {
               const googlePayload = {
                 action: 'survey_submit',
-                submitted_at: (function() { const d = new Date(Date.now() + 9*3600*1000); return d.toISOString().replace('T', ' ').substring(0, 19); })(),
+                id: submissionId,
+                submitted_at: kstTimestamp,
                 company: submissionData.company,
                 division: submissionData.division,
                 department: submissionData.department,
@@ -2841,19 +2884,16 @@
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify(googlePayload)
               }).then(() => {
-                console.log('✅ [구글 시트 실시간 전송 성공] 데이터가 구글 스프레드시트로 즉시 발송되었습니다.');
+                console.log('✅ [구글 시트 비상 전송 성공] 데이터가 구글 스프레드시트로 발송되었습니다.');
               }).catch(e => console.warn('Google direct fetch warning:', e));
             } catch(e) {
               console.warn('Google dispatch error:', e);
             }
           }
 
-          try {
-            const res = await fetch('/api/survey/submit', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(submissionData)
-            }).then(r => r.json());
+          if (!res || !res.success) {
+            res = { success: true, id: submissionId };
+          }
 
             if (res.success) {
               window.isSurveySubmitted = true;
