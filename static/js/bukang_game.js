@@ -997,10 +997,6 @@ class BukangLuckyDrawGameV2 {
               <strong style="color:#047857;">${company}</strong>
             </div>
             <div class="receipt-row">
-              <span>선착순 순위</span>
-              <strong style="color:#e11d48;">${company} ${rankNum}번째 골인 (정원 ${quotaNum}명 내 당첨!)</strong>
-            </div>
-            <div class="receipt-row">
               <span>응모 번호</span>
               <strong>${masked}</strong>
             </div>
