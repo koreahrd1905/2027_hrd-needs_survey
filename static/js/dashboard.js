@@ -2937,9 +2937,6 @@
             } else {
               showToast(res.error || '제출 실패');
             }
-          } catch (err) {
-            showToast('서버 오류로 등록에 실패했습니다.');
-          }
         });
       }
     } else if (activeTab === 'analysis') {
