@@ -1930,12 +1930,21 @@ body {
    Safe flex centering without top-clipping when overflowing (.result-card)
    ========================================================================== */
 .bukang-result-panel {
-  display: flex !important;
   justify-content: center !important;
   align-items: center !important;
   overflow-y: auto !important;
   -webkit-overflow-scrolling: touch !important;
   padding: 0.5rem !important;
+}
+
+.bukang-result-panel[style*="display: none"],
+.bukang-result-panel[style*="display:none"] {
+  display: none !important;
+}
+
+.bukang-result-panel[style*="display: flex"],
+.bukang-result-panel[style*="display:flex"] {
+  display: flex !important;
 }
 
 .bukang-result-panel .result-card {

@@ -2,7 +2,7 @@
   window.markEventAsCompleted = function() {
     window.isEventSubmitted = true;
     try {
-      localStorage.setItem('heungkuk_event_submitted', 'true');
+      sessionStorage.setItem('heungkuk_event_submitted', 'true');
     } catch (e) {}
     const btnEvt = document.getElementById('btn-event-entry');
     if (btnEvt) {
@@ -568,13 +568,13 @@
     const btnEvent = document.getElementById('btn-event-entry');
     if (btnEvent) {
       // 이미 응모한 경우 초기 상태 잠금
-      if (localStorage.getItem('heungkuk_event_submitted') === 'true') {
+      if (sessionStorage.getItem('heungkuk_event_submitted') === 'true') {
         window.markEventAsCompleted();
       }
 
       btnEvent.addEventListener('click', (e) => {
         e.preventDefault();
-        if (window.isEventSubmitted || localStorage.getItem('heungkuk_event_submitted') === 'true') {
+        if (window.isEventSubmitted || sessionStorage.getItem('heungkuk_event_submitted') === 'true') {
           alert('이미 이벤트(커피쿠폰) 응모가 완료되었습니다.\n이벤트는 1인 1회만 응모 가능합니다.');
           return;
         }
@@ -783,7 +783,7 @@
     // 이벤트 응모 버튼 하이라이트 안내 (이미 응모 완료 시 제외)
     const btnEvt = document.getElementById('btn-event-entry');
     if (btnEvt) {
-      if (window.isEventSubmitted || localStorage.getItem('heungkuk_event_submitted') === 'true') {
+      if (window.isEventSubmitted || sessionStorage.getItem('heungkuk_event_submitted') === 'true') {
         window.markEventAsCompleted();
       } else {
         btnEvt.style.animation = 'pulse 1.5s infinite';

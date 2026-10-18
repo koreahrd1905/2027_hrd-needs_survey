@@ -262,6 +262,14 @@ class BukangLuckyDrawGameV2 {
     this.lastDriveTime = 0;
     this.jumpTriggered = [false, false, false];
     this.createModalDOM();
+    // [중요] 초기 오픈 시 결과창은 무조건 숨김, 입력창 노출, 상단 [X] 버튼 노출
+    const resViewInit = document.getElementById('bukang-result-view');
+    if (resViewInit) resViewInit.style.display = 'none';
+    const inputViewInit = document.getElementById('bukang-input-view');
+    if (inputViewInit) inputViewInit.style.display = 'flex';
+    const topCloseBtn = document.getElementById('bukang-close-top-btn');
+    if (topCloseBtn) topCloseBtn.style.display = 'flex';
+
     this.initAudio();
     // Silent BGM by default - only starts when moving forward!
     this.stopBGM();
