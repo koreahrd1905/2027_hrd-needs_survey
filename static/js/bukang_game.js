@@ -929,21 +929,7 @@ class BukangLuckyDrawGameV2 {
       };
     }
 
-    // Google Apps Script logging
-    if (window.GOOGLE_SCRIPT_URL && window.GOOGLE_SCRIPT_URL.startsWith('http')) {
-      try {
-        fetch(window.GOOGLE_SCRIPT_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({
-            ...eventPayload,
-            winner_status: serverResult.is_winner ? '당첨' : '미당첨(선착순마감)',
-            rank: serverResult.rank
-          })
-        }).catch(e => {});
-      } catch (e) {}
-    }
+    // [신호 통로 단일화] Render 백엔드에서만 일괄 전달
 
     const isWinner = serverResult.is_winner === true;
     const rankNum = serverResult.rank || 1;

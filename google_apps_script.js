@@ -312,10 +312,11 @@ function doPost(e) {
         phone.slice(0,3) + '-' + phone.slice(3,7) + '-' + phone.slice(7) : 
         (phone.length === 10 ? phone.slice(0,3) + '-' + phone.slice(3,6) + '-' + phone.slice(6) : phone);
       
-      var nowStr = Utilities.formatDate(new Date(), 'Asia/Seoul', 'yyyy-MM-dd HH:mm:ss');
       var rowCount = targetSheet.getLastRow();
       var rank = data.rank || rowCount;
-      var entryId = data.entry_id || ('EVT-' + Utilities.formatDate(new Date(), 'Asia/Seoul', 'yyyyMMdd-') + rowCount);
+      var prefix = isFire ? 'EVT-F' : 'EVT-L';
+      var formattedRankStr = (rank < 10 ? '00' : (rank < 100 ? '0' : '')) + rank;
+      var entryId = data.entry_id || (prefix + formattedRankStr);
       
       var winnerStatus = data.winner_status;
       if (!winnerStatus) {
@@ -371,3 +372,22 @@ function doGet(e) {
     time: new Date().toISOString()
   })).setMimeType(ContentService.MimeType.JSON);
 }
+
+/**
+ * 3. [Render 서버 24시간 깨워두기 (Keep-Alive)]
+ * Render 무료 인스턴스가 15분 미접속 시 잠들지 않도록 10분마다 핑을 전송합니다.
+ * Google Apps Script 좌측 시계 아이콘(트리거) -> [트리거 추가]
+ * -> 실행할 함수: keepRenderServerAlive
+ * -> 이벤트 소스: 시간 기반
+ * -> 트리거 유형: 분 단위 타이머 (10분마다)
+ */
+function keepRenderServerAlive() {
+  var url = 'https://two027-hrd-needs-survey.onrender.com/health';
+  try {
+    var response = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+    Logger.log('[Keep-Alive] 핑 전송 완료 (응답 코드: ' + response.getResponseCode() + ')');
+  } catch (err) {
+    Logger.log('[Keep-Alive] 핑 전송 오류: ' + err.message);
+  }
+}
+

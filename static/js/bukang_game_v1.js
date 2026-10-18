@@ -355,7 +355,7 @@ class BukangLuckyDrawGame {
               <div class="entry-receipt">
                 <div class="receipt-row">
                   <span>접수 번호</span>
-                  <strong id="receipt-id">EVT-${Math.floor(Math.random() * 8999 + 1000)}</strong>
+                  <strong id="receipt-id">${this.serverEntryId || '발급 중...'}</strong>
                 </div>
                 <div class="receipt-row">
                   <span>응모 번호</span>
@@ -660,22 +660,13 @@ class BukangLuckyDrawGame {
     .then(res => res.json())
     .then(data => {
       if (data && data.entry_id) {
+        this.serverEntryId = data.entry_id;
         const receiptIdEl = document.getElementById('receipt-id');
         if (receiptIdEl) receiptIdEl.innerText = data.entry_id;
       }
     })
     .catch(err => console.warn('Event submit log:', err));
-
-    if (window.GOOGLE_SCRIPT_URL && window.GOOGLE_SCRIPT_URL.startsWith('http')) {
-      try {
-        fetch(window.GOOGLE_SCRIPT_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(eventPayload)
-        }).catch(e => {});
-      } catch (e) {}
-    }
+    // [신호 통로 단일화] Render 백엔드에서 일괄 구글 시트로 전달하도록 브라우저 직접 전송을 비활성화
   }
 
   updateGame() {
@@ -883,6 +874,10 @@ class BukangLuckyDrawGame {
     }
     const receiptPhoneEl = document.getElementById('receipt-phone');
     if (receiptPhoneEl) receiptPhoneEl.innerText = masked;
+    if (this.serverEntryId) {
+      const receiptIdEl = document.getElementById('receipt-id');
+      if (receiptIdEl) receiptIdEl.innerText = this.serverEntryId;
+    }
 
     // Show result view after 1.4s
     setTimeout(() => {

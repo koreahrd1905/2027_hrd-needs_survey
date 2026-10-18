@@ -231,6 +231,14 @@ def submit_event():
 
     current_company_winners = sum(1 for e in entries if (target_company in e.get("company", "")) and e.get("winner_status") == "당첨")
 
+    is_fire = ("화재" in target_company)
+    prefix = "EVT-F" if is_fire else "EVT-L"
+
+    # [회사별 카운팅 분리] 생명 / 화재 응모자 수 독립 카운팅 (EVT-L001, EVT-F001)
+    company_entries_count = sum(1 for e in entries if (is_fire and "화재" in e.get("company", "")) or (not is_fire and "화재" not in e.get("company", "")))
+    rank = company_entries_count + 1
+    entry_id = f"{prefix}{rank:03d}"
+
     is_winner = False
     if game_version == 2:
         if current_company_winners < quota:
@@ -239,15 +247,12 @@ def submit_event():
         else:
             is_winner = False
             winner_status = "미당첨(선착순마감)"
-        rank = current_company_winners + 1
-        message = "축하합니다. 커피쿠폰 당첨되셨습니다" if is_winner else "꽝! 수고많으셨습니다"
+        message = "축하합니다. 커피쿠폰 당첨" if is_winner else "꽝! 수고많으셨습니다"
     else:
         winner_status = "추첨 대기"
-        rank = len(entries) + 1
         is_winner = True
-        message = "이벤트 응모가 완료되었습니다."
+        message = "부캉이와 함께하는 스타벅스 쿠폰 럭키드로우 응모가 완료되었습니다!"
 
-    entry_id = f"EVT-{int(time.time()) % 10000:04d}-{len(entries) + 1:03d}"
     entry = {
         "entry_id": entry_id,
         "phone": formatted_phone,
