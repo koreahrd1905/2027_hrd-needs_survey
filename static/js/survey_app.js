@@ -67,15 +67,40 @@
     }, 60);
   };
 
+  // [교수님 피드백 반영] 골인 도착 결과창에서 [종료] 클릭 시 캡처3(완료안내) 없이 웹화면 바로 닫기/종료
   window.handleSurveyAndGameFinish = function() {
     isSurveyCompleted = true;
+    
+    // 1. Native Window Close attempts
     try {
       window.open('', '_self', '');
       window.close();
     } catch(e) {}
 
-    renderSurveyCompletionView();
-    showToast('🎉 설문 및 럭키드로우 이벤트 응모가 모두 종료되었습니다. 감사합니다!');
+    try {
+      window.close();
+    } catch(e) {}
+
+    try {
+      self.close();
+    } catch(e) {}
+
+    // 2. In-App Browser Close (KakaoTalk, etc.)
+    try {
+      if (navigator.userAgent.indexOf('KAKAOTALK') !== -1) {
+        location.href = 'kakaoweb://closeBrowser';
+      }
+    } catch(e) {}
+
+    // 3. Fallback for desktop Chrome address bar security restrictions: redirect to blank
+    setTimeout(function() {
+      try {
+        window.close();
+      } catch(e) {}
+      try {
+        window.location.replace('about:blank');
+      } catch(e) {}
+    }, 100);
   };
 
   function renderSurveyCompletionView() {

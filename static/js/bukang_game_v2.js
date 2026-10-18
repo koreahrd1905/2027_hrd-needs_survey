@@ -268,7 +268,7 @@ class BukangLuckyDrawGameV2 {
     const resViewInit = document.getElementById('bukang-result-view');
     if (resViewInit) resViewInit.style.display = 'none';
     const inputViewInit = document.getElementById('bukang-input-view');
-    if (inputViewInit) inputViewInit.style.display = 'flex';
+    if (inputViewInit) inputViewInit.style.display = 'block';
     const topCloseBtn = document.getElementById('bukang-close-top-btn');
     if (topCloseBtn) topCloseBtn.style.display = 'flex';
 

@@ -2015,3 +2015,58 @@ body {
     border-radius: 8px !important;
   }
 }
+
+
+/* ==========================================================================
+   [교수님 피드백 반영] 게임 메인화면 하단 안내글 & 입력창 완벽한 중앙(가운데) 정렬 보장
+   ========================================================================== */
+.bukang-input-panel {
+  width: 100% !important;
+  background: #ffffff !important;
+  padding: 1rem 1.4rem 1.25rem !important;
+  border-top: 1px solid #e2e8f0 !important;
+  display: block !important;
+  text-align: center !important;
+  box-sizing: border-box !important;
+}
+
+.bukang-guide-card {
+  width: 100% !important;
+  max-width: 680px !important;
+  margin: 0 auto !important;
+  text-align: center !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+}
+
+.shark-badge {
+  display: inline-block !important;
+  margin: 0 auto 0.35rem auto !important;
+  text-align: center !important;
+}
+
+.bukang-guide-card p {
+  text-align: center !important;
+  width: 100% !important;
+  margin: 0.15rem auto 0.85rem auto !important;
+}
+
+.phone-input-row {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  margin: 0 auto !important;
+  width: 100% !important;
+  max-width: 480px !important;
+  box-sizing: border-box !important;
+}
+
+.bukang-guide-card > div[style*="background:#f0f9ff"] {
+  margin: 0.95rem auto 0 auto !important;
+  text-align: center !important;
+  display: inline-block !important;
+  box-sizing: border-box !important;
+}
