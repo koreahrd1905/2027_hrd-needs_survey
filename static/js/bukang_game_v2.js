@@ -293,6 +293,93 @@ class BukangLuckyDrawGameV2 {
     }
   }
 
+  promptExitConfirmation() {
+    if (document.getElementById('bukang-exit-confirm-modal')) return;
+
+    const confirmOverlay = document.createElement('div');
+    confirmOverlay.id = 'bukang-exit-confirm-modal';
+    confirmOverlay.className = 'bukang-exit-confirm-overlay';
+    confirmOverlay.innerHTML = `
+      <div class="bukang-exit-confirm-card">
+        <div style="font-size:2.4rem;margin-bottom:0.4rem;">🚪</div>
+        <h3 style="font-size:1.25rem;font-weight:900;color:#1e293b;margin:0 0 0.45rem 0;">이벤트 참여없이 종료하시겠습니까?</h3>
+        <p style="font-size:0.92rem;color:#64748b;margin:0 0 1.25rem 0;line-height:1.5;">
+          설문 응답은 정상 제출 완료되었습니다.<br>
+          <strong style="color:#ef4444;">'종료 (웹 나가기)'</strong>를 누르시면 화면이 즉시 종료됩니다.
+        </p>
+        <div style="display:flex;gap:0.75rem;justify-content:center;">
+          <button class="bukang-exit-btn-cancel" id="btn-cancel-exit">
+            계속 참여하기
+          </button>
+          <button class="bukang-exit-btn-confirm" id="btn-confirm-exit">
+            종료 (웹 나가기)
+          </button>
+        </div>
+      </div>
+    `;
+
+    const modalBox = this.modalEl ? this.modalEl.querySelector('.bukang-modal-box') : document.body;
+    modalBox.appendChild(confirmOverlay);
+
+    // Cancel Button
+    const cancelBtn = confirmOverlay.querySelector('#btn-cancel-exit');
+    if (cancelBtn) {
+      cancelBtn.addEventListener('click', (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        confirmOverlay.remove();
+      });
+    }
+
+    // Confirm Exit Button
+    const confirmBtn = confirmOverlay.querySelector('#btn-confirm-exit');
+    if (confirmBtn) {
+      confirmBtn.addEventListener('click', (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        confirmOverlay.remove();
+        this.close();
+
+        // 1인 1회 응모 완료 잠금 처리
+        if (typeof window.markEventAsCompleted === 'function') {
+          window.markEventAsCompleted();
+        }
+
+        // 웹 화면 완전히 나가기/종료 실행
+        if (typeof window.handleSurveyAndGameFinish === 'function') {
+          window.handleSurveyAndGameFinish();
+        } else {
+          try {
+            window.open('', '_self', '');
+            window.close();
+          } catch (e) {}
+        }
+
+        // 브라우저 탭 닫기 정책으로 창이 안 닫힌 경우, 화면을 깔끔한 최종 종료 완료 뷰로 즉시 전환
+        setTimeout(() => {
+          const root = document.getElementById('root');
+          if (root) {
+            root.innerHTML = `
+              <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg, #0f172a 0%, #1e293b 100%);color:white;font-family:'Pretendard',sans-serif;padding:1.5rem;text-align:center;">
+                <div style="background:rgba(255,255,255,0.06);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.15);padding:2.5rem 2rem;border-radius:24px;max-width:480px;width:100%;box-shadow:0 25px 60px rgba(0,0,0,0.5);">
+                  <div style="font-size:3.5rem;margin-bottom:1rem;">✅</div>
+                  <h2 style="font-size:1.6rem;font-weight:900;margin-bottom:0.8rem;color:#38bdf8;">설문 참여가 완료되었습니다</h2>
+                  <p style="font-size:1rem;color:#cbd5e1;line-height:1.6;margin-bottom:1.8rem;">
+                    2027 그룹 인재육성 체계 수립 설문조사에<br>소중한 시간 내어 참여해 주셔서 대단히 감사합니다.<br>
+                    현재 인터넷 창(탭)을 닫아주시면 됩니다.
+                  </p>
+                  <button onclick="try{window.open('','_self','');window.close();}catch(e){}" style="background:linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);color:white;border:none;padding:0.9rem 2.2rem;border-radius:14px;font-size:1.05rem;font-weight:800;cursor:pointer;box-shadow:0 6px 20px rgba(2,132,199,0.4);">
+                    창 닫기
+                  </button>
+                </div>
+              </div>
+            `;
+          }
+        }, 80);
+      });
+    }
+  }
+
   createModalDOM() {
     const existing = document.getElementById('bukang-lucky-modal');
     if (existing) existing.remove();
@@ -513,8 +600,10 @@ class BukangLuckyDrawGameV2 {
       }
     });
 
-    closeTopBtn.addEventListener('click', () => {
-      this.close();
+    closeTopBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      this.promptExitConfirmation();
     });
 
     muteBtn.addEventListener('click', () => {
@@ -942,7 +1031,7 @@ class BukangLuckyDrawGameV2 {
 
         resCard.innerHTML = `
           <div class="result-badge" style="background:linear-gradient(135deg, #10b981 0%, #059669 100%);">🎉 실시간 선착순 당첨 성공!</div>
-          <h2 class="result-title" style="color:#065f46;font-size:1.22rem;margin:0.15rem 0 0.35rem 0;">"축하합니다. 커피쿠폰 당첨되셨습니다"</h2>
+          <h2 class="result-title" style="color:#065f46;font-size:1.22rem;margin:0.15rem 0 0.35rem 0;">"축하합니다. 커피쿠폰 당첨"</h2>
           <div class="result-sub-text" style="font-size:0.86rem;font-weight:700;color:#047857;margin-bottom:0.65rem;">
             커피 모바일 쿠폰을 발송해 드리겠습니다 (발송일 : 10월30일 이후)
           </div>
@@ -977,37 +1066,33 @@ class BukangLuckyDrawGameV2 {
           </div>
         `;
       } else {
-        // Loser UI (꽝!) - [교수님 피드백 반영 35% 이상 컴팩트 축소 & 짤림 완벽 방지]
+        // Loser UI (꽝!) - [교수님 피드백 반영: 꽝 완벽 가운데 정렬 & 골인기록 삭제 및 쾌적한 줄간 배치]
         this.playMellowTone();
         resCard.innerHTML = `
           <div class="result-badge" style="background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%);margin-bottom:0.25rem;">⚠️ 선착순 마감 안내</div>
-          <div class="result-fail-title">
+          <div class="result-fail-title" style="display:block !important;width:100% !important;text-align:center !important;margin:0.15rem auto 0.25rem auto !important;">
             꽝!
           </div>
-          <div style="font-size:1.15rem;font-weight:800;color:#1e293b;margin-bottom:0.18rem;">
+          <div style="font-size:1.15rem;font-weight:800;color:#1e293b;margin-bottom:0.18rem;text-align:center;">
             수고많으셨습니다
           </div>
-          <div class="result-sub-text" style="font-size:0.86rem;font-weight:700;color:#475569;line-height:1.45;margin-bottom:0.35rem;">
+          <div class="result-sub-text" style="font-size:0.86rem;font-weight:700;color:#475569;line-height:1.45;margin-bottom:0.35rem;text-align:center;">
             소중한 참여에 깊이 감사드립니다
           </div>
 
           <!-- 부캉이 공손 인사 애니메이션 캔버스 (크기 160x70으로 컴팩트 최적화) -->
           <canvas id="bukang-bow-canvas" width="160" height="70" style="margin: 0.1rem auto 0.35rem; display: block;"></canvas>
 
-          <div class="entry-receipt" style="margin-bottom:0.65rem;padding:0.45rem 0.9rem;">
-            <div class="receipt-row" style="padding:0.18rem 0;">
+          <div class="entry-receipt" style="margin:0.4rem auto 0.65rem auto;padding:0.55rem 0.95rem;">
+            <div class="receipt-row" style="padding:0.32rem 0;display:flex;justify-content:space-between;border-bottom:1px dashed #e2e8f0;">
               <span>접수 번호</span>
               <strong>${serverResult.entry_id}</strong>
             </div>
-            <div class="receipt-row" style="padding:0.18rem 0;">
+            <div class="receipt-row" style="padding:0.32rem 0;display:flex;justify-content:space-between;border-bottom:1px dashed #e2e8f0;">
               <span>소속 회사</span>
               <strong>${company}</strong>
             </div>
-            <div class="receipt-row" style="padding:0.18rem 0;">
-              <span>골인 기록</span>
-              <strong style="color:#ef4444;">${company} ${rankNum}번째 골인</strong>
-            </div>
-            <div class="receipt-row" style="padding:0.18rem 0;">
+            <div class="receipt-row" style="padding:0.32rem 0;display:flex;justify-content:space-between;">
               <span>응모 번호</span>
               <strong>${masked}</strong>
             </div>

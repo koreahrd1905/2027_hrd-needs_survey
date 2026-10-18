@@ -291,6 +291,88 @@ class BukangLuckyDrawGameV2 {
     }
   }
 
+  promptExitConfirmation() {
+    if (document.getElementById('bukang-exit-confirm-modal')) return;
+
+    const confirmOverlay = document.createElement('div');
+    confirmOverlay.id = 'bukang-exit-confirm-modal';
+    confirmOverlay.className = 'bukang-exit-confirm-overlay';
+    confirmOverlay.innerHTML = `
+      <div class="bukang-exit-confirm-card">
+        <div style="font-size:2.4rem;margin-bottom:0.4rem;">🚪</div>
+        <h3 style="font-size:1.25rem;font-weight:900;color:#1e293b;margin:0 0 0.45rem 0;">이벤트 참여없이 종료하시겠습니까?</h3>
+        <p style="font-size:0.92rem;color:#64748b;margin:0 0 1.25rem 0;line-height:1.5;">
+          설문 응답은 정상 제출 완료되었습니다.<br>
+          <strong style="color:#ef4444;">'종료 (웹 나가기)'</strong>를 누르시면 화면이 즉시 종료됩니다.
+        </p>
+        <div style="display:flex;gap:0.75rem;justify-content:center;">
+          <button class="bukang-exit-btn-cancel" id="btn-cancel-exit">
+            계속 참여하기
+          </button>
+          <button class="bukang-exit-btn-confirm" id="btn-confirm-exit">
+            종료 (웹 나가기)
+          </button>
+        </div>
+      </div>
+    `;
+
+    const modalBox = this.modalEl ? this.modalEl.querySelector('.bukang-modal-box') : document.body;
+    modalBox.appendChild(confirmOverlay);
+
+    const cancelBtn = confirmOverlay.querySelector('#btn-cancel-exit');
+    if (cancelBtn) {
+      cancelBtn.addEventListener('click', (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        confirmOverlay.remove();
+      });
+    }
+
+    const confirmBtn = confirmOverlay.querySelector('#btn-confirm-exit');
+    if (confirmBtn) {
+      confirmBtn.addEventListener('click', (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        confirmOverlay.remove();
+        this.close();
+
+        if (typeof window.markEventAsCompleted === 'function') {
+          window.markEventAsCompleted();
+        }
+
+        if (typeof window.handleSurveyAndGameFinish === 'function') {
+          window.handleSurveyAndGameFinish();
+        } else {
+          try {
+            window.open('', '_self', '');
+            window.close();
+          } catch (e) {}
+        }
+
+        setTimeout(() => {
+          const root = document.getElementById('root');
+          if (root) {
+            root.innerHTML = `
+              <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg, #0f172a 0%, #1e293b 100%);color:white;font-family:'Pretendard',sans-serif;padding:1.5rem;text-align:center;">
+                <div style="background:rgba(255,255,255,0.06);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.15);padding:2.5rem 2rem;border-radius:24px;max-width:480px;width:100%;box-shadow:0 25px 60px rgba(0,0,0,0.5);">
+                  <div style="font-size:3.5rem;margin-bottom:1rem;">✅</div>
+                  <h2 style="font-size:1.6rem;font-weight:900;margin-bottom:0.8rem;color:#38bdf8;">설문 참여가 완료되었습니다</h2>
+                  <p style="font-size:1rem;color:#cbd5e1;line-height:1.6;margin-bottom:1.8rem;">
+                    2027 그룹 인재육성 체계 수립 설문조사에<br>소중한 시간 내어 참여해 주셔서 대단히 감사합니다.<br>
+                    현재 인터넷 창(탭)을 닫아주시면 됩니다.
+                  </p>
+                  <button onclick="try{window.open('','_self','');window.close();}catch(e){}" style="background:linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);color:white;border:none;padding:0.9rem 2.2rem;border-radius:14px;font-size:1.05rem;font-weight:800;cursor:pointer;box-shadow:0 6px 20px rgba(2,132,199,0.4);">
+                    창 닫기
+                  </button>
+                </div>
+              </div>
+            `;
+          }
+        }, 80);
+      });
+    }
+  }
+
   createModalDOM() {
     const existing = document.getElementById('bukang-lucky-modal');
     if (existing) existing.remove();
@@ -493,8 +575,10 @@ class BukangLuckyDrawGameV2 {
       }
     });
 
-    closeTopBtn.addEventListener('click', () => {
-      this.close();
+    closeTopBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      this.promptExitConfirmation();
     });
 
     muteBtn.addEventListener('click', () => {
@@ -898,7 +982,7 @@ class BukangLuckyDrawGameV2 {
 
         resCard.innerHTML = `
           <div class="result-badge" style="background:linear-gradient(135deg, #10b981 0%, #059669 100%);">🎉 실시간 선착순 당첨 성공!</div>
-          <h2 class="result-title" style="color:#065f46;font-size:1.22rem;margin:0.15rem 0 0.35rem 0;">"축하합니다. 커피쿠폰 당첨되셨습니다"</h2>
+          <h2 class="result-title" style="color:#065f46;font-size:1.22rem;margin:0.15rem 0 0.35rem 0;">"축하합니다. 커피쿠폰 당첨"</h2>
           <div class="result-sub-text" style="font-size:0.86rem;font-weight:700;color:#047857;margin-bottom:0.65rem;">
             커피 모바일 쿠폰을 발송해 드리겠습니다 (발송일 : 10월30일 이후)
           </div>
@@ -937,13 +1021,13 @@ class BukangLuckyDrawGameV2 {
         this.playMellowTone();
         resCard.innerHTML = `
           <div class="result-badge" style="background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">⚠️ 선착순 마감 안내</div>
-          <div style="font-size:3.5rem;font-weight:900;color:#ef4444;line-height:1;margin:0.2rem 0 0.3rem 0;letter-spacing:-1px;text-shadow:0 4px 18px rgba(239,68,68,0.4);animation:guidePulse 1.2s infinite alternate;">
+          <div class="result-fail-title" style="display:block !important;width:100% !important;text-align:center !important;margin:0.15rem auto 0.25rem auto !important;animation:failPulse 1.2s infinite alternate !important;">
             꽝!
           </div>
-          <div style="font-size:1.45rem;font-weight:800;color:#1e293b;margin-bottom:0.4rem;">
+          <div style="font-size:1.45rem;font-weight:800;color:#1e293b;margin-bottom:0.4rem;text-align:center;">
             수고많으셨습니다
           </div>
-          <div class="result-sub-text" style="font-size:0.9rem;color:#64748b;line-height:1.55;margin-bottom:0.6rem;">
+          <div class="result-sub-text" style="font-size:0.9rem;color:#64748b;line-height:1.55;margin-bottom:0.6rem;text-align:center;">
             아쉽게도 선착순 당첨 인원(흥국생명 160명 / 흥국화재 200명)이 마감되었습니다.<br>
             설문에 참여해 주신 임직원 여러분의 소중한 의견에 깊이 감사드립니다.
           </div>
@@ -951,20 +1035,16 @@ class BukangLuckyDrawGameV2 {
           <!-- 부캉이 공손 인사 애니메이션 캔버스 -->
           <canvas id="bukang-bow-canvas" width="220" height="110" style="margin: 0.2rem auto 0.6rem; display: block;"></canvas>
 
-          <div class="entry-receipt" style="margin-bottom:0.9rem;">
-            <div class="receipt-row">
+          <div class="entry-receipt" style="margin:0.4rem auto 0.8rem auto;padding:0.6rem 1rem;">
+            <div class="receipt-row" style="padding:0.35rem 0;display:flex;justify-content:space-between;border-bottom:1px dashed #e2e8f0;">
               <span>접수 번호</span>
               <strong>${serverResult.entry_id}</strong>
             </div>
-            <div class="receipt-row">
+            <div class="receipt-row" style="padding:0.35rem 0;display:flex;justify-content:space-between;border-bottom:1px dashed #e2e8f0;">
               <span>소속 회사</span>
               <strong>${company}</strong>
             </div>
-            <div class="receipt-row">
-              <span>골인 기록</span>
-              <strong style="color:#ef4444;">${company} ${rankNum}번째 골인 (정원 ${quotaNum}명 마감)</strong>
-            </div>
-            <div class="receipt-row">
+            <div class="receipt-row" style="padding:0.35rem 0;display:flex;justify-content:space-between;">
               <span>응모 번호</span>
               <strong>${masked}</strong>
             </div>

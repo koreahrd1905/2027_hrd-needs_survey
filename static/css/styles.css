@@ -1956,14 +1956,22 @@ body {
 }
 
 .result-fail-title {
+  display: block !important;
+  width: 100% !important;
+  text-align: center !important;
   font-size: 2.2rem;
   font-weight: 900;
   color: #ef4444;
   line-height: 1;
-  margin: 0.15rem 0 0.25rem 0;
+  margin: 0.15rem auto 0.25rem auto !important;
   letter-spacing: -1px;
   text-shadow: 0 3px 12px rgba(239, 68, 68, 0.35);
-  animation: guidePulse 1.2s infinite alternate;
+  animation: failPulse 1.2s infinite alternate;
+}
+
+@keyframes failPulse {
+  0% { transform: scale(0.96); }
+  100% { transform: scale(1.04); }
 }
 
 /* Mobile & Small Screens (Width <= 768px OR Height <= 700px): 35%~40% Compact Reduction */
@@ -1981,7 +1989,8 @@ body {
   }
   .result-fail-title {
     font-size: 1.65rem !important;
-    margin: 0.05rem 0 !important;
+    margin: 0.05rem auto !important;
+    text-align: center !important;
   }
   .bukang-result-panel .result-title {
     font-size: 0.98rem !important;
@@ -2069,4 +2078,70 @@ body {
   text-align: center !important;
   display: inline-block !important;
   box-sizing: border-box !important;
+}
+
+/* Bukang Modal Exit Confirmation Popup */
+.bukang-exit-confirm-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  border-radius: 20px;
+  animation: fadeIn 0.15s ease-out;
+}
+
+.bukang-exit-confirm-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 1.8rem 2rem;
+  max-width: 390px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-sizing: border-box;
+}
+
+.bukang-exit-btn-cancel {
+  flex: 1;
+  padding: 0.8rem 1rem;
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.bukang-exit-btn-cancel:hover {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+.bukang-exit-btn-confirm {
+  flex: 1;
+  padding: 0.8rem 1rem;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.35);
+  transition: all 0.2s ease;
+}
+
+.bukang-exit-btn-confirm:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.45);
 }
