@@ -348,21 +348,21 @@ class BukangLuckyDrawGame {
                   autocomplete="tel"
                   style="flex: 1; padding: 0.82rem 1.1rem; font-size: 1.15rem; font-weight: 700; border: 2px solid #bae6fd; border-radius: 12px; outline: none; text-align: center; letter-spacing: 1.5px; color: #0369a1; background: #f0f9ff;"
                 >
-                <button class="bukang-start-btn" id="bukang-start-btn" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: white; border: none; border-radius: 12px; padding: 0.82rem 1.6rem; font-size: 1.05rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 0.45rem; box-shadow: 0 6px 16px rgba(2, 132, 199, 0.38); white-space: nowrap;">
-                  <span>🎰</span> 슬롯 당기기 (START)
+                <button class="bukang-start-btn" id="bukang-start-btn" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: white; border: none; border-radius: 12px; padding: 0.75rem 1.4rem; font-size: 1.02rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 0.45rem; box-shadow: 0 6px 16px rgba(2, 132, 199, 0.38); white-space: nowrap;">
+                  <span>🎰</span> 슬롯 당기기
                 </button>
               </div>
 
-              <!-- [캡처 3 지시사항 반영] 1줄 체크박스 동의문 + 바로 아래 1줄 안내문구 깔끔 정리 -->
+              <!-- 동의문 및 안내문구 (모바일 자동 줄바꿈) -->
               <div class="slot-agreement-box">
-                <!-- 1행: 체크박스 + 필수 동의문 (한 줄, 줄바꿈 없음) -->
-                <label style="display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem; cursor: pointer; font-size: 0.86rem; color: #1e293b; font-weight: 700; white-space: nowrap;">
+                <!-- 1행: 체크박스 + 필수 동의문 -->
+                <label style="display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem; cursor: pointer; font-size: 0.86rem; color: #1e293b; font-weight: 700;">
                   <input type="checkbox" id="bukang-privacy-check" checked style="width: 16px; height: 16px; accent-color: #0284c7; cursor: pointer; flex-shrink: 0;">
                   <span>(필수) 커피 모바일쿠폰 발송 목적의 개인정보 수집에 동의합니다.</span>
                 </label>
                 
-                <!-- 2행: 안내문구 (그 밑에 한 줄로 정리) -->
-                <div style="font-size: 0.8rem; color: #64748b; font-weight: 500; white-space: nowrap; line-height: 1.35; text-align: center;">
+                <!-- 2행: 안내문구 -->
+                <div style="font-size: 0.8rem; color: #64748b; font-weight: 500; line-height: 1.35; text-align: center; word-break: keep-all;">
                   연락처는 당첨자에게 쿠폰발송 용도로만 사용됩니다 (게임 참여는 선택사항이며, 원하지 않으시면 종료(X) 하시기 바랍니다)
                 </div>
               </div>
@@ -584,7 +584,7 @@ class BukangLuckyDrawGame {
     const startBtn = document.getElementById('bukang-start-btn');
     if (startBtn) {
       startBtn.disabled = true;
-      startBtn.innerHTML = `<span>🎲</span> 릴 회전 중...`;
+      startBtn.innerHTML = `<span>🎲</span> 릴 회전 중`;
       startBtn.style.background = '#64748b';
     }
 
@@ -617,7 +617,7 @@ class BukangLuckyDrawGame {
     if (isMobileLandscape) {
       cellH = 84; // 모바일 가로: 84px
     } else if (window.innerWidth <= 768) {
-      cellH = 92; // 모바일 세로: 92px
+      cellH = 86; // 모바일 세로: 86px (Z폴더 및 S26 최적화)
     }
     const targetOffset = -(cellH * 4); // Cell 4 is ☕ (커피)
 
