@@ -307,6 +307,11 @@
           `;
 
           function formatOptionLabel(qId, optText) {
+            // 10번 및 15번 문항은 보기문항을 볼드체 없이 일반체(Regular)로 통일
+            if (qId === 'q10' || qId === 'q15') {
+              return `<span class="option-title-simple" style="font-weight:500;">${optText}</span>`;
+            }
+
             if (optText.includes('(') && optText.includes(')')) {
               const lastSpaceOpen = optText.lastIndexOf(' (');
               let openIdx = optText.indexOf('(');

@@ -13,7 +13,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@900&display=swap" rel="stylesheet">
   
   <!-- Stylesheet -->
-  <link rel="stylesheet" href="/static/css/styles.css?v=1792398500">
+  <link rel="stylesheet" href="/static/css/styles.css?v=1792403000">
   
   <style>
     /* Dedicated Respondent Mode Polish */
@@ -445,6 +445,17 @@
       line-height: 1.45;
     }
 
+    /* 10번 및 15번 문항 보기 일반체(Regular) 서식 */
+    #q-card-q10 .option-card-label,
+    #q-card-q10 .option-title-part,
+    #q-card-q10 .option-title-simple,
+    #q-card-q15 .option-card-label,
+    #q-card-q15 .option-title-part,
+    #q-card-q15 .option-title-simple {
+      font-weight: 500 !important;
+      font-size: 0.95rem !important;
+    }
+
     /* Missing Required Highlight Animation */
     .required-missing-pulse {
       border: 2px solid #ef4444 !important;
@@ -682,15 +693,15 @@
         <div class="banner-info-grid">
           <div class="banner-info-card">
             <div class="banner-info-label">👥 조사 대상</div>
-            <div class="banner-info-val">전 임직원 (전사 및 계열사)</div>
+            <div class="banner-info-val">전직원</div>
           </div>
           <div class="banner-info-card">
             <div class="banner-info-label">📅 설문 기간</div>
-            <div class="banner-info-val">2026년 10월 19일 ~   </div>
+            <div class="banner-info-val">2026년 10월 20일 ~ 10월 27일</div>
           </div>
           <div class="banner-info-card">
             <div class="banner-info-label">🎁 참여 혜택</div>
-            <div class="banner-info-val" style="color:#fef08a;">스타벅스 커피쿠폰 추첨 이벤트</div>
+            <div class="banner-info-val" style="color:#fef08a;">커피쿠폰 추첨 이벤트</div>
           </div>
         </div>
       </div>
@@ -764,6 +775,6 @@
       }
     })();
   </script>
-  <script src="/static/js/survey_app.js?v=1792398500"></script>
+  <script src="/static/js/survey_app.js?v=1792403000"></script>
 </body>
 </html>
