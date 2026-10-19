@@ -278,18 +278,18 @@ class BukangLuckyDrawGame {
           <!-- Top Visual Stage: 흥국CI 단독(가운데 정렬) + 대형 슬롯머신 -->
           <div class="slot-stage-wrap">
             
-            <!-- Left: Heungkuk CI Card Only -->
-            <div class="slot-brand-col" style="display: flex; align-items: center; justify-content: center;">
-              <div class="brand-card-item" style="background: #ffffff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.25); display: flex; align-items: center; justify-content: center; box-sizing: border-box;">
-                <img src="/static/images/heungkuk_ci.png" alt="흥국금융가족" style="width: auto; object-fit: contain;">
+            <!-- Left: Heungkuk CI Card Only (Pill Shape) -->
+            <div class="slot-brand-col">
+              <div class="brand-card-item">
+                <img src="/static/images/heungkuk_ci.png" alt="흥국금융가족">
               </div>
             </div>
 
             <!-- Right: Enhanced Large 3-Reel Slot Machine -->
             <div class="slot-frame" id="slot-casing">
               
-              <!-- ★ Coffee LUCKY 777 ★ 마젠타 색상 (R236, G0, B140) -->
-              <div style="text-align: center; color: rgb(236, 0, 140); font-weight: 900; letter-spacing: 2px; text-shadow: 0 0 12px rgba(236, 0, 140, 0.85), 0 0 25px rgba(236, 0, 140, 0.45);">
+              <!-- ★ Coffee LUCKY 777 ★ 아케이드 네온 전광판 타이틀 -->
+              <div class="slot-marquee-title">
                 ★ Coffee LUCKY 777 ★
               </div>
               
