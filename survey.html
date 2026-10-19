@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>2027 그룹 인재육성 체계 수립 - 구성원 교육 Needs 설문조사</title>
+  <meta name="description" content="2027년 임직원 교육계획 수립을 위한 구성원 교육 Needs 설문조사">
+  
+  <!-- Pretendard Web Font -->
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="/static/css/styles.css?v=1792289869">
+  
+  <style>
+    /* Dedicated Respondent Mode Polish */
+    body {
+      background-color: #f1f5f9;
+      font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Malgun Gothic", sans-serif;
+      margin: 0;
+      padding: 0;
+      color: #0f172a;
+      -webkit-font-smoothing: antialiased;
+      -webkit-text-size-adjust: 100%;
+    }
+    .respondent-top-bar {
+      background: white;
+      border-bottom: 1px solid #e2e8f0;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .top-bar-inner {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 1.05rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-sizing: border-box;
+    }
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .brand-badge {
+      background: #1e3a8a;
+      color: white;
+      font-weight: 800;
+      font-size: 1.05rem;
+      padding: 0.45rem 0.95rem;
+      border-radius: 9px;
+      letter-spacing: -0.02em;
+      box-shadow: 0 2px 6px rgba(30,58,138,0.25);
+    }
+    .brand-text-main {
+      font-size: 1.38rem;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.02em;
+      line-height: 1.25;
+    }
+    .brand-text-sub {
+      font-size: 0.96rem;
+      font-weight: 600;
+      color: #475569;
+      margin-top: 3px;
+    }
+    .privacy-tag {
+      background: #eff6ff;
+      border: 1.5px solid #bfdbfe;
+      color: #1d4ed8;
+      padding: 0.55rem 1.25rem;
+      border-radius: 24px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      box-shadow: 0 2px 6px rgba(29,78,216,0.06);
+    }
+
+    /* 1240px Wide Survey Container */
+    .survey-container-wrap {
+      max-width: 1240px;
+      margin: 2.2rem auto 5rem auto;
+      padding: 0 1.5rem;
+      box-sizing: border-box;
+    }
+
+    /* Hero Banner Area */
+    .page-header-banner {
+      background: linear-gradient(135deg, #07193b 0%, #0d2857 45%, #1d4ed8 100%);
+      padding: 3rem 3.5rem;
+      border-radius: 22px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 16px 40px rgba(15,23,42,0.18);
+      margin-bottom: 2.2rem;
+      color: white;
+    }
+    .banner-ambient-glow {
+      position: absolute;
+      right: -80px;
+      top: -80px;
+      width: 420px;
+      height: 420px;
+      background: radial-gradient(circle, rgba(96,165,250,0.28) 0%, rgba(30,64,175,0.08) 65%, transparent 100%);
+      filter: blur(45px);
+      pointer-events: none;
+      z-index: 1;
+    }
+    .banner-content {
+      position: relative;
+      z-index: 2;
+    }
+    .banner-title-text {
+      font-size: 2.25rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: #ffffff;
+      line-height: 1.35;
+      margin: 0 0 0.9rem 0;
+      word-break: keep-all;
+    }
+    .banner-desc-text {
+      font-size: 1.08rem;
+      color: #e2e8f0;
+      font-weight: 500;
+      line-height: 1.7;
+      margin: 0;
+      word-break: keep-all;
+      max-width: 950px;
+    }
+    .banner-info-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+      margin-top: 2rem;
+    }
+    .banner-info-card {
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.16);
+      padding: 1.15rem 1.5rem;
+      border-radius: 14px;
+      transition: all 0.2s ease;
+    }
+    .banner-info-card:hover {
+      background: rgba(255,255,255,0.12);
+      border-color: rgba(255,255,255,0.26);
+      transform: translateY(-2px);
+    }
+    .banner-info-label {
+      font-size: 0.84rem;
+      color: #93c5fd;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .banner-info-val {
+      font-size: 1.22rem;
+      font-weight: 800;
+      color: #ffffff;
+      margin-top: 0.35rem;
+      letter-spacing: -0.02em;
+    }
+
+    /* Survey Sections */
+    .survey-section {
+      background: white;
+      border-radius: 20px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 6px 24px rgba(15,23,42,0.04);
+      padding: 2.6rem 3rem;
+      margin-bottom: 2.2rem;
+      box-sizing: border-box;
+    }
+    .survey-section-header {
+      border-bottom: 2px solid #f1f5f9;
+      padding-bottom: 1.25rem;
+      margin-bottom: 1.8rem;
+    }
+    .survey-section-title {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #1e3a8a;
+      margin: 0 0 0.4rem 0;
+      letter-spacing: -0.02em;
+    }
+    .survey-section-desc {
+      font-size: 0.96rem;
+      color: #64748b;
+      margin: 0;
+      line-height: 1.55;
+    }
+    .question-card {
+      margin-bottom: 2.2rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px dashed #e2e8f0;
+      transition: all 0.25s ease;
+    }
+    .question-card:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+    .question-title-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.7rem;
+      margin-bottom: 0.9rem;
+    }
+    .question-num-badge {
+      background: #1e40af;
+      color: white;
+      font-size: 0.88rem;
+      font-weight: 800;
+      padding: 0.25rem 0.65rem;
+      border-radius: 7px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .question-title-text {
+      font-size: 1.08rem;
+      font-weight: 700;
+      color: #0f172a;
+      line-height: 1.55;
+      letter-spacing: -0.02em;
+    }
+    .req-star {
+      color: #ef4444;
+      margin-left: 3px;
+    }
+    .max-badge {
+      display: inline-block;
+      background: #fee2e2;
+      color: #b91c1c;
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 0.2rem 0.55rem;
+      border-radius: 5px;
+      margin-left: 0.5rem;
+    }
+
+    /* Basic Demographics Grid Row */
+    .demographics-grid-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.25rem;
+      margin-top: 1.25rem;
+    }
+    .demographic-card-box {
+      background: #f8fafc;
+      border: 1.5px solid #bfdbfe;
+      border-radius: 12px;
+      padding: 1.35rem 1.4rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+      box-sizing: border-box;
+    }
+
+    /* Styled Select and Textarea */
+    .select-styled {
+      width: 100%;
+      font-size: 16px; /* Prevents auto-zoom on mobile */
+      padding: 0.85rem 1.1rem;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 10px;
+      background: white;
+      color: #0f172a;
+      font-family: inherit;
+      cursor: pointer;
+      box-sizing: border-box;
+      transition: all 0.18s ease;
+    }
+    .select-styled:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+    }
+    .textarea-styled {
+      width: 100%;
+      padding: 0.95rem 1.15rem;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 16px; /* Prevents auto-zoom on mobile */
+      color: #0f172a;
+      box-sizing: border-box;
+      line-height: 1.6;
+      transition: all 0.18s ease;
+      resize: vertical;
+    }
+    .textarea-styled:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+    }
+
+    /* Likert 5-Point Scale Grid: Wide 5 Columns */
+    .option-grid-5 {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0.75rem;
+      margin-top: 0.85rem;
+    }
+    .option-card-label-5 {
+      background: #f8fafc;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 0.95rem 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #334155;
+      white-space: nowrap;
+      transition: all 0.16s ease;
+      user-select: none;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+      box-sizing: border-box;
+    }
+    .option-card-label-5:hover {
+      background: #eff6ff;
+      border-color: #93c5fd;
+      color: #1d4ed8;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(37,99,235,0.08);
+    }
+    .option-card-label-5.selected {
+      background: #eff6ff;
+      border-color: #2563eb;
+      color: #1d4ed8;
+      font-weight: 700;
+      border-width: 2px;
+      box-shadow: 0 4px 14px rgba(37,99,235,0.18);
+    }
+    .option-card-label-5 input[type="radio"] {
+      width: 18px;
+      height: 18px;
+      accent-color: #2563eb;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    /* General Options Grid (Checkboxes / Radios) */
+    .option-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 0.75rem;
+      margin-top: 0.85rem;
+    }
+    .option-grid-2col {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.85rem;
+      margin-top: 0.85rem;
+    }
+    .option-grid-3col {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.85rem;
+      margin-top: 0.85rem;
+    }
+    .option-card-label {
+      background: #f8fafc;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 0.95rem 1.2rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #334155;
+      line-height: 1.45;
+      transition: all 0.16s ease;
+      user-select: none;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+      box-sizing: border-box;
+    }
+    .option-card-label:hover {
+      background: #eff6ff;
+      border-color: #93c5fd;
+      color: #1d4ed8;
+      transform: translateY(-1px);
+    }
+    .option-card-label.selected {
+      background: #eff6ff;
+      border-color: #2563eb;
+      color: #1d4ed8;
+      font-weight: 700;
+      box-shadow: 0 2px 8px rgba(37,99,235,0.15);
+    }
+    .option-card-label input[type="radio"],
+    .option-card-label input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: #2563eb;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    /* Option Text Visual Hierarchy */
+    .option-text-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      flex: 1;
+    }
+    .option-title-part {
+      font-size: 1.04rem;
+      font-weight: 800;
+      color: #0f172a;
+      line-height: 1.35;
+      letter-spacing: -0.015em;
+    }
+    .option-card-label.selected .option-title-part {
+      color: #1d4ed8;
+    }
+    .option-desc-part {
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: #64748b;
+      line-height: 1.5;
+      word-break: keep-all;
+    }
+    .option-card-label.selected .option-desc-part {
+      color: #2563eb;
+    }
+    .option-title-simple {
+      font-size: 0.96rem;
+      font-weight: 600;
+      color: #1e293b;
+      line-height: 1.45;
+    }
+
+    /* Missing Required Highlight Animation */
+    .required-missing-pulse {
+      border: 2px solid #ef4444 !important;
+      background: #fff5f5 !important;
+      border-radius: 14px;
+      padding: 1.25rem;
+      animation: pulseRed 1.2s infinite alternate;
+    }
+    @keyframes pulseRed {
+      0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+      100% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
+    }
+
+    /* Sticky Bottom Submit Bar */
+    .submit-bar {
+      position: sticky;
+      bottom: 0;
+      background: rgba(255,255,255,0.94);
+      backdrop-filter: blur(14px);
+      border-top: 1px solid #e2e8f0;
+      padding: 1.25rem 2rem;
+      text-align: center;
+      box-shadow: 0 -8px 24px rgba(0,0,0,0.06);
+      z-index: 50;
+    }
+    .btn-submit-survey {
+      background: linear-gradient(135deg, #0284c7 0%, #1e40af 100%);
+      color: white;
+      border: none;
+      padding: 1.05rem 3.8rem;
+      font-size: 1.22rem;
+      font-weight: 800;
+      border-radius: 16px;
+      cursor: pointer;
+      box-shadow: 0 8px 24px rgba(30,64,175,0.35);
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      letter-spacing: -0.02em;
+    }
+    .btn-submit-survey:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(30,64,175,0.45);
+    }
+    .btn-submit-survey:active {
+      transform: translateY(0);
+    }
+
+    /* Toast Notification */
+    #toast-msg {
+      position: fixed;
+      bottom: 95px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15,23,42,0.92);
+      backdrop-filter: blur(8px);
+      color: white;
+      padding: 0.9rem 2.2rem;
+      border-radius: 30px;
+      font-weight: 700;
+      font-size: 1.02rem;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.28);
+      z-index: 2000;
+      display: none;
+      white-space: nowrap;
+    }
+
+    /* ========================================================================
+       스마트폰 모바일 완전 반응형 최적화 (Mobile Optimization)
+       ======================================================================== */
+    @media (max-width: 992px) {
+      .option-grid-3col { grid-template-columns: repeat(2, 1fr); }
+    }
+    
+    @media (max-width: 768px) {
+      .top-bar-inner {
+        padding: 0.85rem 1rem;
+        flex-direction: column;
+        gap: 0.65rem;
+        align-items: flex-start;
+      }
+      .brand-title {
+        gap: 0.65rem;
+      }
+      .brand-badge {
+        font-size: 0.88rem;
+        padding: 0.35rem 0.75rem;
+      }
+      .brand-text-main {
+        font-size: 1.15rem;
+      }
+      .brand-text-sub {
+        font-size: 0.84rem;
+      }
+      .privacy-tag {
+        font-size: 0.82rem;
+        padding: 0.35rem 0.85rem;
+      }
+
+      .survey-container-wrap {
+        margin: 1.25rem auto 4.5rem auto;
+        padding: 0 0.85rem;
+      }
+      .page-header-banner {
+        padding: 1.8rem 1.35rem;
+        border-radius: 18px;
+        margin-bottom: 1.6rem;
+      }
+      .banner-title-text {
+        font-size: 1.55rem;
+        line-height: 1.35;
+      }
+      .banner-desc-text {
+        font-size: 0.96rem;
+        line-height: 1.65;
+      }
+      .banner-info-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+        margin-top: 1.4rem;
+      }
+      .banner-info-card {
+        padding: 0.95rem 1.15rem;
+      }
+      .banner-info-val {
+        font-size: 1.12rem;
+      }
+
+      .survey-section {
+        padding: 1.6rem 1.25rem;
+        border-radius: 18px;
+        margin-bottom: 1.6rem;
+      }
+      .survey-section-title {
+        font-size: 1.22rem;
+      }
+      .question-card {
+        margin-bottom: 1.8rem;
+        padding-bottom: 1.6rem;
+      }
+      .question-title-text {
+        font-size: 1.02rem;
+        line-height: 1.5;
+      }
+
+      /* 스마트폰에서 5점 척도는 1열로 배치하여 터치 편의성 및 가독성 100% 확보 */
+      .option-grid-5 {
+        grid-template-columns: 1fr !important;
+        gap: 0.6rem;
+      }
+      .option-card-label-5 {
+        padding: 0.9rem 1.1rem;
+        justify-content: flex-start;
+        text-align: left;
+        white-space: normal;
+        font-size: 0.95rem;
+      }
+      .option-grid-2col, .option-grid-3col, .option-grid {
+        grid-template-columns: 1fr !important;
+        gap: 0.6rem;
+      }
+      .demographics-grid-row {
+        grid-template-columns: 1fr !important;
+        gap: 0.85rem;
+      }
+      .demographic-card-box {
+        padding: 1.1rem 1.2rem;
+      }
+
+      .submit-bar {
+        padding: 1rem 1.25rem;
+      }
+      .btn-submit-survey {
+        width: 100%;
+        padding: 1rem 1.2rem;
+        font-size: 1.08rem;
+        border-radius: 14px;
+        justify-content: center;
+      }
+      #toast-msg {
+        width: 86%;
+        font-size: 0.92rem;
+        padding: 0.8rem 1.2rem;
+        white-space: normal;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Simple Navigation (Aligned with 1240px Container) -->
+  <header class="respondent-top-bar">
+    <div class="top-bar-inner">
+      <div class="brand-title">
+        <div class="brand-badge">HRD</div>
+        <div>
+          <div class="brand-text-main">2027 그룹 인재육성 체계 수립</div>
+          <div class="brand-text-sub">구성원 교육 Needs 설문조사</div>
+        </div>
+      </div>
+      <div class="privacy-tag">
+        <span>🔒</span> 100% 익명 통계 처리 (보안 안심)
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Survey Container Wrap (1240px Wide Layout) -->
+  <main class="survey-container-wrap" id="main-content">
+    
+    <!-- Hero Banner with Balanced Dimensions & Aesthetics -->
+    <div class="page-header-banner">
+      <div class="banner-ambient-glow"></div>
+      <div class="banner-content">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.75rem;margin-bottom:1rem;">
+          <div style="display:inline-block;background:rgba(96,165,250,0.25);color:#bfdbfe;font-size:0.86rem;font-weight:700;padding:0.4rem 1rem;border-radius:9999px;border:1px solid rgba(147,197,253,0.35);">
+            ✨ 2027년 전사 인재육성계획 수립 공식 설문조사
+          </div>
+          <div style="font-size:0.88rem;color:#cbd5e1;font-weight:600;display:flex;align-items:center;gap:0.4rem;">
+            <span>🛡️</span> 응답 내용은 통계 집계 목적으로만 활용됩니다
+          </div>
+        </div>
+
+        <h1 class="banner-title-text">
+          2027년 임직원 교육계획 수립을 위한 구성원 교육 Needs 설문조사
+        </h1>
+        <p class="banner-desc-text">
+          2027년 전사 인재육성계획 수립에 앞서 임직원 여러분의 소중한 의견을 반영하고자 설문조사를 실시합니다.<br>
+          <span style="display:inline-block;margin-top:0.45rem;color:#bfdbfe;font-weight:600;">귀하의 솔직하고 적극적인 참여를 부탁드립니다.</span><br>
+          <span style="display:inline-block;margin-top:0.45rem;color:#fef08a;font-weight:700;font-size:0.95rem;">• 설문문항은 (<span style="color:#f97316;font-weight:900;">*</span>) 필수답변 문항과 선택답변 문항으로 구분 (응답 소요시간: 5분)</span>
+        </p>
+
+        <!-- 3 Info Cards (Balanced 3-column Grid) -->
+        <div class="banner-info-grid">
+          <div class="banner-info-card">
+            <div class="banner-info-label">👥 조사 대상</div>
+            <div class="banner-info-val">전 임직원 (전사 및 계열사)</div>
+          </div>
+          <div class="banner-info-card">
+            <div class="banner-info-label">📅 설문 기간</div>
+            <div class="banner-info-val">2026년 10월 19일 ~   </div>
+          </div>
+          <div class="banner-info-card">
+            <div class="banner-info-label">🎁 참여 혜택</div>
+            <div class="banner-info-val" style="color:#fef08a;">스타벅스 커피쿠폰 추첨 이벤트</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Survey Form Container -->
+    <div id="survey-form-root">
+      <div style="text-align:center;padding:4rem 0;color:#64748b;font-weight:600;">
+        <span style="font-size:2rem;display:block;margin-bottom:0.75rem;">⏳</span>
+        설문 문항을 불러오는 중입니다...
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Submit Bottom Floating Bar with 2 Dedicated Buttons -->
+  <div class="submit-bar" id="submit-bar" style="display:none;">
+    <div style="display:flex;justify-content:center;align-items:center;gap:1.25rem;flex-wrap:wrap;max-width:850px;margin:0 auto;">
+      <!-- Button 1: 설문 응답 제출 -->
+      <button type="button" class="btn-action-survey" id="btn-submit-survey" style="background:linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);color:white;border:none;padding:1.05rem 2.8rem;font-size:1.15rem;font-weight:800;border-radius:14px;cursor:pointer;box-shadow:0 6px 20px rgba(30,64,175,0.35);transition:all 0.25s ease;display:inline-flex;align-items:center;gap:0.6rem;">
+        <span>📝</span> 설문 응답 제출
+      </button>
+
+      <!-- Button 2: 이벤트(커피쿠폰) 응모 하기 -->
+      <button type="button" class="btn-action-event" id="btn-event-entry" style="background:linear-gradient(135deg, #059669 0%, #047857 100%);color:white;border:none;padding:1.05rem 2.8rem;font-size:1.15rem;font-weight:800;border-radius:14px;cursor:pointer;box-shadow:0 6px 20px rgba(5,150,105,0.35);transition:all 0.25s ease;display:inline-flex;align-items:center;gap:0.6rem;">
+        <span>☕</span> 이벤트(커피쿠폰) 응모 하기
+      </button>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast-msg"></div>
+
+  <!-- Scripts -->
+  <script src="/config.js?v=1792303709"></script>
+  <script src="/static/js/bukang_game_v1.js?v=1792303709"></script>
+  <script src="/static/js/bukang_game_v2.js?v=1792303709"></script>
+  <script>
+    // 부캉이 게임 버전 동적 스위처 (1: 기존 추첨 모드, 2: 실시간 선착순 레이스)
+    (function() {
+      function activateVersion(ver) {
+        window.ACTIVE_GAME_VERSION = ver;
+        if (ver === 1 && window.bukangGameV1) {
+          window.bukangGame = window.bukangGameV1;
+          console.log('🎮 [부캉이 게임 1] 활성화 완료 (기존 추첨 모드)');
+        } else if (ver === 2 && window.bukangGameV2) {
+          window.bukangGame = window.bukangGameV2;
+          console.log('🎮 [부캉이 게임 2] 활성화 완료 (실시간 선착순 레이스)');
+        } else {
+          window.bukangGame = window.bukangGameV2 || window.bukangGameV1;
+        }
+      }
+
+      var urlParams = new URLSearchParams(window.location.search);
+      var urlVer = urlParams.get('game');
+      if (urlVer) {
+        activateVersion(parseInt(urlVer));
+      } else {
+        activateVersion(1);
+        if (window.fetch) {
+          fetch('/api/event/settings')
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+              if (d && d.success && d.settings && d.settings.game_version) {
+                activateVersion(parseInt(d.settings.game_version));
+              }
+            })
+            .catch(function(e) {});
+        }
+      }
+    })();
+  </script>
+  <script src="/static/js/survey_app.js?v=1792289869"></script>
+</body>
+</html>

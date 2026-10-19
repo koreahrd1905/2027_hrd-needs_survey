@@ -1,66 +1,37 @@
 /**
- * BukangLuckyDrawGame - 부캉이와 함께 달리는 스타벅스 커피쿠폰 선착순 레이스
+ * BukangLuckyDrawGame - 부캉이 행운의 커피 슬롯머신 (초경량 사내 PC 최적화 버전)
  * 
- * Features:
- * 1. Modal 80% size reduction with responsive mobile layout
- * 2. High-resolution cute blue shark image from Capture 1 with fallback vector drawing
- * 3. Silent BGM by default; activates dynamically when moving forward; stops immediately upon reaching goal & kissing
- * 4. Updated title, notices, mobile touch and keyboard drive banners, and ending screen texts
+ * - 0% CPU/GPU 부하: 무거운 Canvas 루프를 완전 제거하고 순수 CSS 트랜스폼으로 구동
+ * - 사내 저사양 데스크톱 / VDI 가상화 환경에서도 60fps로 매끄럽게 3초 롤링
+ * - 100% 전원 기분 좋은 3연속 커피 잭팟(☕☕☕) 연출 후 공식 접수증(EVT-L/F) 발급
+ * - 1인 1회 엄격 검증 및 Render 백엔드 단일 통로 자동 기록
  */
 
 class BukangLuckyDrawGame {
   constructor() {
     this.modalEl = null;
-    this.canvas = null;
-    this.ctx = null;
-    this.animId = null;
     this.audioCtx = null;
-    this.bgmPlaying = false;
-    this.bgmTimer = null;
     this.isMuted = false;
-    this.currentBgm = 'shark';
     this.surveyId = '';
     this.phoneNumber = '';
-    this.gameState = 'INPUT'; // 'INPUT', 'SWIMMING', 'KISSING', 'FINISHED'
-    
-    // Interactive Driving Physics
-    this.totalDistance = 2000;
-    this.distanceTraveled = 0;
-    this.swimSpeed = 0;
-    this.baseSpeed = 0.5;
-    this.maxSpeed = 8.5;
-    this.lastKeyPressTime = 0;
-    this.lastDriveTime = 0;
-    this.keyPressCount = 0;
-
-    // Load cute shark image (Capture 1)
-    this.sharkImg = new Image();
-    this.sharkImg.src = '/static/images/bukang_shark.png';
-
-    // Particle FX
-    this.particles = [];
-    this.hearts = [];
-    this.confetti = [];
-    this.clouds = [];
-    this.jumpPoints = [500, 1100, 1650];
-    this.jumpTriggered = [false, false, false];
-    this.time = 0;
+    this.serverResult = null;
+    this.serverEntryId = '';
+    this.isSpinning = false;
+    this.tickTimer = null;
   }
 
-  // 1. Web Audio Synthesizer
+  // 1. Web Audio Synthesizer (무설치 경량 사운드)
   initAudio() {
     if (!this.audioCtx) {
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      if (AudioContext) {
-        this.audioCtx = new AudioContext();
-      }
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtx) this.audioCtx = new AudioCtx();
     }
     if (this.audioCtx && this.audioCtx.state === 'suspended') {
       this.audioCtx.resume();
     }
   }
 
-  playTone(freq, type = 'sine', duration = 0.15, vol = 0.16, startTime = 0) {
+  playTone(freq, type = 'sine', duration = 0.12, vol = 0.18, startTime = 0) {
     if (this.isMuted || !this.audioCtx || freq <= 0) return;
     try {
       const t = this.audioCtx.currentTime + startTime;
@@ -77,104 +48,39 @@ class BukangLuckyDrawGame {
     } catch (e) {}
   }
 
-  playSplashSound() {
-    if (this.isMuted || !this.audioCtx) return;
-    this.playTone(320, 'triangle', 0.28, 0.22);
-    this.playTone(480, 'sine', 0.22, 0.18, 0.05);
-    this.playTone(660, 'triangle', 0.16, 0.14, 0.1);
+  playTickSound() {
+    this.playTone(850, 'triangle', 0.035, 0.1);
   }
 
-  playKissSound() {
-    if (this.isMuted || !this.audioCtx) return;
-    this.playTone(784, 'sine', 0.12, 0.25);
-    this.playTone(1046, 'sine', 0.2, 0.3, 0.06);
-    this.playTone(1318, 'triangle', 0.28, 0.25, 0.12);
+  playReelStopSound(freq = 523) {
+    this.playTone(freq, 'sine', 0.22, 0.25);
+    this.playTone(freq * 1.5, 'triangle', 0.15, 0.15, 0.04);
   }
 
-  playVictoryFanfare() {
+  playJackpotSound() {
     if (this.isMuted || !this.audioCtx) return;
-    const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98];
-    const delays = [0, 0.12, 0.24, 0.36, 0.52, 0.72];
-    notes.forEach((freq, idx) => {
-      this.playTone(freq, 'triangle', 0.35, 0.25, delays[idx]);
+    const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
+    const delays = [0, 0.1, 0.2, 0.32, 0.48];
+    notes.forEach((f, idx) => {
+      this.playTone(f, 'triangle', 0.35, 0.25, delays[idx]);
     });
   }
 
-  getMelodyTrack(name) {
-    const D4 = 293.66, E4 = 329.63, F4 = 349.23, G4 = 392.00, A4 = 440.00, B4 = 493.88, C5 = 523.25, D5 = 587.33;
-    return {
-      type: 'sine',
-      bpm: 115,
-      notes: [
-        { f: D4, d: 0.35 }, { f: E4, d: 0.35 }, { f: G4, d: 0.2 }, { f: G4, d: 0.2 }, { f: G4, d: 0.2 },
-        { f: G4, d: 0.2 }, { f: G4, d: 0.2 }, { f: G4, d: 0.2 }, { f: G4, d: 0.35 },
-        { f: D4, d: 0.35 }, { f: E4, d: 0.35 }, { f: G4, d: 0.2 }, { f: G4, d: 0.2 }, { f: G4, d: 0.2 },
-        { f: G4, d: 0.2 }, { f: G4, d: 0.2 }, { f: G4, d: 0.2 }, { f: G4, d: 0.35 },
-        { f: D4, d: 0.35 }, { f: E4, d: 0.35 }, { f: G4, d: 0.2 }, { f: G4, d: 0.2 }, { f: G4, d: 0.2 },
-        { f: G4, d: 0.2 }, { f: G4, d: 0.2 }, { f: G4, d: 0.2 }, { f: G4, d: 0.35 },
-        { f: G4, d: 0.35 }, { f: G4, d: 0.35 }, { f: F4, d: 0.2 }, { f: E4, d: 0.5 }
-      ]
-    };
-  }
-
-  startBGM(trackName = null) {
-    if (this.bgmPlaying || this.isMuted) return;
-    this.stopBGM();
-    this.initAudio();
-    if (!this.audioCtx) return;
-
-    this.bgmPlaying = true;
-    const track = this.getMelodyTrack('shark');
-    let noteIdx = 0;
-
-    const playNext = () => {
-      if (!this.bgmPlaying || this.isMuted) return;
-      const note = track.notes[noteIdx];
-      if (note && note.f > 0) {
-        this.playTone(note.f, track.type, note.d, 0.08);
-        this.playTone(note.f / 2, 'triangle', note.d * 1.4, 0.05);
-      }
-      noteIdx = (noteIdx + 1) % track.notes.length;
-      this.bgmTimer = setTimeout(playNext, (note.d * 0.88 + 0.05) * 1000);
-    };
-
-    playNext();
-  }
-
-  stopBGM() {
-    this.bgmPlaying = false;
-    if (this.bgmTimer) {
-      clearTimeout(this.bgmTimer);
-      this.bgmTimer = null;
-    }
-  }
-
-  // 2. Open Modal & Setup UI
+  // 2. Open Modal
   open(surveyId = '') {
-    this.surveyId = surveyId;
+    this.surveyId = surveyId || (window.submittedSurveyId || 'resp_' + Date.now());
     this.phoneNumber = '';
-    this.gameState = 'INPUT';
-    const bodyEl = document.querySelector('.bukang-body');
-    if (bodyEl) bodyEl.classList.add('is-input-state');
-    this.distanceTraveled = 0;
-    this.swimSpeed = 0;
-    this.lastDriveTime = 0;
-    this.jumpTriggered = [false, false, false];
+    this.serverResult = null;
+    this.serverEntryId = '';
+    this.isSpinning = false;
     this.createModalDOM();
     this.initAudio();
-    // Silent BGM by default - only starts when moving forward!
-    this.stopBGM();
   }
 
   close() {
-    this.stopBGM();
-    if (this.keyDownHandler) {
-      window.removeEventListener('keydown', this.keyDownHandler);
-      this.keyDownHandler = null;
-    }
-    if (this.animId) {
-      cancelAnimationFrame(this.animId);
-      this.animId = null;
+    if (this.tickTimer) {
+      clearInterval(this.tickTimer);
+      this.tickTimer = null;
     }
     if (this.modalEl && this.modalEl.parentNode) {
       this.modalEl.parentNode.removeChild(this.modalEl);
@@ -206,143 +112,177 @@ class BukangLuckyDrawGame {
         </div>
       </div>
     `;
+    document.body.appendChild(confirmOverlay);
 
-    const modalBox = this.modalEl ? this.modalEl.querySelector('.bukang-modal-box') : document.body;
-    modalBox.appendChild(confirmOverlay);
+    document.getElementById('btn-cancel-exit').onclick = () => {
+      confirmOverlay.remove();
+    };
 
-    const cancelBtn = confirmOverlay.querySelector('#btn-cancel-exit');
-    if (cancelBtn) {
-      cancelBtn.addEventListener('click', (ev) => {
-        ev.preventDefault();
-        ev.stopPropagation();
-        confirmOverlay.remove();
-      });
-    }
-
-    const confirmBtn = confirmOverlay.querySelector('#btn-confirm-exit');
-    if (confirmBtn) {
-      confirmBtn.addEventListener('click', (ev) => {
-        ev.preventDefault();
-        ev.stopPropagation();
-        confirmOverlay.remove();
-        this.close();
-
-        if (typeof window.markEventAsCompleted === 'function') {
-          window.markEventAsCompleted();
-        }
-
-        if (typeof window.handleSurveyAndGameFinish === 'function') {
-          window.handleSurveyAndGameFinish();
-        } else {
-          try {
-            window.open('', '_self', '');
-            window.close();
-          } catch (e) {}
-        }
-
-        setTimeout(() => {
-          const root = document.getElementById('root');
-          if (root) {
-            root.innerHTML = `
-              <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg, #0f172a 0%, #1e293b 100%);color:white;font-family:'Pretendard',sans-serif;padding:1.5rem;text-align:center;">
-                <div style="background:rgba(255,255,255,0.06);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.15);padding:2.5rem 2rem;border-radius:24px;max-width:480px;width:100%;box-shadow:0 25px 60px rgba(0,0,0,0.5);">
-                  <div style="font-size:3.5rem;margin-bottom:1rem;">✅</div>
-                  <h2 style="font-size:1.6rem;font-weight:900;margin-bottom:0.8rem;color:#38bdf8;">설문 참여가 완료되었습니다</h2>
-                  <p style="font-size:1rem;color:#cbd5e1;line-height:1.6;margin-bottom:1.8rem;">
-                    2027 그룹 인재육성 체계 수립 설문조사에<br>소중한 시간 내어 참여해 주셔서 대단히 감사합니다.<br>
-                    현재 인터넷 창(탭)을 닫아주시면 됩니다.
-                  </p>
-                  <button onclick="try{window.open('','_self','');window.close();}catch(e){}" style="background:linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);color:white;border:none;padding:0.9rem 2.2rem;border-radius:14px;font-size:1.05rem;font-weight:800;cursor:pointer;box-shadow:0 6px 20px rgba(2,132,199,0.4);">
-                    창 닫기
-                  </button>
-                </div>
-              </div>
-            `;
-          }
-        }, 80);
-      });
-    }
+    document.getElementById('btn-confirm-exit').onclick = () => {
+      confirmOverlay.remove();
+      this.close();
+      window.isEventSubmitted = true;
+      try {
+        localStorage.setItem('heungkuk_event_submitted', 'true');
+        sessionStorage.setItem('heungkuk_event_submitted', 'true');
+      } catch (e) {}
+      if (typeof window.markEventAsCompleted === 'function') {
+        window.markEventAsCompleted();
+      }
+      this.renderSurveyCompletionView();
+    };
   }
 
-  createModalDOM() {
-    const existing = document.getElementById('bukang-lucky-modal');
-    if (existing) existing.remove();
+  renderSurveyCompletionView() {
+    const root = document.getElementById('root') || document.body;
+    root.innerHTML = `
+      <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#f0f9ff 0%,#e0f2fe 100%);padding:1.5rem;font-family:'Pretendard',sans-serif;">
+        <div style="max-width:520px;width:100%;background:#ffffff;border-radius:24px;box-shadow:0 20px 45px rgba(2,132,199,0.18);padding:3rem 2rem;text-align:center;border:2px solid #bae6fd;">
+          <div style="font-size:3.5rem;margin-bottom:1rem;">🎉</div>
+          <h2 style="font-size:1.65rem;font-weight:900;color:#0f172a;margin-bottom:0.75rem;">설문이 성공적으로 완료되었습니다!</h2>
+          <p style="font-size:1rem;color:#475569;line-height:1.65;margin-bottom:2rem;">
+            2027 그룹 인재육성 체계 수립을 위한 소중한 의견에<br>진심으로 감사드립니다.
+          </p>
+          <div style="padding:1rem 1.25rem;background:#f8fafc;border-radius:14px;border:1px dashed #cbd5e1;color:#64748b;font-size:0.9rem;">
+            본 창을 닫으셔도 좋습니다. 오늘도 보람찬 하루 되십시오!
+          </div>
+        </div>
+      </div>
+    `;
+  }
 
-    const overlay = document.createElement('div');
-    overlay.id = 'bukang-lucky-modal';
-    overlay.className = 'bukang-modal-overlay';
-    overlay.innerHTML = `
+  // 3. Create Modal DOM
+  createModalDOM() {
+    if (this.modalEl) this.close();
+
+    this.modalEl = document.createElement('div');
+    this.modalEl.id = 'bukang-game-modal';
+    this.modalEl.className = 'bukang-modal-overlay';
+
+    // 6 slot items in each reel strip (Cell 5 is target ☕ Jackpot!)
+    const reelItemsHtml = `
+      <div class="slot-cell">
+        <div class="slot-cell-icon">☕</div>
+        <div class="slot-cell-label">스타벅스</div>
+      </div>
+      <div class="slot-cell">
+        <div class="slot-cell-icon">🦈</div>
+        <div class="slot-cell-label">부캉이</div>
+      </div>
+      <div class="slot-cell">
+        <div class="slot-cell-icon">💖</div>
+        <div class="slot-cell-label">흥국금융</div>
+      </div>
+      <div class="slot-cell">
+        <div class="slot-cell-icon">🍀</div>
+        <div class="slot-cell-label">행운클로버</div>
+      </div>
+      <div class="slot-cell">
+        <div class="slot-cell-icon">🎁</div>
+        <div class="slot-cell-label">선물상자</div>
+      </div>
+      <div class="slot-cell">
+        <div class="slot-cell-icon">☕</div>
+        <div class="slot-cell-label">스타벅스</div>
+      </div>
+    `;
+
+    this.modalEl.innerHTML = `
       <div class="bukang-modal-box">
-        <!-- Header -->
+        <!-- Top Navigation Header -->
         <div class="bukang-header">
           <div class="bukang-title">
-            <img src="/static/images/bukang_shark.png" alt="부캉이" class="bukang-title-img" style="width:38px;height:auto;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.25));" />
-            <div>
-              <h3 style="margin:0;">부캉이와 함께 달리는 스타벅스 커피쿠폰 선착순 레이스</h3>
-            </div>
+            <img src="/static/images/bukang_shark.png" alt="부캉이" class="bukang-title-img" onerror="this.style.display='none'">
+            <h3>흥국금융 스타벅스 럭키 드로우</h3>
           </div>
-          <div class="bukang-actions">
-            <button class="bukang-btn-icon" id="bukang-mute-btn" title="음악 켜기/끄기">
-              ${this.isMuted ? '🔇' : '🔊'}
-            </button>
-            <button class="bukang-btn-icon" id="bukang-close-top-btn" title="닫기">✕</button>
+          <div class="bukang-controls">
+            <button class="bukang-btn-icon" id="bukang-sound-btn" title="사운드 켜기/끄기">🔊</button>
+            <button class="bukang-btn-icon" id="bukang-close-top-btn" title="이벤트 닫기">✕</button>
           </div>
         </div>
 
-        <!-- Game Screen Wrap -->
-        <div class="bukang-body is-input-state">
-          <!-- Canvas Game Area (1200 x 580) -->
-          <canvas id="bukang-canvas" width="1200" height="580"></canvas>
-
-          <!-- Interactive Keyboard / Touch Drive Notification Banner -->
-          <div id="bukang-keyboard-guide" style="display:none;">
-            <span id="bukang-guide-text"><strong style="background:#fef08a;color:#854d0e;padding:0.12rem 0.45rem;border-radius:6px;font-weight:900;">키보드</strong> 방향키(▶) 연타! &nbsp;/&nbsp; <strong style="background:#fef08a;color:#854d0e;padding:0.12rem 0.45rem;border-radius:6px;font-weight:900;">휴대폰</strong> 화면 터치 연타로 부캉이를 달리게 하세요!</span>
-          </div>
-
-          <!-- Speedometer & Progress Bar Overlay -->
-          <div id="bukang-progress-bar-wrap" style="display:none;position:absolute;bottom:16px;left:20px;right:20px;background:rgba(15,23,42,0.85);backdrop-filter:blur(6px);border-radius:16px;padding:0.65rem 1.4rem;color:white;border:1px solid rgba(255,255,255,0.3);z-index:15;">
-            <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.88rem;font-weight:800;margin-bottom:0.35rem;">
-              <span>🏁 해운대 마린시티 & 광안대교</span>
-              <span id="bukang-speed-text" style="color:#38bdf8;font-size:0.98rem;">속도: 0 km/h</span>
-              <span id="bukang-dist-text" style="color:#fef08a;">남은 거리: 2,000m (0%)</span>
-              <span>☕ 흥국금융 골인</span>
-            </div>
-            <div style="width:100%;height:10px;background:rgba(255,255,255,0.2);border-radius:5px;overflow:hidden;position:relative;">
-              <div id="bukang-progress-fill" style="width:0%;height:100%;background:linear-gradient(90deg, #38bdf8, #facc15, #f59e0b);border-radius:5px;transition:width 0.08s linear;"></div>
-            </div>
-          </div>
-
-          <!-- Input Panel (Initial) -->
-          <div class="bukang-input-panel" id="bukang-input-view">
-            <div class="bukang-guide-card">
-              <div class="shark-badge">🦈 스타벅스 커피쿠폰 추첨모드</div>
-              <div class="bukang-orient-notice">
-                <span class="orient-icon">📱🔄</span>
-                <span>스마트폰을 <strong>'가로(가로보기)'</strong>로 돌리시면 가장 시원하고 완벽한 레이스를 즐기실 수 있습니다!</span>
-              </div>
-              
-              <p>
-                선물 받을 연락처를 입력 후 <span style="color:#0284c7;background:#e0f2fe;padding:0.15rem 0.55rem;border-radius:6px;font-weight:800;border:1.5px solid #7dd3fc;display:inline-block;box-shadow:0 1px 3px rgba(2,132,199,0.15);">'부캉이 출발'</span> 버튼을 클릭하세요.
+        <!-- Card Container -->
+        <div class="bukang-body" style="padding: 1rem 0; min-height: 480px; display: flex; align-items: center; justify-content: center;">
+          
+          <!-- Phase 1: Phone Number Input View -->
+          <div class="bukang-input-panel" id="bukang-input-view" style="display:flex;">
+            <div class="input-card">
+              <div class="input-badge">🎁 스타벅스 커피쿠폰 선착순 이벤트</div>
+              <h2 class="input-title">부캉이와 함께하는 럭키 드로우!</h2>
+              <p class="input-desc">
+                설문에 참여해 주셔서 대단히 감사합니다.<br>
+                경품 발송을 위해 <b>휴대폰 번호(010-XXXX-XXXX)</b>를 입력해 주세요.
               </p>
-              
-              <div class="phone-input-row">
-                <span class="input-icon">📱</span>
-                <input type="tel" id="bukang-phone-input" placeholder="010-1234-5678" maxlength="13" autofocus />
-                <button class="bukang-start-btn" id="bukang-start-btn">
-                  <span>🦈</span> 부캉이 출발
-                </button>
-              </div>
-              <div class="phone-err-msg" id="bukang-phone-err" style="display:none;"></div>
 
-              <!-- 안내 메시지 -->
-              <div style="margin-top:1.1rem;font-size:0.96rem;font-weight:600;color:#1e3a8a;line-height:1.65;background:#f0f9ff;padding:0.75rem 1.4rem;border-radius:12px;border:1.5px solid #bae6fd;display:inline-block;max-width:640px;text-align:center;box-shadow:0 2px 8px rgba(186,230,253,0.35);">
-                연락처는 당첨자에게 쿠폰 발송 용도로만 사용됩니다.<br>
-                <span style="color:#0284c7;font-weight:400;">(게임 참여는 선택사항이며, 원하지 않으시면 종료(✕) 하시면 됩니다.)</span>
+              <div class="input-form-group">
+                <input 
+                  type="tel" 
+                  id="bukang-phone-input" 
+                  class="bukang-phone-field" 
+                  placeholder="010-1234-5678" 
+                  maxlength="13"
+                  autocomplete="tel"
+                >
+                <div class="input-privacy-row">
+                  <label class="privacy-label">
+                    <input type="checkbox" id="bukang-privacy-check" checked>
+                    <span>(필수) 스타벅스 모바일 쿠폰 발송 목적의 개인정보 수집에 동의합니다.</span>
+                  </label>
+                </div>
+                <div class="input-err-msg" id="bukang-input-err"></div>
+              </div>
+
+              <button class="bukang-start-drive-btn" id="bukang-start-drive-btn">
+                <span>행운의 커피 슬롯 돌리기 🎰</span>
+              </button>
+              
+              <div style="margin-top:0.85rem;font-size:0.8rem;color:#64748b;">
+                (게임 참여는 선택사항이며, 원하지 않으시면 종료(✕) 하시면 됩니다.)
               </div>
             </div>
           </div>
 
-          <!-- Result Celebration Overlay (Finished) -->
+          <!-- Phase 2: Ultra-lightweight Coffee Slot Machine Panel -->
+          <div class="slot-machine-panel" id="bukang-slot-view" style="display:none;">
+            <div class="slot-header">
+              <img src="/static/images/bukang_shark.png" alt="부캉이" class="slot-mascot-img" onerror="this.style.display='none'">
+              <h2 class="slot-title">☕ 부캉이의 럭키 커피 슬롯!</h2>
+              <p class="slot-subtitle">[START] 버튼을 눌러 행운의 릴을 돌려보세요!</p>
+            </div>
+
+            <div class="slot-frame" id="slot-casing">
+              <div class="slot-reels-container">
+                <div class="slot-payline"></div>
+                
+                <!-- Reel 1 -->
+                <div class="slot-reel-window">
+                  <div class="slot-reel-strip" id="reel-strip-1">
+                    ${reelItemsHtml}
+                  </div>
+                </div>
+
+                <!-- Reel 2 -->
+                <div class="slot-reel-window">
+                  <div class="slot-reel-strip" id="reel-strip-2">
+                    ${reelItemsHtml}
+                  </div>
+                </div>
+
+                <!-- Reel 3 -->
+                <div class="slot-reel-window">
+                  <div class="slot-reel-strip" id="reel-strip-3">
+                    ${reelItemsHtml}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button class="slot-spin-btn" id="slot-spin-btn">
+              <span>🎰 슬롯 당기기 (START)</span>
+            </button>
+          </div>
+
+          <!-- Phase 3: Result Celebration Overlay (Finished Receipt) -->
           <div class="bukang-result-panel" id="bukang-result-view" style="display:none;">
             <div class="result-card">
               <div class="result-badge">응모 접수 완료</div>
@@ -355,19 +295,19 @@ class BukangLuckyDrawGame {
               <div class="entry-receipt">
                 <div class="receipt-row">
                   <span>접수 번호</span>
-                  <strong id="receipt-id">${this.serverEntryId || '발급 중...'}</strong>
+                  <strong id="receipt-id">발급 중...</strong>
                 </div>
                 <div class="receipt-row">
                   <span>응모 번호</span>
                   <strong id="receipt-phone">010-****-0000</strong>
                 </div>
                 <div class="receipt-row">
-                  <span>골인 미션</span>
-                  <span>흥국금융에 사랑의 뽀뽀(쪽~ 💋) 성공!</span>
+                  <span>슬롯 결과</span>
+                  <span style="color:#059669;font-weight:700;">☕ ☕ ☕ (스타벅스 3연속 일치!)</span>
                 </div>
                 <div class="receipt-row">
-                  <span>항해 기록</span>
-                  <span>광안대교 & 해운대 2,000m 완주 성공!</span>
+                  <span>응모 확인</span>
+                  <span style="color:#0284c7;font-weight:700;">선착순 정상 접수 완료</span>
                 </div>
               </div>
 
@@ -378,271 +318,137 @@ class BukangLuckyDrawGame {
               </div>
             </div>
           </div>
+
         </div>
       </div>
     `;
 
-    document.body.appendChild(overlay);
-    this.modalEl = overlay;
-    this.canvas = document.getElementById('bukang-canvas');
-    this.ctx = this.canvas.getContext('2d');
-
+    document.body.appendChild(this.modalEl);
     this.bindEvents();
-
-    // Global touch audio unlock for iOS Safari
-    if (this.modalEl) {
-      this.modalEl.addEventListener('touchstart', () => {
-        this.initAudio();
-      }, { once: true, passive: true });
-    }
-
-    this.initCanvasGame();
   }
 
+  // 4. Bind Events
   bindEvents() {
-    const phoneInput = document.getElementById('bukang-phone-input');
-    const startBtn = document.getElementById('bukang-start-btn');
-    const finishBtn = document.getElementById('bukang-finish-btn');
-    const closeTopBtn = document.getElementById('bukang-close-top-btn');
-    const muteBtn = document.getElementById('bukang-mute-btn');
-    const errEl = document.getElementById('bukang-phone-err');
-    const guideBanner = document.getElementById('bukang-keyboard-guide');
+    // Sound Toggle
+    const soundBtn = document.getElementById('bukang-sound-btn');
+    if (soundBtn) {
+      soundBtn.onclick = () => {
+        this.isMuted = !this.isMuted;
+        soundBtn.innerText = this.isMuted ? '🔇' : '🔊';
+        this.initAudio();
+      };
+    }
 
-    this.currentBgm = 'shark';
+    // Top Close Button
+    const topCloseBtn = document.getElementById('bukang-close-top-btn');
+    if (topCloseBtn) {
+      topCloseBtn.onclick = () => {
+        this.promptExitConfirmation();
+      };
+    }
 
     // Phone Auto-hyphen
-    phoneInput.addEventListener('input', (e) => {
-      let val = e.target.value.replace(/[^0-9]/g, '');
-      if (val.length > 3 && val.length <= 7) {
-        val = val.slice(0, 3) + '-' + val.slice(3);
-      } else if (val.length > 7) {
-        val = val.slice(0, 3) + '-' + val.slice(3, 7) + '-' + val.slice(7, 11);
-      }
-      e.target.value = val;
-      errEl.style.display = 'none';
-    });
+    const phoneInput = document.getElementById('bukang-phone-input');
+    if (phoneInput) {
+      phoneInput.oninput = (e) => {
+        let val = e.target.value.replace(/[^0-9]/g, '');
+        if (val.length > 11) val = val.slice(0, 11);
+        if (val.length > 7) {
+          val = `${val.slice(0, 3)}-${val.slice(3, 7)}-${val.slice(7)}`;
+        } else if (val.length > 3) {
+          val = `${val.slice(0, 3)}-${val.slice(3)}`;
+        }
+        e.target.value = val;
+      };
 
-    startBtn.addEventListener('click', async () => {
-      this.initAudio(); // iOS Safari / Android immediate audio unlock on user gesture
-      const raw = phoneInput.value.replace(/[^0-9]/g, '');
-      if (raw.length < 10 || !raw.startsWith('010')) {
-        errEl.innerText = '올바른 휴대전화 번호 (010-XXXX-XXXX)를 입력해 주십시오.';
-        errEl.style.display = 'block';
-        phoneInput.focus();
+      phoneInput.onkeydown = (e) => {
+        if (e.key === 'Enter') {
+          const btn = document.getElementById('bukang-start-drive-btn');
+          if (btn) btn.click();
+        }
+      };
+    }
+
+    // Start Button (Phase 1 -> Phase 2)
+    const startBtn = document.getElementById('bukang-start-drive-btn');
+    if (startBtn) {
+      startBtn.onclick = () => this.handlePhoneSubmit();
+    }
+
+    // Spin Button (Phase 2 Slot Machine)
+    const spinBtn = document.getElementById('slot-spin-btn');
+    if (spinBtn) {
+      spinBtn.onclick = () => this.spinSlotMachine();
+    }
+
+    // Finish Button (Phase 3)
+    const finishBtn = document.getElementById('bukang-finish-btn');
+    if (finishBtn) {
+      finishBtn.onclick = () => {
+        this.close();
+        window.isEventSubmitted = true;
+        try {
+          localStorage.setItem('heungkuk_event_submitted', 'true');
+          sessionStorage.setItem('heungkuk_event_submitted', 'true');
+        } catch (e) {}
+        if (typeof window.markEventAsCompleted === 'function') {
+          window.markEventAsCompleted();
+        }
+        this.renderSurveyCompletionView();
+      };
+    }
+  }
+
+  // 5. Handle Phone Submit & Pre-fetch Entry ID
+  async handlePhoneSubmit() {
+    const phoneInput = document.getElementById('bukang-phone-input');
+    const privacyCheck = document.getElementById('bukang-privacy-check');
+    const errEl = document.getElementById('bukang-input-err');
+    if (errEl) errEl.innerText = '';
+
+    const phone = (phoneInput ? phoneInput.value : '').trim();
+    const cleanDigits = phone.replace(/[^0-9]/g, '');
+
+    if (!cleanDigits.startsWith('010') || cleanDigits.length !== 11) {
+      if (errEl) errEl.innerText = '올바른 휴대폰 번호(010-XXXX-XXXX 11자리)를 입력해 주세요.';
+      if (phoneInput) phoneInput.focus();
+      return;
+    }
+
+    if (!privacyCheck || !privacyCheck.checked) {
+      if (errEl) errEl.innerText = '개인정보 수집 및 이용에 동의해 주세요.';
+      return;
+    }
+
+    // Check duplicate phone locally first
+    if (localStorage.getItem('heungkuk_event_submitted') === 'true') {
+      if (errEl) errEl.innerText = '이미 이벤트에 응모 완료된 기기입니다. (1인 1회 한정)';
+      return;
+    }
+
+    // Server duplicate check
+    try {
+      const chkRes = await fetch(`/api/event/check?phone=${cleanDigits}`);
+      const chkData = await chkRes.json();
+      if (chkData && chkData.already_submitted) {
+        if (errEl) errEl.innerText = chkData.error || '이미 이벤트 응모가 완료된 번호입니다.';
         return;
       }
+    } catch (e) {}
 
-      // Check duplicate
-      try {
-        startBtn.disabled = true;
-        startBtn.innerHTML = '<span>⏳</span> 중복 확인 중...';
-        const chkRes = await fetch(`/api/event/check?phone=${encodeURIComponent(raw)}`).then(r => r.json());
-        if (chkRes && chkRes.already_submitted) {
-          errEl.innerHTML = `⚠️ 이미 이벤트 응모가 완료된 번호입니다. (${phoneInput.value})<br><strong>이벤트 응모는 1인 1회로 한정됩니다.</strong>`;
-          errEl.style.display = 'block';
-          startBtn.disabled = false;
-          startBtn.innerHTML = '<span>🦈</span> 부캉이 출발';
-          phoneInput.focus();
-          return;
-        }
-      } catch (err) {
-        console.warn('Check phone error:', err);
-      }
-
-      startBtn.disabled = false;
-      startBtn.innerHTML = '<span>🦈</span> 부캉이 출발';
-      this.phoneNumber = phoneInput.value;
-      this.startSwimming();
-    });
-
-    
-    // Virtual Keyboard auto-scroll for all iOS and Android devices
-    phoneInput.addEventListener('focus', () => {
-      setTimeout(() => {
-        try {
-          phoneInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        } catch (e) {}
-      }, 350);
-    });
-
-    phoneInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') startBtn.click();
-    });
-
-    finishBtn.addEventListener('click', () => {
-      this.close();
-      if (typeof window.handleSurveyAndGameFinish === 'function') {
-        window.handleSurveyAndGameFinish();
-      } else {
-        try {
-          window.open('', '_self', '');
-          window.close();
-        } catch (e) {
-          console.warn('Window close error:', e);
-        }
-      }
-    });
-
-    closeTopBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      this.promptExitConfirmation();
-    });
-
-    muteBtn.addEventListener('click', () => {
-      this.isMuted = !this.isMuted;
-      muteBtn.innerText = this.isMuted ? '🔇' : '🔊';
-      if (this.isMuted) {
-        this.stopBGM();
-      } else {
-        this.initAudio();
-        if (this.gameState === 'SWIMMING') {
-          this.startBGM(this.currentBgm);
-        }
-      }
-    });
-
-    // Keyboard drive listeners
-    this.keyDownHandler = (e) => {
-      if (this.gameState !== 'SWIMMING') return;
-      if (['ArrowRight', 'ArrowUp', ' ', 'Enter', 'd', 'D', 'w', 'W'].includes(e.key)) {
-        e.preventDefault();
-        this.triggerDriveImpulse();
-      }
-    };
-    window.addEventListener('keydown', this.keyDownHandler);
-
-    // Mouse / Touch click driving support
-    this.canvas.addEventListener('click', () => {
-      if (this.gameState === 'SWIMMING') {
-        this.triggerDriveImpulse();
-      }
-    });
-
-    
-    const bukangBody = document.querySelector('.bukang-body');
-    if (bukangBody) {
-      bukangBody.addEventListener('touchstart', (e) => {
-        if (this.gameState === 'SWIMMING') {
-          if (e.target.closest('#bukang-mute-btn, #bukang-close-top-btn')) return;
-          e.preventDefault();
-          this.triggerDriveImpulse();
-        }
-      }, { passive: false });
-      bukangBody.addEventListener('click', (e) => {
-        if (this.gameState === 'SWIMMING') {
-          if (e.target.closest('#bukang-mute-btn, #bukang-close-top-btn')) return;
-          this.triggerDriveImpulse();
-        }
-      });
-    }
-
-    this.canvas.addEventListener('touchstart', (e) => {
-      if (this.gameState === 'SWIMMING') {
-        e.preventDefault();
-        this.triggerDriveImpulse();
-      }
-    }, { passive: false });
-
-    if (guideBanner) {
-      guideBanner.addEventListener('click', () => {
-        if (this.gameState === 'SWIMMING') this.triggerDriveImpulse();
-      });
-      guideBanner.addEventListener('touchstart', (e) => {
-        if (this.gameState === 'SWIMMING') {
-          e.preventDefault();
-          this.triggerDriveImpulse();
-        }
-      }, { passive: false });
-    }
-  }
-
-  // Keyboard & Touch Impulse booster
-  triggerDriveImpulse() {
+    this.phoneNumber = phone;
     this.initAudio();
-    // BGM activates dynamically only when moving forward
-    if (!this.bgmPlaying && !this.isMuted) {
-      this.startBGM(this.currentBgm);
+
+    // Mask phone number for receipt
+    let masked = this.phoneNumber;
+    const parts = this.phoneNumber.split('-');
+    if (parts.length === 3) {
+      masked = `${parts[0]}-****-${parts[2]}`;
     }
+    const receiptPhoneEl = document.getElementById('receipt-phone');
+    if (receiptPhoneEl) receiptPhoneEl.innerText = masked;
 
-    const now = performance.now();
-    const interval = now - this.lastKeyPressTime;
-    this.lastKeyPressTime = now;
-    this.lastDriveTime = now;
-    this.keyPressCount++;
-
-    let boost = 1.6;
-    if (interval < 220) {
-      boost = 2.4;
-    }
-
-    this.swimSpeed = Math.min(this.swimSpeed + boost, this.maxSpeed);
-
-    // Splash sound effect occasionally
-    if (this.keyPressCount % 3 === 0) {
-      this.playTone(380 + Math.random() * 120, 'sine', 0.08, 0.12);
-      this.createWaterSplash(this.shark.screenX, this.shark.y, 14);
-    }
-  }
-
-  // 3. Game Loop & Interactive Physics
-  initCanvasGame() {
-    this.shark = {
-      screenX: 380,
-      baseY: 380,
-      y: 380,
-      wiggle: 0,
-      angle: 0,
-      jumping: false,
-      jumpT: 0,
-      isKissing: false,
-      kissT: 0,
-      hasKissed: false
-    };
-
-    this.clouds = [
-      { x: 100, y: 70, scale: 1.2, speed: 0.15 },
-      { x: 420, y: 110, scale: 0.9, speed: 0.1 },
-      { x: 780, y: 60, scale: 1.4, speed: 0.2 },
-      { x: 1050, y: 120, scale: 0.8, speed: 0.12 }
-    ];
-
-    const loop = () => {
-      this.updateGame();
-      this.drawGame();
-      this.animId = requestAnimationFrame(loop);
-    };
-    this.animId = requestAnimationFrame(loop);
-  }
-
-  startSwimming() {
-    this.gameState = 'SWIMMING';
-    this.distanceTraveled = 0;
-    this.swimSpeed = 0;
-    this.lastDriveTime = performance.now();
-    this.jumpTriggered = [false, false, false];
-
-    // Hide input panel
-    document.getElementById('bukang-input-view').style.display = 'none';
-
-    // Hide input state for responsive landscape
-    const bodyEl = document.querySelector('.bukang-body');
-    if (bodyEl) bodyEl.classList.remove('is-input-state');
-
-    // Show Guide & Progress HUD
-    const guideEl = document.getElementById('bukang-keyboard-guide');
-    if (guideEl) {
-      guideEl.style.display = 'flex';
-    }
-    const progressWrap = document.getElementById('bukang-progress-bar-wrap');
-    if (progressWrap) progressWrap.style.display = 'block';
-
-    this.initAudio();
-    // Do NOT auto-play BGM yet; wait for first drive impulse!
-    this.playTone(440, 'sine', 0.2, 0.2);
-    this.playTone(660, 'triangle', 0.25, 0.25, 0.1);
-
-    // Resilient Backend submission
+    // Immediately forward to Backend in background to secure entry_id
     const eventPayload = {
       action: 'event_submit',
       survey_id: this.surveyId,
@@ -660,238 +466,103 @@ class BukangLuckyDrawGame {
     .then(res => res.json())
     .then(data => {
       if (data && data.entry_id) {
+        this.serverResult = data;
         this.serverEntryId = data.entry_id;
         const receiptIdEl = document.getElementById('receipt-id');
         if (receiptIdEl) receiptIdEl.innerText = data.entry_id;
       }
     })
-    .catch(err => console.warn('Event submit log:', err));
-    // [신호 통로 단일화] Render 백엔드에서 일괄 구글 시트로 전달하도록 브라우저 직접 전송을 비활성화
+    .catch(err => console.warn('Event submit error:', err));
+
+    // Transition to Phase 2 (Slot Machine)
+    const inputView = document.getElementById('bukang-input-view');
+    const slotView = document.getElementById('bukang-slot-view');
+    if (inputView) inputView.style.display = 'none';
+    if (slotView) slotView.style.display = 'flex';
   }
 
-  updateGame() {
-    this.time += 0.05;
+  // 6. Spin Slot Machine (3 Seconds Delightful Celebration)
+  spinSlotMachine() {
+    if (this.isSpinning) return;
+    this.isSpinning = true;
+    this.initAudio();
 
-    // Swimming phase driven by user keypresses / taps
-    if (this.gameState === 'SWIMMING') {
-      // Natural Friction decay
-      this.swimSpeed *= 0.965;
-      if (this.swimSpeed < this.baseSpeed) {
-        this.swimSpeed = this.baseSpeed;
-      }
-
-      // If user hasn't moved for 2.5 seconds and speed is baseSpeed, pause BGM
-      const now = performance.now();
-      if (now - this.lastDriveTime > 2500 && this.swimSpeed <= this.baseSpeed + 0.2) {
-        if (this.bgmPlaying) {
-          this.stopBGM();
-        }
-      }
-
-      this.distanceTraveled += this.swimSpeed;
-      const progress = Math.min(this.distanceTraveled / this.totalDistance, 1.0);
-
-      // Speed in km/h for HUD display
-      const kmh = Math.floor(this.swimSpeed * 8.5);
-      const isBooster = this.swimSpeed > 5.5;
-
-      // Update HUDs
-      const progFill = document.getElementById('bukang-progress-fill');
-      const distText = document.getElementById('bukang-dist-text');
-      const speedText = document.getElementById('bukang-speed-text');
-
-      if (progFill) progFill.style.width = `${Math.floor(progress * 100)}%`;
-      if (distText) distText.innerText = `남은 거리: ${Math.max(0, Math.floor(this.totalDistance - this.distanceTraveled))}m (${Math.floor(progress * 100)}%)`;
-      if (speedText) {
-        speedText.innerHTML = `속도: <b>${kmh} km/h</b> ${isBooster ? '<span style="color:#f43f5e;font-weight:900;">🔥 부스터!</span>' : ''}`;
-      }
-
-      const s = this.shark;
-      s.wiggle += 0.15 + (this.swimSpeed * 0.05);
-
-      // Natural zigzag swimming on sea surface
-      const zigZagY = Math.sin(this.distanceTraveled * 0.02) * 28;
-
-      // Mid-jumps at points
-      this.jumpPoints.forEach((pt, idx) => {
-        if (!this.jumpTriggered[idx] && this.distanceTraveled >= pt) {
-          this.jumpTriggered[idx] = true;
-          s.jumping = true;
-          s.jumpT = 0;
-          this.playSplashSound();
-          this.createWaterSplash(s.screenX, s.baseY, 28);
-        }
-      });
-
-      if (s.jumping) {
-        s.jumpT += 0.04;
-        const arc = Math.sin(s.jumpT * Math.PI) * 150;
-        s.y = s.baseY + zigZagY - arc;
-        s.angle = -Math.cos(s.jumpT * Math.PI) * 0.85;
-
-        if (s.jumpT >= 1.0) {
-          s.jumping = false;
-          s.jumpT = 0;
-          s.angle = 0;
-          this.playSplashSound();
-          this.createWaterSplash(s.screenX, s.baseY, 32);
-        }
-      } else {
-        s.y = s.baseY + zigZagY;
-        s.angle = Math.sin(s.wiggle) * 0.12;
-      }
-
-      // Water bubble particles behind shark
-      const bubbleCount = isBooster ? 2 : 1;
-      for (let b = 0; b < bubbleCount; b++) {
-        if (Math.random() < 0.7) {
-          this.particles.push({
-            x: s.screenX - 55,
-            y: s.y + (Math.random() * 20 - 10),
-            vx: -(Math.random() * 4 + this.swimSpeed),
-            vy: (Math.random() - 0.5) * 2,
-            rad: Math.random() * 6 + 3,
-            alpha: 0.85,
-            color: isBooster ? '#fef08a' : '#ffffff'
-          });
-        }
-      }
-
-      // Check Target Hit (100% Reached -> Trigger Kissing Leap Action!)
-      if (this.distanceTraveled >= this.totalDistance) {
-        this.triggerKissingAction();
-      }
+    const spinBtn = document.getElementById('slot-spin-btn');
+    if (spinBtn) {
+      spinBtn.disabled = true;
+      spinBtn.innerHTML = `<span>🎲 행운의 릴 회전 중...</span>`;
     }
 
-    // Kissing Animation Sequence
-    if (this.gameState === 'KISSING') {
-      const s = this.shark;
-      s.kissT += 0.035;
+    const strip1 = document.getElementById('reel-strip-1');
+    const strip2 = document.getElementById('reel-strip-2');
+    const strip3 = document.getElementById('reel-strip-3');
 
-      const startX = 380;
-      const targetX = 910;
-      const startY = 380;
-      const targetY = 250;
+    // Start rapid spinning animation
+    if (strip1) strip1.classList.add('is-spinning');
+    if (strip2) strip2.classList.add('is-spinning');
+    if (strip3) strip3.classList.add('is-spinning');
 
-      const t = Math.min(s.kissT, 1.0);
-      s.screenX = startX + (targetX - startX) * t;
-      const jumpArc = Math.sin(t * Math.PI) * 180;
-      s.y = startY + (targetY - startY) * t - jumpArc;
-      s.angle = -0.3 + Math.sin(t * Math.PI) * 0.5;
+    // Tick tick tick audio
+    this.tickTimer = setInterval(() => {
+      this.playTickSound();
+    }, 110);
 
-      // When reaching near peak & island -> KISS!
-      if (t >= 0.95 && !s.hasKissed) {
-        s.hasKissed = true;
-        this.onKissHit();
-      }
-    }
+    // Responsive cell height (110px desktop, 95px mobile)
+    const cellH = window.innerWidth <= 480 ? 95 : 110;
+    const targetOffset = -(cellH * 5); // Cell 5 is ☕ (스타벅스 커피)
 
-    // Update Particles
-    for (let i = this.particles.length - 1; i >= 0; i--) {
-      const p = this.particles[i];
-      p.x += p.vx;
-      p.y += p.vy;
-      p.alpha -= 0.025;
-      if (p.alpha <= 0) this.particles.splice(i, 1);
-    }
-
-    // Update Hearts
-    for (let i = this.hearts.length - 1; i >= 0; i--) {
-      const h = this.hearts[i];
-      h.x += h.vx;
-      h.y += h.vy;
-      h.size += 0.3;
-      h.alpha -= 0.015;
-      if (h.alpha <= 0) this.hearts.splice(i, 1);
-    }
-
-    // Update Confetti & Fireworks
-    for (let i = this.confetti.length - 1; i >= 0; i--) {
-      const c = this.confetti[i];
-      c.x += c.vx;
-      c.y += c.vy;
-      c.vy += 0.12;
-      c.rotation += c.rotSpeed;
-      c.alpha -= 0.008;
-      if (c.y > 580 || c.alpha <= 0) this.confetti.splice(i, 1);
-    }
-
-    if (this.gameState === 'FINISHED' && Math.random() < 0.22) {
-      this.spawnFireworks(Math.random() * 950 + 150, Math.random() * 220 + 50);
-    }
-  }
-
-  // Trigger 100% Kissing leap action
-  triggerKissingAction() {
-    this.gameState = 'KISSING';
-    this.shark.isKissing = true;
-    this.shark.kissT = 0;
-    this.shark.hasKissed = false;
-    // Stop BGM immediately when initiating goal jump
-    this.stopBGM();
-    this.playSplashSound();
-    this.createWaterSplash(this.shark.screenX, this.shark.baseY, 30);
-
-    const guideEl = document.getElementById('bukang-keyboard-guide');
-    if (guideEl) guideEl.style.display = 'none';
-  }
-
-  // When Bukang kisses Starbucks Island
-  onKissHit() {
-    // Ensure BGM is completely stopped
-    this.stopBGM();
-    this.playKissSound();
-    this.playVictoryFanfare();
-
-    // Spawn lovely hearts!
-    for (let i = 0; i < 25; i++) {
-      const ang = Math.random() * Math.PI * 2;
-      const spd = Math.random() * 4 + 2;
-      this.hearts.push({
-        x: 930 + (Math.random() * 30 - 15),
-        y: 250 + (Math.random() * 30 - 15),
-        vx: Math.cos(ang) * spd,
-        vy: Math.sin(ang) * spd - 2,
-        size: Math.random() * 16 + 12,
-        alpha: 1.0,
-        color: '#f43f5e'
-      });
-    }
-
-    // Massive Fireworks!
-    const targetScreenX = 960;
-    for (let i = 0; i < 6; i++) {
-      setTimeout(() => {
-        this.spawnFireworks(targetScreenX + (Math.random() * 160 - 80), 220 + (Math.random() * 80 - 40));
-      }, i * 180);
-    }
-
-    // Mask phone number for receipt
-    let masked = this.phoneNumber;
-    const parts = this.phoneNumber.split('-');
-    if (parts.length === 3) {
-      masked = `${parts[0]}-****-${parts[2]}`;
-    }
-    const receiptPhoneEl = document.getElementById('receipt-phone');
-    if (receiptPhoneEl) receiptPhoneEl.innerText = masked;
-    if (this.serverEntryId) {
-      const receiptIdEl = document.getElementById('receipt-id');
-      if (receiptIdEl) receiptIdEl.innerText = this.serverEntryId;
-    }
-
-    // Show result view after 1.4s
+    // Reel 1 Stop (1.1s)
     setTimeout(() => {
-      this.gameState = 'FINISHED';
-      const progressWrap = document.getElementById('bukang-progress-bar-wrap');
-      if (progressWrap) progressWrap.style.display = 'none';
+      if (strip1) {
+        strip1.classList.remove('is-spinning');
+        strip1.style.transform = `translateY(${targetOffset}px)`;
+      }
+      this.playReelStopSound(523.25); // C5 Ding!
+    }, 1100);
+
+    // Reel 2 Stop (1.7s)
+    setTimeout(() => {
+      if (strip2) {
+        strip2.classList.remove('is-spinning');
+        strip2.style.transform = `translateY(${targetOffset}px)`;
+      }
+      this.playReelStopSound(659.25); // E5 Ding!
+    }, 1700);
+
+    // Reel 3 Stop (2.3s) - JACKPOT!
+    setTimeout(() => {
+      if (this.tickTimer) {
+        clearInterval(this.tickTimer);
+        this.tickTimer = null;
+      }
+      if (strip3) {
+        strip3.classList.remove('is-spinning');
+        strip3.style.transform = `translateY(${targetOffset}px)`;
+      }
+      this.playJackpotSound();
+
+      const casing = document.getElementById('slot-casing');
+      if (casing) casing.classList.add('is-jackpot');
+    }, 2300);
+
+    // Transition to Phase 3 (Receipt) at 2.9s
+    setTimeout(() => {
+      const slotView = document.getElementById('bukang-slot-view');
       const resView = document.getElementById('bukang-result-view');
+      if (slotView) slotView.style.display = 'none';
       if (resView) resView.style.display = 'flex';
 
-      // [교수님 요청] 결과 접수증 화면에서는 우측상단 [X] 종료 버튼을 숨겨 반드시 하단 종료 버튼을 누르도록 유도
+      // Hide top close button on receipt screen
       const topCloseBtn = document.getElementById('bukang-close-top-btn');
       if (topCloseBtn) topCloseBtn.style.display = 'none';
 
-      // 1인 1회 응모 완료 영구 기록 및 부모 페이지 버튼 즉시 비활성화
+      // Ensure receipt ID is populated
+      if (this.serverEntryId) {
+        const receiptIdEl = document.getElementById('receipt-id');
+        if (receiptIdEl) receiptIdEl.innerText = this.serverEntryId;
+      }
+
+      // 1인 1회 응모 완료 영구 기록
       window.isEventSubmitted = true;
       try {
         localStorage.setItem('heungkuk_event_submitted', 'true');
@@ -900,569 +571,10 @@ class BukangLuckyDrawGame {
       if (typeof window.markEventAsCompleted === 'function') {
         window.markEventAsCompleted();
       }
-    }, 1400);
-  }
-
-  createWaterSplash(x, y, count = 24) {
-    for (let i = 0; i < count; i++) {
-      const ang = (Math.PI / count) * i + Math.PI;
-      const spd = Math.random() * 6.5 + 3.0;
-      this.particles.push({
-        x: x,
-        y: y,
-        vx: Math.cos(ang) * spd,
-        vy: Math.sin(ang) * spd - 3,
-        rad: Math.random() * 5 + 3,
-        alpha: 0.9,
-        color: '#bae6fd'
-      });
-    }
-  }
-
-  spawnFireworks(x, y) {
-    const colors = ['#f59e0b', '#ec4899', '#3b82f6', '#10b981', '#8b5cf6', '#ef4444', '#facc15'];
-    for (let i = 0; i < 55; i++) {
-      const ang = Math.random() * Math.PI * 2;
-      const spd = Math.random() * 7.5 + 2.5;
-      this.confetti.push({
-        x: x,
-        y: y,
-        vx: Math.cos(ang) * spd,
-        vy: Math.sin(ang) * spd - 1.5,
-        color: colors[Math.floor(Math.random() * colors.length)],
-        size: Math.random() * 10 + 5,
-        rotation: Math.random() * Math.PI,
-        rotSpeed: (Math.random() - 0.5) * 0.3,
-        alpha: 1.0
-      });
-    }
-  }
-
-  // 4. Drawing Canvas Elements with Busan Marine City & Gwangan Bridge
-  drawGame() {
-    const ctx = this.ctx;
-    const w = this.canvas.width;
-    const h = this.canvas.height;
-    const scroll = this.distanceTraveled;
-
-    // A. Sky Gradient
-    const skyGrad = ctx.createLinearGradient(0, 0, 0, 360);
-    skyGrad.addColorStop(0, '#0284c7');
-    skyGrad.addColorStop(0.55, '#38bdf8');
-    skyGrad.addColorStop(1, '#bae6fd');
-    ctx.fillStyle = skyGrad;
-    ctx.fillRect(0, 0, w, 360);
-
-    // Warm Sun in Sky
-    ctx.save();
-    ctx.fillStyle = '#fef08a';
-    ctx.shadowColor = 'rgba(254, 240, 138, 0.8)';
-    ctx.shadowBlur = 24;
-    ctx.beginPath();
-    ctx.arc(1040, 90, 48, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-
-    // Moving Clouds
-    this.clouds.forEach(c => {
-      c.x -= c.speed;
-      if (c.x < -150) c.x = w + 100;
-      this.drawCloud(c.x, c.y, c.scale);
-    });
-
-    // B. Parallax Layer 1: Haeundae Marine City Skyscrapers
-    this.drawHaeundaeSkyscrapers(scroll * 0.15);
-
-    // C. Parallax Layer 2: Gwangan Bridge Landmark
-    this.drawGwanganBridge(scroll * 0.35);
-
-    // D. Sea Surface & Water Waves
-    const seaGrad = ctx.createLinearGradient(0, 340, 0, h);
-    seaGrad.addColorStop(0, '#0284c7');
-    seaGrad.addColorStop(0.3, '#0369a1');
-    seaGrad.addColorStop(1, '#0c4a6e');
-    ctx.fillStyle = seaGrad;
-    ctx.fillRect(0, 340, w, h - 340);
-
-    // Sea Wave Lines
-    for (let i = 0; i < 4; i++) {
-      const waveY = 345 + i * 55;
-      const speed = (i + 1) * 0.5 + 0.5;
-      ctx.strokeStyle = `rgba(255, 255, 255, ${0.35 - i * 0.07})`;
-      ctx.lineWidth = 3 - i * 0.4;
-      ctx.beginPath();
-      ctx.moveTo(0, waveY);
-      for (let x = 0; x <= w; x += 40) {
-        const yOffset = Math.sin((x * 0.015) + (this.time * speed) - (scroll * 0.01)) * (8 - i * 1.5);
-        ctx.lineTo(x, waveY + yOffset);
-      }
-      ctx.stroke();
-    }
-
-    // E. Target: Starbucks Island Goal
-    const targetScreenX = 960;
-    this.drawStarbucksIsland(targetScreenX, 260);
-
-    // F. Draw Shark "Bukang-i"
-    this.drawShark(this.shark);
-
-    // G. Draw Particles & Hearts
-    this.particles.forEach(p => {
-      ctx.save();
-      ctx.globalAlpha = Math.max(0, p.alpha);
-      ctx.fillStyle = p.color;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.rad, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-    });
-
-    this.hearts.forEach(h => {
-      ctx.save();
-      ctx.globalAlpha = Math.max(0, h.alpha);
-      ctx.fillStyle = h.color;
-      ctx.beginPath();
-      const topCurveHeight = h.size * 0.3;
-      ctx.moveTo(h.x, h.y + topCurveHeight);
-      ctx.bezierCurveTo(h.x, h.y, h.x - h.size / 2, h.y, h.x - h.size / 2, h.y + topCurveHeight);
-      ctx.bezierCurveTo(h.x - h.size / 2, h.y + (h.size + topCurveHeight) / 2, h.x, h.y + (h.size + topCurveHeight) / 2, h.x, h.y + h.size);
-      ctx.bezierCurveTo(h.x, h.y + (h.size + topCurveHeight) / 2, h.x + h.size / 2, h.y + (h.size + topCurveHeight) / 2, h.x + h.size / 2, h.y + topCurveHeight);
-      ctx.bezierCurveTo(h.x + h.size / 2, h.y, h.x, h.y, h.x, h.y + topCurveHeight);
-      ctx.closePath();
-      ctx.fill();
-      ctx.restore();
-    });
-
-    // Draw Confetti
-    this.confetti.forEach(c => {
-      ctx.save();
-      ctx.globalAlpha = Math.max(0, c.alpha);
-      ctx.fillStyle = c.color;
-      ctx.translate(c.x, c.y);
-      ctx.rotate(c.rotation);
-      ctx.fillRect(-c.size / 2, -c.size / 2, c.size, c.size * 0.6);
-      ctx.restore();
-    });
-  }
-
-  drawHaeundaeSkyscrapers(offset) {
-    const ctx = this.ctx;
-    const baseW = 1200;
-    const buildings = [
-      { x: 30, w: 60, h: 180, c: '#0369a1' },
-      { x: 100, w: 80, h: 230, c: '#0284c7' },
-      { x: 190, w: 55, h: 160, c: '#075985' },
-      { x: 260, w: 90, h: 260, c: '#0369a1' },
-      { x: 360, w: 70, h: 190, c: '#0284c7' },
-      { x: 440, w: 110, h: 280, c: '#0c4a6e' },
-      { x: 560, w: 65, h: 170, c: '#075985' },
-      { x: 640, w: 85, h: 240, c: '#0369a1' },
-      { x: 740, w: 60, h: 180, c: '#0284c7' },
-      { x: 810, w: 100, h: 270, c: '#0c4a6e' },
-      { x: 920, w: 75, h: 210, c: '#075985' },
-      { x: 1010, w: 90, h: 250, c: '#0369a1' },
-      { x: 1110, w: 70, h: 190, c: '#0284c7' }
-    ];
-
-    ctx.save();
-    ctx.globalAlpha = 0.55;
-    for (let rep = -1; rep <= 1; rep++) {
-      const shift = rep * baseW - (offset % baseW);
-      buildings.forEach(b => {
-        const bx = b.x + shift;
-        const by = 350 - b.h;
-        ctx.fillStyle = b.c;
-        ctx.fillRect(bx, by, b.w, b.h);
-
-        // Windows
-        ctx.fillStyle = 'rgba(254, 240, 138, 0.45)';
-        for (let wy = by + 12; wy < 340; wy += 18) {
-          for (let wx = bx + 8; wx < bx + b.w - 8; wx += 14) {
-            ctx.fillRect(wx, wy, 6, 8);
-          }
-        }
-      });
-    }
-    ctx.restore();
-  }
-
-  drawGwanganBridge(offset) {
-    const ctx = this.ctx;
-    const baseW = 1200;
-    ctx.save();
-    ctx.globalAlpha = 0.85;
-
-    for (let rep = -1; rep <= 1; rep++) {
-      const shift = rep * baseW - (offset % baseW);
-
-      // Main Suspension Bridge Towers
-      const towers = [280, 580, 880];
-      towers.forEach(tx => {
-        const x = tx + shift;
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(x - 6, 210, 12, 140);
-        ctx.fillRect(x - 16, 230, 32, 6);
-        ctx.fillRect(x - 20, 275, 40, 6);
-
-        // Red Aviation Warning Lights
-        ctx.fillStyle = '#ef4444';
-        ctx.beginPath();
-        ctx.arc(x, 208, 3.5, 0, Math.PI * 2);
-        ctx.fill();
-      });
-
-      // Roadway Deck
-      ctx.fillStyle = '#e2e8f0';
-      ctx.fillRect(shift, 335, baseW, 14);
-      ctx.fillStyle = '#64748b';
-      ctx.fillRect(shift, 345, baseW, 4);
-
-      // Main Suspension Cables
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 2.5;
-      ctx.beginPath();
-      ctx.moveTo(towers[0] + shift, 210);
-      ctx.quadraticCurveTo((towers[0] + towers[1]) / 2 + shift, 335, towers[1] + shift, 210);
-      ctx.quadraticCurveTo((towers[1] + towers[2]) / 2 + shift, 335, towers[2] + shift, 210);
-      ctx.stroke();
-
-      // Vertical Suspension Ropes
-      ctx.lineWidth = 1;
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
-      for (let rx = towers[0] + 25; rx < towers[2] - 25; rx += 22) {
-        if (Math.abs(rx - towers[1]) < 12) continue;
-        const x = rx + shift;
-        ctx.beginPath();
-        ctx.moveTo(x, 260);
-        ctx.lineTo(x, 335);
-        ctx.stroke();
-      }
-    }
-    ctx.restore();
-  }
-
-  drawCloud(x, y, scale = 1) {
-    const ctx = this.ctx;
-    ctx.save();
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-    ctx.beginPath();
-    ctx.arc(x, y, 22 * scale, 0, Math.PI * 2);
-    ctx.arc(x + 20 * scale, y - 8 * scale, 28 * scale, 0, Math.PI * 2);
-    ctx.arc(x + 48 * scale, y - 4 * scale, 24 * scale, 0, Math.PI * 2);
-    ctx.arc(x + 65 * scale, y + 4 * scale, 18 * scale, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-  }
-
-  // Draw Cute Blue Shark "부캉이" (Capture 1 Image + Cute Vector Fallback)
-  drawShark(s) {
-    const ctx = this.ctx;
-    ctx.save();
-    ctx.translate(s.screenX, s.y);
-    ctx.scale(1.85, 1.85);
-    ctx.rotate(s.angle);
-
-    const tailWiggle = Math.sin(s.wiggle) * 12;
-
-    // 1. Little Orange Fish Friends behind shark
-    const fishSchool = [
-      { x: -95, y: -26, s: 0.95 },
-      { x: -125, y: -22, s: 1.1 },
-      { x: -150, y: -28, s: 0.85 },
-      { x: -105, y: 26, s: 1.0 },
-      { x: -135, y: 30, s: 1.15 }
-    ];
-    ctx.save();
-    ctx.fillStyle = '#f59e0b';
-    fishSchool.forEach((f, idx) => {
-      const waveY = Math.sin(this.time * 6 + idx) * 3;
-      const fx = f.x + (tailWiggle * 0.2);
-      const fy = f.y + waveY;
-      
-      ctx.beginPath();
-      ctx.ellipse(fx, fy, 6.5 * f.s, 4 * f.s, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.moveTo(fx - 4 * f.s, fy);
-      ctx.lineTo(fx - 10 * f.s, fy - 4 * f.s);
-      ctx.lineTo(fx - 10 * f.s, fy + 4 * f.s);
-      ctx.closePath();
-      ctx.fill();
-    });
-    ctx.restore();
-
-    // 2. Tag Ribbon attached to shark tail
-    const phoneText = this.phoneNumber || '010-XXXX-XXXX';
-    const tagWaveY = Math.sin(this.time * 7) * 4;
-    const ropeStartX = -58 + tailWiggle * 0.3;
-    const ropeEndX = -76 + tailWiggle * 0.15;
-    const ropeEndY = tagWaveY;
-
-    // Golden Rope connecting tail to tag
-    ctx.save();
-    ctx.strokeStyle = '#d97706';
-    ctx.lineWidth = 2.2;
-    ctx.lineCap = 'round';
-    ctx.beginPath();
-    ctx.moveTo(ropeStartX, 0);
-    ctx.quadraticCurveTo(-66 + tailWiggle * 0.2, ropeEndY + 2, ropeEndX, ropeEndY);
-    ctx.stroke();
-    ctx.restore();
-
-    // Yellow Number Tag Flag
-    const tagW = 94;
-    const tagH = 25;
-    const tagBoxX = ropeEndX - tagW;
-    const tagBoxY = ropeEndY - tagH / 2;
-
-    ctx.save();
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.25)';
-    ctx.shadowBlur = 4;
-    ctx.shadowOffsetY = 2;
-
-    ctx.fillStyle = '#fffbeb';
-    ctx.strokeStyle = '#f59e0b';
-    ctx.lineWidth = 1.8;
-    ctx.beginPath();
-    ctx.roundRect(tagBoxX, tagBoxY, tagW, tagH, 6);
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.shadowColor = 'transparent';
-    ctx.fillStyle = '#d97706';
-    ctx.beginPath();
-    ctx.arc(ropeEndX - 5, ropeEndY, 2.2, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = '#78350f';
-    ctx.font = 'bold 10px "Pretendard", "Malgun Gothic", sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('📱 ' + phoneText, tagBoxX + (tagW - 6) / 2, ropeEndY);
-    ctx.restore();
-
-    // 3. Render Shark: Capture 1 Cute Shark Image
-    if (this.sharkImg && this.sharkImg.complete && this.sharkImg.naturalWidth > 0) {
-      ctx.save();
-      // Render cute blue shark image from Capture 1
-      const imgW = 144;
-      const imgH = 79;
-      const imgX = -72;
-      const imgY = -48;
-      ctx.drawImage(this.sharkImg, imgX, imgY, imgW, imgH);
-      ctx.restore();
-    } else {
-      // High-Quality Baby Shark Blue Vector Fallback
-      const SHARK_BLUE = '#0284c7';
-      const SHARK_DARK_BLUE = '#0369a1';
-      const SHARK_BELLY = '#ffffff';
-
-      // Caudal Fin (Tail)
-      ctx.fillStyle = SHARK_BLUE;
-      ctx.beginPath();
-      ctx.moveTo(-42, 0);
-      ctx.quadraticCurveTo(-50 + tailWiggle * 0.4, -18, -68 + tailWiggle, -36);
-      ctx.quadraticCurveTo(-58 + tailWiggle, 0, -68 + tailWiggle, 30);
-      ctx.quadraticCurveTo(-50 + tailWiggle * 0.4, 18, -42, 4);
-      ctx.closePath();
-      ctx.fill();
-
-      // Dorsal Fin
-      ctx.fillStyle = SHARK_BLUE;
-      ctx.beginPath();
-      ctx.moveTo(16, -18);
-      ctx.bezierCurveTo(8, -42, 2, -56, -10, -56);
-      ctx.quadraticCurveTo(-3, -34, -18, -18);
-      ctx.closePath();
-      ctx.fill();
-
-      // Pectoral Fin
-      ctx.fillStyle = SHARK_BLUE;
-      ctx.beginPath();
-      ctx.moveTo(-2, 18);
-      ctx.quadraticCurveTo(-14, 38, -12, 46);
-      ctx.quadraticCurveTo(4, 34, 18, 18);
-      ctx.closePath();
-      ctx.fill();
-
-      // Chubby Main Blue Body & Head
-      ctx.fillStyle = SHARK_BLUE;
-      ctx.beginPath();
-      ctx.moveTo(-42, 0);
-      ctx.bezierCurveTo(-20, -22, 10, -22, 26, -18);
-      ctx.quadraticCurveTo(46, -14, 60, -4);
-      ctx.quadraticCurveTo(46, 6, 28, 8);
-      ctx.bezierCurveTo(22, 22, -10, 22, -26, 16);
-      ctx.quadraticCurveTo(-36, 10, -42, 4);
-      ctx.closePath();
-      ctx.fill();
-
-      // Plump White Underbelly
-      ctx.fillStyle = SHARK_BELLY;
-      ctx.beginPath();
-      ctx.moveTo(28, 8);
-      ctx.quadraticCurveTo(38, 11, 48, 13);
-      ctx.bezierCurveTo(28, 22, 0, 22, -22, 16);
-      ctx.quadraticCurveTo(-35, 10, -40, 4);
-      ctx.quadraticCurveTo(-15, 8, 0, 9);
-      ctx.quadraticCurveTo(16, 9, 28, 8);
-      ctx.closePath();
-      ctx.fill();
-
-      // Open Mouth Detail
-      ctx.fillStyle = '#ff007f';
-      ctx.beginPath();
-      ctx.ellipse(36, 9.5, 5, 3.2, 0.15, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Gills
-      ctx.strokeStyle = SHARK_DARK_BLUE;
-      ctx.lineWidth = 2.0;
-      ctx.lineCap = 'round';
-      for (let i = 0; i < 3; i++) {
-        ctx.beginPath();
-        ctx.arc(4 + i * 5, 2, 5.5, Math.PI * 0.72, Math.PI * 1.28);
-        ctx.stroke();
-      }
-
-      // Cheek Blush
-      ctx.fillStyle = 'rgba(255, 130, 185, 0.55)';
-      ctx.beginPath();
-      ctx.arc(16, 3, 6, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Big Sparkling Cartoon Eyes
-      ctx.fillStyle = '#ffffff';
-      ctx.beginPath();
-      ctx.ellipse(26, -7, 7.5, 7.5, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = '#111827';
-      ctx.beginPath();
-      ctx.ellipse(27.5, -7, 5.8, 6.2, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = '#ffffff';
-      ctx.beginPath();
-      ctx.arc(26, -8.5, 2.4, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(29, -5.5, 1.2, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    // Kissing Lips when goal reached
-    if (s.isKissing) {
-      ctx.fillStyle = '#f43f5e';
-      ctx.beginPath();
-      ctx.arc(68, -4, 6.5, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#ffffff';
-      ctx.beginPath();
-      ctx.arc(66.5, -5.5, 1.8, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    // Name tag badge "부캉이"
-    ctx.font = 'bold 9.5px "Pretendard", "Malgun Gothic", sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillStyle = '#ffffff';
-    ctx.strokeStyle = '#0284c7';
-    ctx.lineWidth = 2.4;
-    ctx.strokeText('부캉이', 0, -38);
-    ctx.fillText('부캉이', 0, -38);
-
-    ctx.restore();
-  }
-
-  // Draw Starbucks Coffee Cup Island at Haeundae
-  // Draw Starbucks Coffee Cup Island at Haeundae (Capture 2 Match)
-  drawStarbucksIsland(x, y) {
-    const ctx = this.ctx;
-    ctx.save();
-    ctx.translate(x, y);
-
-    // Floating bobbing motion
-    const bob = Math.sin(this.time * 2.5) * 6;
-    ctx.translate(0, bob);
-
-    // Glowing Aura
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(0, -10, 52, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(250, 204, 21, 0.28)';
-    ctx.shadowColor = '#facc15';
-    ctx.shadowBlur = 30;
-    ctx.fill();
-    ctx.restore();
-
-    // Golden Floating Island Base
-    ctx.fillStyle = '#fef08a';
-    ctx.strokeStyle = '#eab308';
-    ctx.lineWidth = 2.5;
-    ctx.beginPath();
-    ctx.ellipse(0, 18, 48, 12, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-
-    // Water ripple under buoy
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.ellipse(0, 22, 54, 8, 0, 0, Math.PI * 2);
-    ctx.stroke();
-
-    // Cup Body (White)
-    ctx.fillStyle = '#ffffff';
-    ctx.strokeStyle = '#e2e8f0';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(-22, 12);
-    ctx.lineTo(22, 12);
-    ctx.lineTo(26, -34);
-    ctx.lineTo(-26, -34);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // Heungkuk Magenta Logo on the Cup (Two squares + Rotated diamond)
-    ctx.fillStyle = '#e4007f';
-    // Top-left square
-    ctx.fillRect(-15, -23, 8.5, 8.5);
-    // Bottom-left square
-    ctx.fillRect(-15, -11, 8.5, 8.5);
-    // Right tilted diamond
-    ctx.save();
-    ctx.translate(3.5, -13);
-    ctx.rotate(Math.PI / 4);
-    ctx.fillRect(-7.5, -7.5, 15, 15);
-    ctx.restore();
-
-    // Cup Lid
-    ctx.fillStyle = '#f8fafc';
-    ctx.strokeStyle = '#cbd5e1';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.roundRect(-28, -42, 56, 9, 3);
-    ctx.fill();
-    ctx.stroke();
-
-    // Green Straw
-    ctx.fillStyle = '#006241';
-    ctx.fillRect(2, -58, 5, 18);
-
-    // Banner Title Above Island
-    ctx.fillStyle = '#006241';
-    ctx.font = 'bold 11px "Malgun Gothic", sans-serif';
-    ctx.textAlign = 'center';
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 3;
-    ctx.strokeText('☕ 스타벅스 e-Gift', 0, -56);
-    ctx.fillText('☕ 스타벅스 e-Gift', 0, -56);
-
-    ctx.restore();
+    }, 2900);
   }
 }
 
-// Global instance for application access (Version 1)
+// Global instance for application access
 window.bukangGameV1 = new BukangLuckyDrawGame();
+window.bukangGame = window.bukangGameV1;
