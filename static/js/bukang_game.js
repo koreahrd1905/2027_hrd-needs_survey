@@ -2,10 +2,13 @@
  * BukangLuckyDrawGame - 행운의 커피 슬롯머신 이벤트
  * 
  * - 사내 저사양 PC / VDI 완벽 최적화 (Canvas 제거, 순수 CSS 하드웨어 가속)
- * - 흥국금융 CI + 스타벅스 로고 + 3구 럭키 커피 슬롯머신 스테이지
- * - 캡처 3 스타일의 깔끔한 입력창 및 슬롯 당기기 버튼
- * - 중복 전화번호 입력 시에만 적색(Red) 경고 메시지 표시
- * - 3연속 커피 잭팟(☕☕☕) 연출 후 공식 접수증(EVT-L/F) 발급
+ * - 좌측 2단 카드: 흥국금융 CI + COFFEE e-Gift 쿠폰 (Coffee.png 탑재)
+ * - 우측: ★ Coffee LUCKY 777 ★ 대형 3구 슬롯머신
+ * - 3단계 가슴 조리는 서스펜스 릴 연출 (Reel 1 -> Reel 2 -> Reel 3 슬로우모션 잭팟 ☕☕☕)
+ * - 일체형 화면: 슬롯 결과(☕☕☕)와 응모 접수증(EVT-L/F)이 상하로 동시에 함께 노출
+ * - 모바일/PC 반응형 & 아래 짤림 완전 방지 컴팩트 패딩
+ * - 중복 전화번호 체크 시에만 적색(Red) 경고 메시지 표시
+ * - 종료 버튼 클릭 시 캡처 5 화면 없이 브라우저 즉시 닫기 / 나가기 (앞선 부캉이 게임 방식 완벽 적용)
  */
 
 class BukangLuckyDrawGame {
@@ -19,6 +22,7 @@ class BukangLuckyDrawGame {
     this.serverEntryId = '';
     this.isSpinning = false;
     this.tickTimer = null;
+    this.suspenseTimers = [];
   }
 
   // 1. Web Audio Synthesizer (무설치 경량 사운드)
@@ -53,6 +57,10 @@ class BukangLuckyDrawGame {
     this.playTone(850, 'triangle', 0.035, 0.1);
   }
 
+  playSlowTickSound() {
+    this.playTone(720, 'triangle', 0.06, 0.16);
+  }
+
   playReelStopSound(freq = 523) {
     this.playTone(freq, 'sine', 0.22, 0.25);
     this.playTone(freq * 1.5, 'triangle', 0.15, 0.15, 0.04);
@@ -60,10 +68,10 @@ class BukangLuckyDrawGame {
 
   playJackpotSound() {
     if (this.isMuted || !this.audioCtx) return;
-    const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
-    const delays = [0, 0.1, 0.2, 0.32, 0.48];
+    const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98];
+    const delays = [0, 0.1, 0.2, 0.32, 0.46, 0.62];
     notes.forEach((f, idx) => {
-      this.playTone(f, 'triangle', 0.35, 0.25, delays[idx]);
+      this.playTone(f, 'triangle', 0.38, 0.26, delays[idx]);
     });
   }
 
@@ -83,10 +91,66 @@ class BukangLuckyDrawGame {
       clearInterval(this.tickTimer);
       this.tickTimer = null;
     }
+    if (this.suspenseTimers && this.suspenseTimers.length > 0) {
+      this.suspenseTimers.forEach(t => clearTimeout(t));
+      this.suspenseTimers = [];
+    }
     if (this.modalEl && this.modalEl.parentNode) {
       this.modalEl.parentNode.removeChild(this.modalEl);
       this.modalEl = null;
     }
+  }
+
+  // [교수님 지시사항 반영] 종료 버튼 클릭 시 캡처 5 화면 없이 브라우저 즉시 닫기 / 나가기
+  exitCleanly() {
+    this.close();
+    window.isEventSubmitted = true;
+    try {
+      localStorage.setItem('heungkuk_event_submitted', 'true');
+      sessionStorage.setItem('heungkuk_event_submitted', 'true');
+    } catch (e) {}
+    if (typeof window.markEventAsCompleted === 'function') {
+      try { window.markEventAsCompleted(); } catch (e) {}
+    }
+
+    // 앞선 부캉이 게임에서 사용한 방식 우선 호출
+    if (typeof window.handleSurveyAndGameFinish === 'function') {
+      window.handleSurveyAndGameFinish();
+      return;
+    }
+
+    // Direct multi-strategy window close
+    try { window.open('', '_self', ''); window.close(); } catch (e) {}
+    try { window.close(); } catch (e) {}
+    try { self.close(); } catch (e) {}
+    try {
+      if (navigator.userAgent.indexOf('KAKAOTALK') !== -1) {
+        location.href = 'kakaoweb://closeBrowser';
+      }
+    } catch (e) {}
+
+    setTimeout(() => {
+      try { window.close(); } catch (e) {}
+      try { window.location.replace('about:blank'); } catch (e) {}
+      document.body.innerHTML = `
+        <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#090d16;color:white;font-family:'Pretendard','Malgun Gothic',sans-serif;text-align:center;padding:1.5rem;box-sizing:border-box;">
+          <div style="width:72px;height:72px;border-radius:50%;background:#1e293b;border:2px solid #334155;display:flex;align-items:center;justify-content:center;font-size:2.2rem;margin-bottom:1.25rem;">
+            🔒
+          </div>
+          <span style="background:rgba(239,68,68,0.2);color:#fca5a5;font-weight:700;font-size:0.85rem;padding:0.35rem 1rem;border-radius:9999px;margin-bottom:1rem;border:1px solid rgba(239,68,68,0.3);">
+            화면 종료 완료 (Session Closed)
+          </span>
+          <h1 style="font-size:1.85rem;font-weight:800;letter-spacing:-0.03em;margin-bottom:0.85rem;color:#f8fafc;word-break:keep-all;">
+            설문 및 이벤트 참여가 모두 완료되었습니다
+          </h1>
+          <p style="font-size:1.05rem;color:#94a3b8;line-height:1.7;max-width:540px;margin-bottom:2rem;word-break:keep-all;">
+            소중한 의견에 감사드립니다.<br>
+            <span style="color:#38bdf8;font-weight:700;">상단 브라우저 탭의 [ ✕ ] 버튼을 눌러 창을 닫아주십시오.</span>
+          </p>
+        </div>
+      `;
+      document.title = '설문 및 이벤트 종료 완료';
+    }, 80);
   }
 
   promptExitConfirmation() {
@@ -121,35 +185,8 @@ class BukangLuckyDrawGame {
 
     document.getElementById('btn-confirm-exit').onclick = () => {
       confirmOverlay.remove();
-      this.close();
-      window.isEventSubmitted = true;
-      try {
-        localStorage.setItem('heungkuk_event_submitted', 'true');
-        sessionStorage.setItem('heungkuk_event_submitted', 'true');
-      } catch (e) {}
-      if (typeof window.markEventAsCompleted === 'function') {
-        window.markEventAsCompleted();
-      }
-      this.renderSurveyCompletionView();
+      this.exitCleanly();
     };
-  }
-
-  renderSurveyCompletionView() {
-    const root = document.getElementById('root') || document.body;
-    root.innerHTML = `
-      <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#f0f9ff 0%,#e0f2fe 100%);padding:1.5rem;font-family:'Pretendard',sans-serif;">
-        <div style="max-width:520px;width:100%;background:#ffffff;border-radius:24px;box-shadow:0 20px 45px rgba(2,132,199,0.18);padding:3rem 2rem;text-align:center;border:2px solid #bae6fd;">
-          <div style="font-size:3.5rem;margin-bottom:1rem;">🎉</div>
-          <h2 style="font-size:1.65rem;font-weight:900;color:#0f172a;margin-bottom:0.75rem;">설문이 성공적으로 완료되었습니다!</h2>
-          <p style="font-size:1rem;color:#475569;line-height:1.65;margin-bottom:2rem;">
-            2027 그룹 인재육성 체계 수립을 위한 소중한 의견에<br>진심으로 감사드립니다.
-          </p>
-          <div style="padding:1rem 1.25rem;background:#f8fafc;border-radius:14px;border:1px dashed #cbd5e1;color:#64748b;font-size:0.9rem;">
-            본 창을 닫으셔도 좋습니다. 오늘도 보람찬 하루 되십시오!
-          </div>
-        </div>
-      </div>
-    `;
   }
 
   // 3. Create Modal DOM
@@ -160,35 +197,35 @@ class BukangLuckyDrawGame {
     this.modalEl.id = 'bukang-lucky-modal';
     this.modalEl.className = 'bukang-modal-overlay';
 
-    // 5 slot items in each reel strip (Cell 4 is target ☕ Jackpot!)
+    // 5 slot items in each reel strip (Cell 0 and Cell 4 are target ☕ Jackpot!)
     const reelItemsHtml = `
       <div class="slot-cell">
-        <div class="slot-cell-icon">☕</div>
-        <div class="slot-cell-label">스타벅스</div>
+        <div class="slot-cell-icon"><img src="/static/images/coffee.png" style="height:52px;width:auto;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.25));" alt="커피"></div>
+        <div class="slot-cell-label">커피</div>
       </div>
       <div class="slot-cell">
-        <div class="slot-cell-icon">💎</div>
+        <div class="slot-cell-icon" style="font-size:2.5rem;">💎</div>
         <div class="slot-cell-label">흥국금융</div>
       </div>
       <div class="slot-cell">
-        <div class="slot-cell-icon">🍀</div>
+        <div class="slot-cell-icon" style="font-size:2.5rem;">🍀</div>
         <div class="slot-cell-label">행운클로버</div>
       </div>
       <div class="slot-cell">
-        <div class="slot-cell-icon">🎁</div>
+        <div class="slot-cell-icon" style="font-size:2.5rem;">🎁</div>
         <div class="slot-cell-label">선물상자</div>
       </div>
       <div class="slot-cell">
-        <div class="slot-cell-icon">☕</div>
-        <div class="slot-cell-label">스타벅스</div>
+        <div class="slot-cell-icon"><img src="/static/images/coffee.png" style="height:52px;width:auto;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.25));" alt="커피"></div>
+        <div class="slot-cell-label">커피</div>
       </div>
     `;
 
     this.modalEl.innerHTML = `
-      <div class="bukang-modal-box" style="max-width: 860px; border-radius: 18px; overflow: hidden; box-shadow: 0 25px 65px rgba(15, 23, 42, 0.45);">
+      <div class="bukang-modal-box" style="max-width: 860px; max-height: min(94vh, 94dvh); border-radius: 18px; overflow-y: auto; overflow-x: hidden; box-shadow: 0 25px 65px rgba(15, 23, 42, 0.45); display: flex; flex-direction: column;">
         
         <!-- Top Signboard Header (상단/좌측 간판 타이틀) -->
-        <div class="bukang-header" style="background: linear-gradient(90deg, #0284c7 0%, #0369a1 100%); padding: 0.85rem 1.4rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #bae6fd;">
+        <div class="bukang-header" style="background: linear-gradient(90deg, #0284c7 0%, #0369a1 100%); padding: 0.75rem 1.4rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #bae6fd; flex-shrink: 0;">
           <div class="bukang-title" style="display: flex; align-items: center; gap: 0.6rem;">
             <span style="font-size: 1.55rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">☕</span>
             <h3 style="margin: 0; font-size: 1.25rem; font-weight: 900; color: #ffffff; letter-spacing: -0.02em; text-shadow: 0 2px 4px rgba(0,0,0,0.25);">
@@ -202,73 +239,76 @@ class BukangLuckyDrawGame {
         </div>
 
         <!-- Main Body -->
-        <div class="bukang-body" style="background: #ffffff; display: flex; flex-direction: column; width: 100%;">
+        <div class="bukang-body" style="background: #ffffff; display: flex; flex-direction: column; width: 100%; flex: 1;">
           
-          <!-- Top Visual Stage: Heungkuk CI + Luxury Coffee Slot Machine + Starbucks -->
-          <div class="slot-stage-wrap" style="background: linear-gradient(135deg, #091e3a 0%, #0f274a 55%, #064e3b 100%); padding: 1.5rem 1.25rem; display: flex; align-items: center; justify-content: space-around; gap: 1rem; position: relative; border-bottom: 3px solid #f59e0b; flex-wrap: wrap;">
+          <!-- Top Visual Stage: Heungkuk CI & COFFEE e-Gift 쿠폰 (좌측 2단 카드) + ★ Coffee LUCKY 777 ★ (우측 슬롯머신) -->
+          <div class="slot-stage-wrap" style="background: linear-gradient(135deg, #091e3a 0%, #0f274a 55%, #064e3b 100%); padding: 1.15rem 1.4rem; display: flex; align-items: center; justify-content: center; gap: 1.5rem; position: relative; border-bottom: 3px solid #f59e0b; box-sizing: border-box; width: 100%;">
             
-            <!-- Left: Heungkuk CI Brand Card -->
-            <div class="brand-badge-card" style="background: #ffffff; padding: 0.6rem 1.1rem; border-radius: 14px; box-shadow: 0 8px 20px rgba(0,0,0,0.25); display: flex; align-items: center; justify-content: center;">
-              <img src="/static/images/heungkuk_ci.png" alt="흥국금융가족" style="height: 38px; width: auto; object-fit: contain;">
+            <!-- Left: 2-Tier Brand Column (흥국 CI + COFFEE e-Gift 쿠폰 상하 배치) -->
+            <div class="slot-brand-col" style="display: flex; flex-direction: column; gap: 0.75rem; align-items: center; justify-content: center;">
+              <!-- Upper Card: Heungkuk CI -->
+              <div class="brand-card-item" style="background: #ffffff; border-radius: 12px; padding: 0.55rem 1rem; width: 220px; box-shadow: 0 4px 15px rgba(0,0,0,0.25); display: flex; align-items: center; justify-content: center; box-sizing: border-box; min-height: 48px;">
+                <img src="/static/images/heungkuk_ci.png" alt="흥국금융가족" style="height: 35px; width: auto; object-fit: contain;">
+              </div>
+              <!-- Lower Card: COFFEE e-Gift 쿠폰 (Coffee.png 탑재) -->
+              <div class="brand-card-item" style="background: #ffffff; border-radius: 12px; padding: 0.55rem 1rem; width: 220px; box-shadow: 0 4px 15px rgba(0,0,0,0.25); display: flex; align-items: center; justify-content: center; box-sizing: border-box; min-height: 48px;">
+                <div style="display: flex; align-items: center; gap: 0.6rem;">
+                  <img src="/static/images/coffee.png" alt="커피" style="height: 34px; width: auto; object-fit: contain;">
+                  <div style="font-size: 0.94rem; font-weight: 900; color: #0f172a; letter-spacing: -0.01em;">
+                    COFFEE  e-Gift 쿠폰
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <!-- Center: 3-Reel Lucky Coffee Slot Machine -->
-            <div class="slot-frame" id="slot-casing" style="background: linear-gradient(145deg, #1e293b, #0f172a); border: 3px solid #f59e0b; border-radius: 16px; padding: 0.75rem 1rem; box-shadow: 0 15px 35px rgba(0,0,0,0.45); max-width: 380px; width: 100%;">
-              <div style="text-align: center; color: #facc15; font-size: 0.8rem; font-weight: 900; letter-spacing: 2px; margin-bottom: 0.4rem; text-shadow: 0 0 8px #f59e0b;">
-                ★ STARBUCKS LUCKY 777 ★
+            <!-- Right: Enhanced Large 3-Reel Slot Machine -->
+            <div class="slot-frame" id="slot-casing" style="background: linear-gradient(145deg, #1e293b, #0f172a); border: 4px solid #f59e0b; border-radius: 18px; padding: 0.8rem 1.1rem; box-shadow: 0 15px 35px rgba(0,0,0,0.45); width: 410px; max-width: 100%; box-sizing: border-box; position: relative;">
+              <div style="text-align: center; color: #facc15; font-size: 0.92rem; font-weight: 900; letter-spacing: 2px; margin-bottom: 0.45rem; text-shadow: 0 0 10px #f59e0b;">
+                ★ Coffee LUCKY 777 ★
               </div>
-              <div class="slot-reels-container" style="display: flex; gap: 0.65rem; justify-content: center; align-items: center; background: #020617; padding: 0.6rem; border-radius: 12px; position: relative; border: 2px solid #334155;">
-                <div class="slot-payline"></div>
+              <div class="slot-reels-container" style="display: flex; gap: 0.75rem; justify-content: center; align-items: center; background: #020617; padding: 0.65rem; border-radius: 14px; position: relative; border: 2px solid #334155;">
+                <div class="slot-payline" style="position: absolute; top: 50%; left: 0; right: 0; height: 2px; background: rgba(250, 204, 21, 0.85); box-shadow: 0 0 8px #facc15; pointer-events: none; z-index: 5; transform: translateY(-50%);"></div>
                 
                 <!-- Reel 1 -->
-                <div class="slot-reel-window" style="width: 88px; height: 100px;">
-                  <div class="slot-reel-strip" id="reel-strip-1">
+                <div class="slot-reel-window" style="width: 104px; height: 115px; background: #ffffff; border-radius: 10px; overflow: hidden; position: relative; box-shadow: inset 0 8px 16px rgba(0,0,0,0.25), inset 0 -8px 16px rgba(0,0,0,0.25); border: 2px solid #94a3b8;">
+                  <div class="slot-reel-strip" id="reel-strip-1" style="display: flex; flex-direction: column; position: absolute; top: 0; left: 0; width: 100%;">
                     ${reelItemsHtml}
                   </div>
                 </div>
 
                 <!-- Reel 2 -->
-                <div class="slot-reel-window" style="width: 88px; height: 100px;">
-                  <div class="slot-reel-strip" id="reel-strip-2">
+                <div class="slot-reel-window" style="width: 104px; height: 115px; background: #ffffff; border-radius: 10px; overflow: hidden; position: relative; box-shadow: inset 0 8px 16px rgba(0,0,0,0.25), inset 0 -8px 16px rgba(0,0,0,0.25); border: 2px solid #94a3b8;">
+                  <div class="slot-reel-strip" id="reel-strip-2" style="display: flex; flex-direction: column; position: absolute; top: 0; left: 0; width: 100%;">
                     ${reelItemsHtml}
                   </div>
                 </div>
 
                 <!-- Reel 3 -->
-                <div class="slot-reel-window" style="width: 88px; height: 100px;">
-                  <div class="slot-reel-strip" id="reel-strip-3">
+                <div class="slot-reel-window" style="width: 104px; height: 115px; background: #ffffff; border-radius: 10px; overflow: hidden; position: relative; box-shadow: inset 0 8px 16px rgba(0,0,0,0.25), inset 0 -8px 16px rgba(0,0,0,0.25); border: 2px solid #94a3b8;">
+                  <div class="slot-reel-strip" id="reel-strip-3" style="display: flex; flex-direction: column; position: absolute; top: 0; left: 0; width: 100%;">
                     ${reelItemsHtml}
                   </div>
                 </div>
               </div>
             </div>
-
-            <!-- Right: Starbucks Coffee e-Gift Card Badge -->
-            <div class="brand-badge-card" style="background: #ffffff; padding: 0.6rem 1rem; border-radius: 14px; box-shadow: 0 8px 20px rgba(0,0,0,0.25); display: flex; align-items: center; gap: 0.6rem;">
-              <span style="font-size: 1.8rem;">☕</span>
-              <div style="text-align: left;">
-                <div style="font-size: 0.74rem; font-weight: 900; color: #00704A; letter-spacing: 0.5px;">STARBUCKS</div>
-                <div style="font-size: 0.86rem; font-weight: 800; color: #0f172a;">e-Gift 쿠폰</div>
-              </div>
-            </div>
           </div>
 
-          <!-- Bottom Card: Input & Action (Capture 3 Layout) -->
-          <div class="bukang-input-panel" id="bukang-input-view" style="display: flex; flex-direction: column; align-items: center; text-align: center; padding: 1.25rem 1.4rem;">
+          <!-- Bottom Card: Input & Action Area -->
+          <div class="bukang-input-panel" id="bukang-input-view" style="display: flex; flex-direction: column; align-items: center; text-align: center; padding: 1rem 1.4rem;">
             <div class="bukang-guide-card" style="max-width: 680px; width: 100%;">
               
-              <!-- Badge (Capture 3 style) -->
-              <div class="shark-badge" style="display: inline-block; background: #e0f2fe; color: #0369a1; font-size: 0.86rem; font-weight: 800; padding: 0.25rem 0.95rem; border-radius: 20px; border: 1.5px solid #bae6fd; margin-bottom: 0.5rem;">
-                ☕ 실시간 선착순 골인 챌린지 (버전 2)
+              <!-- Badge -->
+              <div class="shark-badge" style="display: inline-block; background: #e0f2fe; color: #0369a1; font-size: 0.88rem; font-weight: 800; padding: 0.25rem 0.95rem; border-radius: 20px; border: 1.5px solid #bae6fd; margin-bottom: 0.35rem;">
+                커피 쿠폰 챌린지 슬롯머신
               </div>
 
               <!-- Main Instruction -->
-              <p style="font-size: 1.05rem; font-weight: 700; color: #1e293b; margin: 0.2rem 0 0.95rem 0;">
-                선물 받을 연락처를 입력 후 <span style="color:#0284c7;background:#e0f2fe;padding:0.18rem 0.6rem;border-radius:6px;font-weight:800;border:1.5px solid #7dd3fc;display:inline-block;">'슬롯 당기기'</span> 버튼을 클릭하세요.
+              <p style="font-size: 1.02rem; font-weight: 700; color: #1e293b; margin: 0.15rem 0 0.65rem 0;">
+                선물 받을 연락처를 입력 후 <span style="color:#0284c7;background:#e0f2fe;padding:0.18rem 0.55rem;border-radius:6px;font-weight:800;border:1.5px solid #7dd3fc;display:inline-block;">'슬롯 당기기'</span> 버튼을 클릭하세요.
               </p>
 
               <!-- Phone Input & Start Button Row -->
-              <div class="phone-input-row" style="display: flex; justify-content: center; align-items: center; gap: 0.65rem; max-width: 520px; margin: 0 auto;">
+              <div class="phone-input-row" style="display: flex; justify-content: center; align-items: center; gap: 0.65rem; max-width: 520px; margin: 0 auto 0.65rem auto;">
                 <span class="input-icon" style="font-size: 1.6rem;">📱</span>
                 <input 
                   type="tel" 
@@ -283,56 +323,64 @@ class BukangLuckyDrawGame {
                 </button>
               </div>
 
-              <!-- Privacy Checkbox -->
-              <div style="margin-top: 0.8rem; display: flex; justify-content: center;">
-                <label style="display: inline-flex; align-items: center; gap: 0.45rem; cursor: pointer; font-size: 0.88rem; color: #334155; font-weight: 600;">
-                  <input type="checkbox" id="bukang-privacy-check" checked style="width: 17px; height: 17px; accent-color: #0284c7; cursor: pointer;">
-                  <span>(필수) 스타벅스 모바일 쿠폰 발송 목적의 개인정보 수집에 동의합니다.</span>
+              <!-- Horizontal Meta Row (체크박스 + 안내 좌우 배치!) -->
+              <div class="slot-meta-row" style="display: flex; align-items: center; justify-content: space-between; gap: 0.85rem; max-width: 650px; margin: 0.5rem auto 0 auto; background: #f8fafc; padding: 0.5rem 0.95rem; border-radius: 12px; border: 1px solid #e2e8f0; box-sizing: border-box;">
+                <!-- Left: Checkbox -->
+                <label style="display: inline-flex; align-items: center; gap: 0.45rem; cursor: pointer; font-size: 0.84rem; color: #1e293b; font-weight: 600; text-align: left;">
+                  <input type="checkbox" id="bukang-privacy-check" checked style="width: 17px; height: 17px; accent-color: #0284c7; cursor: pointer; flex-shrink: 0;">
+                  <span>(필수) 커피 모바일쿠폰 발송 목적의 개인정보 수집에 동의합니다.</span>
                 </label>
+                <!-- Right: Notice -->
+                <div style="font-size: 0.78rem; color: #64748b; font-weight: 500; white-space: nowrap; text-align: right; line-height: 1.3;">
+                  연락처는 당첨자에게 쿠폰 발송 용도로만 사용됩니다.
+                </div>
+              </div>
+
+              <!-- Sub Guidance -->
+              <div style="margin-top: 0.4rem; font-size: 0.8rem; color: #0284c7; font-weight: 500;">
+                (게임 참여는 선택사항이며, 원하지 않으시면 종료(✕) 하시면 됩니다.)
               </div>
 
               <!-- Red Error Message Container (중복 전화번호 체크 시에만 적색 노출) -->
-              <div class="phone-err-msg" id="bukang-phone-err" style="color: #ef4444; font-size: 0.94rem; font-weight: 800; margin-top: 0.5rem; display: none; line-height: 1.4;"></div>
-
-              <!-- Guidance Box (Capture 3 style) -->
-              <div style="margin-top: 1rem; font-size: 0.94rem; font-weight: 600; color: #1e3a8a; line-height: 1.6; background: #f0f9ff; padding: 0.75rem 1.4rem; border-radius: 12px; border: 1.5px solid #bae6fd; display: inline-block; max-width: 640px; text-align: center; box-shadow: 0 2px 8px rgba(186,230,253,0.35);">
-                연락처는 당첨자에게 쿠폰 발송 용도로만 사용됩니다.<br>
-                <span style="color: #0284c7; font-weight: 500;">(게임 참여는 선택사항이며, 원하지 않으시면 종료(✕) 하시면 됩니다.)</span>
-              </div>
+              <div class="phone-err-msg" id="bukang-phone-err" style="color: #ef4444; font-size: 0.92rem; font-weight: 800; margin-top: 0.45rem; display: none; line-height: 1.4;"></div>
             </div>
           </div>
 
-          <!-- Phase 3: Result Celebration Overlay (Finished Receipt) -->
-          <div class="bukang-result-panel" id="bukang-result-view" style="display:none; padding: 1.5rem 1rem;">
-            <div class="result-card">
-              <div class="result-badge">응모 접수 완료</div>
-              <h2 class="result-title">선착순 이벤트에 정상 응모되었습니다</h2>
-              <div class="result-sub-text">
+          <!-- Phase 3: Result Celebration Overlay (Finished Receipt - 일체형 화면으로 슬롯과 함께 노출!) -->
+          <div class="bukang-result-panel" id="bukang-result-view" style="display:none; padding: 0.75rem 1.2rem; flex-direction: column; align-items: center;">
+            <div class="result-card" style="padding: 0.75rem 1.25rem; max-width: 520px; width: 100%; margin: 0 auto; box-shadow: 0 12px 30px rgba(0,0,0,0.25); border: 2.5px solid #facc15; border-radius: 16px; background: #ffffff; text-align: center; box-sizing: border-box;">
+              <div class="result-badge" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; font-size: 0.82rem; font-weight: 800; padding: 0.2rem 0.85rem; border-radius: 20px; display: inline-block; margin-bottom: 0.3rem;">
+                응모 접수 완료
+              </div>
+              <h2 class="result-title" style="font-size: 1.22rem; font-weight: 900; color: #1e3a8a; margin: 0 0 0.25rem 0; letter-spacing: -0.02em;">
+                선착순 이벤트에 정상 응모되었습니다
+              </h2>
+              <div class="result-sub-text" style="font-size: 0.86rem; color: #475569; margin-bottom: 0.5rem; line-height: 1.35;">
                 선착순 000명에게 모바일 쿠폰을 보내드립니다<br>
-                <span style="color:#0284c7;font-weight:600;font-size:0.86rem;">(발송일 : 10월 30일 이후)</span>
+                <span style="color:#0284c7;font-weight:700;font-size:0.8rem;">(발송일 : 10월 30일 이후)</span>
               </div>
 
-              <div class="entry-receipt">
-                <div class="receipt-row">
-                  <span>접수 번호</span>
-                  <strong id="receipt-id">발급 중...</strong>
+              <div class="entry-receipt" style="padding: 0.45rem 0.85rem; margin-bottom: 0.55rem; font-size: 0.82rem; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 10px; text-align: left;">
+                <div class="receipt-row" style="display: flex; justify-content: space-between; padding: 0.2rem 0; border-bottom: 1px solid #f1f5f9;">
+                  <span style="color: #64748b;">접수 번호</span>
+                  <strong id="receipt-id" style="color: #0f172a; font-family: monospace; font-size: 0.94rem;">발급 중...</strong>
                 </div>
-                <div class="receipt-row">
-                  <span>응모 번호</span>
-                  <strong id="receipt-phone">010-****-0000</strong>
+                <div class="receipt-row" style="display: flex; justify-content: space-between; padding: 0.2rem 0; border-bottom: 1px solid #f1f5f9;">
+                  <span style="color: #64748b;">응모 번호</span>
+                  <strong id="receipt-phone" style="color: #0f172a; font-family: monospace; font-size: 0.94rem;">010-****-0000</strong>
                 </div>
-                <div class="receipt-row">
-                  <span>슬롯 결과</span>
-                  <span style="color:#059669;font-weight:700;">☕ ☕ ☕ (스타벅스 3연속 잭팟 성공!)</span>
+                <div class="receipt-row" style="display: flex; justify-content: space-between; padding: 0.2rem 0; border-bottom: 1px solid #f1f5f9;">
+                  <span style="color: #64748b;">슬롯 결과</span>
+                  <span style="color: #059669; font-weight: 700;">☕ ☕ ☕ (커피 3연속 잭팟 성공!)</span>
                 </div>
-                <div class="receipt-row">
-                  <span>응모 확인</span>
-                  <span style="color:#0284c7;font-weight:700;">선착순 정상 접수 완료</span>
+                <div class="receipt-row" style="display: flex; justify-content: space-between; padding: 0.2rem 0;">
+                  <span style="color: #64748b;">응모 확인</span>
+                  <span style="color: #0284c7; font-weight: 700;">선착순 정상 접수 완료</span>
                 </div>
               </div>
 
-              <div class="result-btn-row">
-                <button class="bukang-finish-btn" id="bukang-finish-btn">
+              <div class="result-btn-row" style="display: flex; justify-content: center; margin-top: 0.35rem;">
+                <button class="bukang-finish-btn" id="bukang-finish-btn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 12px; padding: 0.62rem 2.8rem; font-size: 1.02rem; font-weight: 800; cursor: pointer; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.35); transition: all 0.2s ease;">
                   종료
                 </button>
               </div>
@@ -395,20 +443,11 @@ class BukangLuckyDrawGame {
       startBtn.onclick = () => this.handlePhoneSubmit();
     }
 
-    // Finish Button
+    // Finish Button (Clean Exit without Capture 5)
     const finishBtn = document.getElementById('bukang-finish-btn');
     if (finishBtn) {
       finishBtn.onclick = () => {
-        this.close();
-        window.isEventSubmitted = true;
-        try {
-          localStorage.setItem('heungkuk_event_submitted', 'true');
-          sessionStorage.setItem('heungkuk_event_submitted', 'true');
-        } catch (e) {}
-        if (typeof window.markEventAsCompleted === 'function') {
-          window.markEventAsCompleted();
-        }
-        this.renderSurveyCompletionView();
+        this.exitCleanly();
       };
     }
   }
@@ -505,11 +544,11 @@ class BukangLuckyDrawGame {
     })
     .catch(err => console.warn('Event submit error:', err));
 
-    // Start 3-second slot spin immediately!
+    // Start enhanced heart-throbbing suspense slot spin
     this.spinSlotMachine();
   }
 
-  // 6. Spin Slot Machine (3 Seconds Delightful Celebration)
+  // 6. Spin Slot Machine (Enhanced Heart-Throbbing Suspense Spin - 가슴 조리는 연출)
   spinSlotMachine() {
     if (this.isSpinning) return;
     this.isSpinning = true;
@@ -526,62 +565,88 @@ class BukangLuckyDrawGame {
     const strip2 = document.getElementById('reel-strip-2');
     const strip3 = document.getElementById('reel-strip-3');
 
-    // Start rapid spinning animation
-    if (strip1) strip1.classList.add('is-spinning');
-    if (strip2) strip2.classList.add('is-spinning');
-    if (strip3) strip3.classList.add('is-spinning');
+    // Start rapid spinning animation for all 3 reels
+    if (strip1) {
+      strip1.style.transition = 'none';
+      strip1.classList.add('is-spinning');
+    }
+    if (strip2) {
+      strip2.style.transition = 'none';
+      strip2.classList.add('is-spinning');
+    }
+    if (strip3) {
+      strip3.style.transition = 'none';
+      strip3.classList.add('is-spinning');
+    }
 
     // Tick tick tick audio
     this.tickTimer = setInterval(() => {
       this.playTickSound();
-    }, 110);
+    }, 100);
 
-    // Cell 4 is ☕ (스타벅스 커피)
-    const cellH = 100;
-    const targetOffset = -(cellH * 4); // -400px
+    // Responsive cell height (115px desktop, 98px mobile)
+    const cellH = window.innerWidth <= 768 ? 98 : 115;
+    const targetOffset = -(cellH * 4); // Cell 4 is ☕ (커피)
 
-    // Reel 1 Stop (1.0s)
+    // Reel 1 Stop (1.8s) -> Ding!
     setTimeout(() => {
       if (strip1) {
         strip1.classList.remove('is-spinning');
+        strip1.style.transition = 'transform 0.42s cubic-bezier(0.15, 0.9, 0.25, 1.05)';
         strip1.style.transform = `translateY(${targetOffset}px)`;
       }
       this.playReelStopSound(523.25); // C5 Ding!
-    }, 1000);
+    }, 1800);
 
-    // Reel 2 Stop (1.6s)
+    // Reel 2 Stop (3.2s) -> Ding! (2 out of 3 matched!)
     setTimeout(() => {
       if (strip2) {
         strip2.classList.remove('is-spinning');
+        strip2.style.transition = 'transform 0.42s cubic-bezier(0.15, 0.9, 0.25, 1.05)';
         strip2.style.transform = `translateY(${targetOffset}px)`;
       }
       this.playReelStopSound(659.25); // E5 Ding!
-    }, 1600);
+    }, 3200);
 
-    // Reel 3 Stop (2.2s) - JACKPOT!
+    // Reel 3 Suspense (3.2s ~ 5.8s: dramatic slow-motion creeping deceleration!)
     setTimeout(() => {
       if (this.tickTimer) {
         clearInterval(this.tickTimer);
         this.tickTimer = null;
       }
+
       if (strip3) {
         strip3.classList.remove('is-spinning');
+        // Dramatic slow suspense transition (2.6 seconds of agonizing slow-down)
+        strip3.style.transition = 'transform 2.6s cubic-bezier(0.06, 0.88, 0.15, 1.02)';
         strip3.style.transform = `translateY(${targetOffset}px)`;
       }
+
+      // Progressive slow ticks during Reel 3 deceleration
+      const tickDelays = [200, 500, 900, 1400, 2000, 2400];
+      tickDelays.forEach(d => {
+        const t = setTimeout(() => {
+          this.playSlowTickSound();
+        }, d);
+        this.suspenseTimers.push(t);
+      });
+    }, 3200);
+
+    // Reel 3 Complete Lock (5.8s) -> JACKPOT ☕☕☕ Fanfare!
+    setTimeout(() => {
       this.playJackpotSound();
 
       const casing = document.getElementById('slot-casing');
       if (casing) casing.classList.add('is-jackpot');
-    }, 2200);
+    }, 5800);
 
-    // Transition to Phase 3 (Arrival Receipt) at 2.8s
+    // Transition to Phase 3 (Arrival Receipt - 일체형 화면으로 슬롯과 함께 노출!) at 6.4s
     setTimeout(() => {
       const inputView = document.getElementById('bukang-input-view');
-      const stageWrap = document.querySelector('.slot-stage-wrap');
       const resView = document.getElementById('bukang-result-view');
       
+      // Slide out input view, slide in result view (Top slot machine stays 100% visible!)
       if (inputView) inputView.style.display = 'none';
-      if (stageWrap) stageWrap.style.display = 'none';
       if (resView) resView.style.display = 'flex';
 
       // Hide top close button on receipt screen
@@ -603,7 +668,7 @@ class BukangLuckyDrawGame {
       if (typeof window.markEventAsCompleted === 'function') {
         window.markEventAsCompleted();
       }
-    }, 2800);
+    }, 6400);
   }
 }
 
