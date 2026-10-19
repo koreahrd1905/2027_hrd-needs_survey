@@ -2213,22 +2213,64 @@ body {
   left: 0;
   right: 0;
   height: 2px;
-  background: rgba(250, 204, 21, 0.8);
+  background: rgba(250, 204, 21, 0.85);
   box-shadow: 0 0 8px #facc15;
   pointer-events: none;
   z-index: 5;
   transform: translateY(-50%);
 }
 
+/* PC Version: Larger & Taller Slot Stage */
+.slot-stage-wrap {
+  background: linear-gradient(135deg, #091e3a 0%, #0f274a 55%, #064e3b 100%);
+  padding: 2rem 2.2rem;
+  min-height: 260px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2.2rem;
+  position: relative;
+  border-bottom: 3.5px solid #f59e0b;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.slot-frame {
+  background: linear-gradient(145deg, #1e293b, #0f172a);
+  border: 4px solid #f59e0b;
+  border-radius: 20px;
+  padding: 1.1rem 1.4rem;
+  box-shadow: 0 20px 45px rgba(0,0,0,0.5), 0 0 25px rgba(245, 158, 11, 0.25);
+  width: 480px;
+  max-width: 100%;
+  box-sizing: border-box;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.slot-reels-container {
+  display: flex;
+  gap: 0.95rem;
+  justify-content: center;
+  align-items: center;
+  background: #020617;
+  padding: 0.8rem 1.1rem;
+  border-radius: 16px;
+  position: relative;
+  border: 2px solid #334155;
+  box-shadow: inset 0 4px 14px rgba(0,0,0,0.85);
+}
+
 .slot-reel-window {
-  width: 104px;
-  height: 115px;
+  width: 122px;
+  height: 136px;
   background: #ffffff;
-  border-radius: 10px;
+  border-radius: 14px;
   overflow: hidden;
   position: relative;
-  box-shadow: inset 0 8px 16px rgba(0,0,0,0.25), inset 0 -8px 16px rgba(0,0,0,0.25);
-  border: 2px solid #94a3b8;
+  box-shadow: inset 0 10px 20px rgba(0,0,0,0.35), inset 0 -10px 20px rgba(0,0,0,0.35);
+  border: 2.5px solid #94a3b8;
+  transition: all 0.3s ease;
 }
 
 .slot-reel-strip {
@@ -2242,7 +2284,7 @@ body {
 
 .slot-cell {
   width: 100%;
-  height: 115px;
+  height: 136px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2251,20 +2293,21 @@ body {
 }
 
 .slot-cell-label {
-  font-size: 0.76rem;
+  font-size: 0.95rem;
   font-weight: 800;
   color: #0f172a;
-  margin-top: 0.25rem;
+  margin-top: 0.35rem;
+  letter-spacing: -0.01em;
 }
 
 .slot-reel-strip.is-spinning {
-  animation: reelSpin 0.22s linear infinite;
+  animation: reelSpinPC 0.2s linear infinite;
   filter: blur(1.5px);
 }
 
-@keyframes reelSpin {
+@keyframes reelSpinPC {
   0% { transform: translateY(0); }
-  100% { transform: translateY(-460px); }
+  100% { transform: translateY(-544px); } /* 136px * 4 = 544px */
 }
 
 .slot-frame.is-jackpot {
@@ -2284,7 +2327,7 @@ body {
   }
 }
 
-/* Agreement Box (체크박스 1줄 + 하단 안내 1줄) */
+/* Agreement Box */
 .slot-agreement-box {
   max-width: 680px;
   width: 100%;
@@ -2296,54 +2339,7 @@ body {
   box-sizing: border-box;
 }
 
-
-@media (max-width: 768px) {
-  .slot-stage-wrap {
-    flex-direction: column;
-    padding: 1rem 0.75rem;
-    gap: 0.75rem;
-  }
-  .slot-brand-col {
-    flex-direction: row;
-    width: 100%;
-    justify-content: center;
-    gap: 0.5rem;
-  }
-  .brand-card-item {
-    width: auto;
-    flex: 1;
-    max-width: 175px;
-    padding: 0.45rem 0.65rem;
-  }
-  .slot-frame {
-    width: 100%;
-    max-width: 340px;
-    padding: 0.65rem 0.8rem;
-  }
-  .slot-reel-window {
-    width: 84px;
-    height: 98px;
-  }
-  .slot-cell {
-    height: 98px;
-  }
-  .slot-meta-row {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: 0.4rem;
-  }
-  .slot-reel-strip.is-spinning {
-    animation: reelSpinMobile 0.22s linear infinite;
-  }
-}
-
-@keyframes reelSpinMobile {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(-392px); }
-}
-
-/* Ensure Result Receipt & Modal Box Never Cut Off */
+/* Modal Window & Common Box */
 .bukang-modal-box {
   max-height: min(94vh, 94dvh) !important;
   overflow-y: auto !important;
@@ -2352,6 +2348,327 @@ body {
 .bukang-result-panel .result-card {
   box-sizing: border-box;
 }
+
+/* Exit Confirm Modal Overlay */
+.bukang-exit-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.75);
+  z-index: 9999999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(5px);
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+.bukang-exit-confirm-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 1.8rem 1.6rem;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.45);
+  border: 2px solid #bae6fd;
+  box-sizing: border-box;
+  animation: bukangScaleIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bukang-exit-btn-cancel {
+  background: #f1f5f9;
+  color: #334155;
+  font-weight: 800;
+  font-size: 0.95rem;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 0.7rem 1.3rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.bukang-exit-btn-cancel:hover {
+  background: #e2e8f0;
+}
+
+.bukang-exit-btn-confirm {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  font-weight: 800;
+  font-size: 0.95rem;
+  border: none;
+  border-radius: 12px;
+  padding: 0.7rem 1.3rem;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
+  transition: all 0.2s ease;
+}
+.bukang-exit-btn-confirm:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+}
+
+/* ============================================================
+   [모바일 세로 모드 최적화 (Fold, 갤럭시, 아이폰 등 모든 기종)]
+   ============================================================ */
+@media (max-width: 768px) {
+  .slot-stage-wrap {
+    flex-direction: column !important;
+    padding: 0.65rem 0.5rem !important;
+    min-height: auto !important;
+    gap: 0.4rem !important;
+    border-bottom-width: 2px !important;
+  }
+  
+  /* 흥국 CI 40% 축소 */
+  .slot-brand-col {
+    margin-bottom: 0.1rem !important;
+    width: 100% !important;
+    justify-content: center !important;
+  }
+  .brand-card-item {
+    width: 110px !important;
+    min-height: 26px !important;
+    padding: 0.2rem 0.5rem !important;
+    border-radius: 8px !important;
+  }
+  .brand-card-item img {
+    height: 16px !important;
+  }
+
+  .slot-frame {
+    width: 100% !important;
+    max-width: 325px !important;
+    padding: 0.45rem 0.65rem !important;
+    border-width: 3px !important;
+    border-radius: 15px !important;
+  }
+  .slot-frame > div:first-child {
+    font-size: 0.84rem !important;
+    margin-bottom: 0.25rem !important;
+  }
+  .slot-reels-container {
+    gap: 0.5rem !important;
+    padding: 0.45rem 0.55rem !important;
+    border-radius: 11px !important;
+  }
+  .slot-reel-window {
+    width: 82px !important;
+    height: 92px !important;
+    border-radius: 9px !important;
+    border-width: 2px !important;
+  }
+  .slot-cell {
+    height: 92px !important;
+  }
+  .slot-cell-icon img {
+    height: 40px !important;
+  }
+  .slot-cell-label {
+    font-size: 0.74rem !important;
+    margin-top: 0.15rem !important;
+  }
+  .slot-reel-strip.is-spinning {
+    animation: reelSpinMobile 0.2s linear infinite !important;
+  }
+
+  /* 모바일 세로보기에서 커피쿠폰 챌린지 카드 숨김 (공간 확보) */
+  .coffee-challenge-card {
+    display: none !important;
+  }
+
+  .bukang-input-panel {
+    padding: 0.55rem 0.75rem !important;
+  }
+  .bukang-guide-card p {
+    font-size: 0.86rem !important;
+    margin: 0.1rem 0 0.4rem 0 !important;
+  }
+  .phone-input-row {
+    gap: 0.4rem !important;
+    max-width: 100% !important;
+    margin-bottom: 0.35rem !important;
+  }
+  .phone-input-row .input-icon {
+    font-size: 1.3rem !important;
+  }
+  #bukang-phone-input {
+    padding: 0.6rem 0.7rem !important;
+    font-size: 1rem !important;
+  }
+  .bukang-start-btn {
+    padding: 0.6rem 1.05rem !important;
+    font-size: 0.92rem !important;
+  }
+
+  /* 동의문 및 안내문구 2줄 축소 정리 (짤림 방지) */
+  .slot-agreement-box {
+    padding: 0.4rem 0.65rem !important;
+    margin: 0.3rem auto 0 auto !important;
+    border-radius: 10px !important;
+    gap: 0.2rem !important;
+  }
+  .slot-agreement-box label {
+    font-size: 0.72rem !important;
+    white-space: nowrap !important;
+    gap: 0.35rem !important;
+  }
+  .slot-agreement-box label input {
+    width: 14px !important;
+    height: 14px !important;
+  }
+  .slot-agreement-box div {
+    font-size: 0.66rem !important;
+    white-space: nowrap !important;
+    margin-top: 0.15rem !important;
+    line-height: 1.3 !important;
+  }
+}
+
+@keyframes reelSpinMobile {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-368px); } /* 92px * 4 = 368px */
+}
+
+/* ============================================================
+   [모바일 가로 모드 최적화: 좌측(슬롯머신) + 우측(안내글/입력폼) 2분할]
+   ============================================================ */
+@media (orientation: landscape) and (max-height: 550px), (max-width: 950px) and (orientation: landscape) {
+  .bukang-modal-box {
+    width: 96vw !important;
+    max-width: 880px !important;
+    max-height: 96vh !important;
+    max-height: 96dvh !important;
+  }
+  
+  .bukang-body {
+    flex-direction: row !important;
+    align-items: stretch !important;
+    overflow: hidden !important;
+  }
+
+  /* 좌측: 슬롯머신 영역 */
+  .slot-stage-wrap {
+    flex: 1.1 !important;
+    max-width: 53% !important;
+    padding: 0.6rem 0.75rem !important;
+    min-height: auto !important;
+    border-bottom: none !important;
+    border-right: 2px solid #f59e0b !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    gap: 0.35rem !important;
+  }
+
+  .slot-brand-col {
+    margin-bottom: 0.1rem !important;
+  }
+  .brand-card-item {
+    width: 100px !important;
+    min-height: 24px !important;
+    padding: 0.15rem 0.4rem !important;
+  }
+  .brand-card-item img {
+    height: 15px !important;
+  }
+
+  .slot-frame {
+    width: 100% !important;
+    max-width: 295px !important;
+    padding: 0.35rem 0.55rem !important;
+    border-width: 2.5px !important;
+  }
+  .slot-frame > div:first-child {
+    font-size: 0.74rem !important;
+    margin-bottom: 0.15rem !important;
+  }
+  .slot-reels-container {
+    gap: 0.45rem !important;
+    padding: 0.35rem 0.45rem !important;
+  }
+  .slot-reel-window {
+    width: 74px !important;
+    height: 84px !important;
+    border-radius: 8px !important;
+  }
+  .slot-cell {
+    height: 84px !important;
+  }
+  .slot-cell-icon img {
+    height: 36px !important;
+  }
+  .slot-cell-label {
+    font-size: 0.68rem !important;
+    margin-top: 0.1rem !important;
+  }
+  .slot-reel-strip.is-spinning {
+    animation: reelSpinLandscape 0.2s linear infinite !important;
+  }
+
+  /* 우측: 안내글 및 입력창 영역 */
+  .bukang-input-panel {
+    flex: 0.9 !important;
+    max-width: 47% !important;
+    padding: 0.5rem 0.8rem !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    overflow-y: auto !important;
+  }
+  .coffee-challenge-card {
+    display: none !important;
+  }
+  .bukang-guide-card p {
+    font-size: 0.8rem !important;
+    margin: 0.1rem 0 0.35rem 0 !important;
+  }
+  .phone-input-row {
+    gap: 0.35rem !important;
+    margin-bottom: 0.35rem !important;
+  }
+  .phone-input-row .input-icon {
+    display: none !important;
+  }
+  #bukang-phone-input {
+    padding: 0.5rem 0.6rem !important;
+    font-size: 0.92rem !important;
+  }
+  .bukang-start-btn {
+    padding: 0.5rem 0.85rem !important;
+    font-size: 0.84rem !important;
+    white-space: nowrap !important;
+  }
+  .slot-agreement-box {
+    padding: 0.35rem 0.5rem !important;
+    margin-top: 0.25rem !important;
+    gap: 0.15rem !important;
+  }
+  .slot-agreement-box label {
+    font-size: 0.68rem !important;
+    white-space: nowrap !important;
+  }
+  .slot-agreement-box label input {
+    width: 13px !important;
+    height: 13px !important;
+  }
+  .slot-agreement-box div {
+    font-size: 0.62rem !important;
+    white-space: nowrap !important;
+  }
+
+  /* 우측: 결과 영수증 영역 */
+  .bukang-result-panel {
+    flex: 0.9 !important;
+    max-width: 47% !important;
+    padding: 0.4rem 0.7rem !important;
+    overflow-y: auto !important;
+  }
+}
+
+@keyframes reelSpinLandscape {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-336px); } /* 84px * 4 = 336px */
+}
+
 
 
 
