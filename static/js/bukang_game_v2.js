@@ -348,8 +348,8 @@ class BukangLuckyDrawGame {
                   autocomplete="tel"
                   style="flex: 1; padding: 0.82rem 1.1rem; font-size: 1.15rem; font-weight: 700; border: 2px solid #bae6fd; border-radius: 12px; outline: none; text-align: center; letter-spacing: 1.5px; color: #0369a1; background: #f0f9ff;"
                 >
-                <button class="bukang-start-btn" id="bukang-start-btn" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: white; border: none; border-radius: 12px; padding: 0.75rem 1.4rem; font-size: 1.02rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 0.45rem; box-shadow: 0 6px 16px rgba(2, 132, 199, 0.38); white-space: nowrap;">
-                  <span>🎰</span> 슬롯 당기기
+                <button class="bukang-start-btn" id="bukang-start-btn" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: white; border: none; border-radius: 12px; padding: 0.75rem 1.4rem; font-size: 1.02rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 16px rgba(2, 132, 199, 0.38); white-space: nowrap;">
+                  슬롯 당기기
                 </button>
               </div>
 
@@ -527,7 +527,7 @@ class BukangLuckyDrawGame {
         }
         if (startBtn) {
           startBtn.disabled = false;
-          startBtn.innerHTML = `<span>🎰</span> 슬롯 당기기 (START)`;
+          startBtn.innerHTML = '슬롯 당기기';
         }
         return;
       }
@@ -694,12 +694,22 @@ class BukangLuckyDrawGame {
 
     // [5단계] 응모 접수증 화면 전환 (7.3초, 기존보다 0.9초 더 여유를 두어 잭팟 충분히 감상!)
     setTimeout(() => {
+      const bukangModal = document.getElementById('bukang-lucky-modal');
+      const bukangBox = bukangModal ? bukangModal.querySelector('.bukang-modal-box') : null;
+      const bukangBody = bukangModal ? bukangModal.querySelector('.bukang-body') : null;
+      if (bukangBox) bukangBox.classList.add('is-result-state');
+      if (bukangBody) bukangBody.classList.add('is-result-state');
+
       const inputView = document.getElementById('bukang-input-view');
       const resView = document.getElementById('bukang-result-view');
       
-      // 입력창 숨기고 결과 영수증 노출 (상단 슬롯머신은 황금빛으로 계속 빛나며 유지!)
-      if (inputView) inputView.style.display = 'none';
-      if (resView) resView.style.display = 'flex';
+      // 입력창 숨기고 결과 영수증 노출 (우측 게임실행 화면 완전 제거)
+      if (inputView) {
+        inputView.style.setProperty('display', 'none', 'important');
+      }
+      if (resView) {
+        resView.style.setProperty('display', 'flex', 'important');
+      }
 
       // Ensure receipt ID is populated
       if (this.serverEntryId) {

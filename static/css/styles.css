@@ -2547,17 +2547,18 @@ body {
     display: none !important;
   }
   #bukang-phone-input {
-    flex: 1.25 !important;
+    flex: 1.55 !important;
     min-width: 0 !important;
-    padding: 0.55rem 0.45rem !important;
-    font-size: 0.98rem !important;
-    letter-spacing: 0.5px !important;
+    padding: 0.55rem 0.65rem !important;
+    font-size: 1.05rem !important;
+    letter-spacing: 0.8px !important;
     box-sizing: border-box !important;
   }
   .bukang-start-btn {
-    flex: 1 !important;
-    padding: 0.55rem 0.55rem !important;
-    font-size: 0.85rem !important;
+    flex: 0.85 !important;
+    padding: 0.55rem 0.5rem !important;
+    font-size: 0.88rem !important;
+    font-weight: 800 !important;
     white-space: nowrap !important;
     box-sizing: border-box !important;
     justify-content: center !important;
@@ -2728,17 +2729,18 @@ body {
     display: none !important;
   }
   #bukang-phone-input {
-    flex: 1.45 !important;
-    min-width: 135px !important;
-    padding: 0.48rem 0.45rem !important;
-    font-size: 0.92rem !important;
-    letter-spacing: 0.4px !important;
+    flex: 1.55 !important;
+    min-width: 140px !important;
+    padding: 0.48rem 0.6rem !important;
+    font-size: 0.95rem !important;
+    letter-spacing: 0.6px !important;
     box-sizing: border-box !important;
   }
   .bukang-start-btn {
-    flex: 0.95 !important;
+    flex: 0.85 !important;
     padding: 0.48rem 0.45rem !important;
-    font-size: 0.8rem !important;
+    font-size: 0.82rem !important;
+    font-weight: 800 !important;
     white-space: nowrap !important;
     box-sizing: border-box !important;
     justify-content: center !important;
@@ -2773,13 +2775,57 @@ body {
     line-height: 1.25 !important;
   }
 
-  /* 우측: 결과 영수증 영역 */
-  .bukang-result-panel {
-    flex: 0.9 !important;
-    max-width: 47% !important;
-    padding: 0.4rem 0.7rem !important;
+  /* [교수님 지시사항 3-2 반영] 가로보기 마지막 응모접수창: 좌측(영수증)만 유지하고 우측 게임실행화면 완전 삭제 */
+  .bukang-modal-box.is-result-state {
+    max-width: 520px !important;
+    margin: auto !important;
+  }
+
+  .bukang-body.is-result-state {
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
     overflow-y: auto !important;
   }
+
+  .bukang-body.is-result-state .slot-stage-wrap {
+    display: none !important;
+  }
+
+  .bukang-body.is-result-state .bukang-input-panel {
+    display: none !important;
+  }
+
+  .bukang-body.is-result-state .bukang-result-panel {
+    display: flex !important;
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    width: 100% !important;
+    max-width: 480px !important;
+    margin: 0 auto !important;
+    padding: 0.45rem 0.75rem !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    overflow-y: visible !important;
+  }
+
+  .bukang-body.is-result-state .result-card {
+    margin: 0 auto !important;
+    width: 100% !important;
+    max-width: 450px !important;
+    padding: 0.6rem 0.95rem !important;
+  }
+}
+
+/* Global Result State Guards (게임 완료 후 우측/하단 입력패널 완전 숨김) */
+.is-result-state .bukang-input-panel,
+.bukang-modal-box.is-result-state .bukang-input-panel,
+.bukang-body.is-result-state .bukang-input-panel,
+#bukang-input-view[style*="display: none"],
+#bukang-input-view[style*="display:none"] {
+  display: none !important;
 }
 
 @keyframes reelSpinLandscape {

@@ -525,19 +525,42 @@
       });
     });
 
-    // Dynamic Org Cascading (Company -> Division -> Department) & Job Group (Q2)
+    // Dynamic Org Cascading (Company -> Division -> Department) & Job Group (Q2) & Rank (Q3)
     const selComp = document.getElementById('select-q1-company');
     const selDiv = document.getElementById('select-q1-division');
     const selDept = document.getElementById('select-q1-department');
     const selJg = document.getElementById('select-q2');
+    const selRank = document.getElementById('select-q3');
 
     const q1Meta = (questionsData && questionsData[0]?.questions?.find(q => q.id === 'q1')) || {};
     const q2Meta = (questionsData && questionsData[0]?.questions?.find(q => q.id === 'q2')) || {};
+    const q3Meta = (questionsData && questionsData[0]?.questions?.find(q => q.id === 'q3')) || {};
     const orgData = q1Meta.org_structure || {};
     const jobGroupMap = q2Meta.company_job_groups || {
       '흥국생명': ['① 일반직', '② 사무직', '③ 기타'],
       '흥국화재': ['① 일반직', '② 영업직', '③ 사무지원직', '④ 기타(SIU직 등)']
     };
+    const rankMap = q3Meta.company_ranks || {
+      '흥국생명': [
+        '리더(직책자)',
+        '부장~과장',
+        '대리~사원',
+        '책임~사원(사무직)'
+      ],
+      '흥국화재': [
+        '리더(직책자)',
+        '부장~과장',
+        '대리~사원',
+        '책임~사원(사무지원직)'
+      ]
+    };
+
+    // Initialize Q3 initial prompt if company not selected yet
+    if (selRank && (!selComp || !selComp.value)) {
+      selRank.innerHTML = '<option value="" disabled selected>-- 소속 회사를 먼저 선택해 주십시오 (콤보 상자) --</option>';
+      selRank.disabled = true;
+      selRank.style.background = '#f8fafc';
+    }
 
     if (selComp) {
       selComp.addEventListener('change', () => {
@@ -566,7 +589,7 @@
 
         // 3. Job Group (Q2)
         if (selJg) {
-          selJg.innerHTML = '<option value="" disabled selected>-- 직군을 선택해 주십시오 --</option>';
+          selJg.innerHTML = '<option value="" disabled selected>-- 직군을 선택해 주십시오 (콤보 상자) --</option>';
           const list = jobGroupMap[comp] || ['① 일반직', '② 사무직', '③ 기타'];
           list.forEach(jg => {
             const opt = document.createElement('option');
@@ -576,6 +599,25 @@
           });
           selJg.disabled = false;
           selJg.style.background = 'white';
+        }
+
+        // 4. Rank / Job Title (Q3) - [교수님 지시사항 2 반영]
+        if (selRank) {
+          selRank.innerHTML = '<option value="" disabled selected>-- 직급/직책을 선택해 주십시오 (콤보 상자) --</option>';
+          const rList = rankMap[comp] || [
+            '리더(직책자)',
+            '부장~과장',
+            '대리~사원',
+            (comp === '흥국화재' ? '책임~사원(사무지원직)' : '책임~사원(사무직)')
+          ];
+          rList.forEach(r => {
+            const opt = document.createElement('option');
+            opt.value = r;
+            opt.textContent = r;
+            selRank.appendChild(opt);
+          });
+          selRank.disabled = false;
+          selRank.style.background = 'white';
         }
       });
     }
