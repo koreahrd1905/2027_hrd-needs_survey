@@ -396,13 +396,9 @@ class BukangLuckyDrawGame {
                   <span style="color: #64748b;">응모 번호</span>
                   <strong id="receipt-phone" style="color: #0f172a; font-family: monospace; font-size: 0.82rem;">010-****-0000</strong>
                 </div>
-                <div class="receipt-row" style="display: flex; justify-content: space-between; padding: 0.12rem 0; border-bottom: 1px solid #f1f5f9;">
-                  <span style="color: #64748b;">슬롯 결과</span>
-                  <span style="color: #059669; font-weight: 700; font-size: 0.74rem;">☕ ☕ ☕ (커피 3연속 잭팟 성공!)</span>
-                </div>
-                <div class="receipt-row" style="display: flex; justify-content: space-between; padding: 0.12rem 0;">
+                <div class="receipt-row" style="display: flex; justify-content: space-between; padding: 0.2rem 0;">
                   <span style="color: #64748b;">응모 확인</span>
-                  <span style="color: #0284c7; font-weight: 700; font-size: 0.74rem;">선착순 정상 접수 완료</span>
+                  <span style="color: #0284c7; font-weight: 700; font-size: 0.82rem;">선착순 정상 접수 완료</span>
                 </div>
               </div>
 

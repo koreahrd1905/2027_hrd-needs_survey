@@ -2600,77 +2600,113 @@ body {
     text-align: center !important;
   }
 
-  /* [교수님 지시사항 반영] 모바일 세로보기 마지막 응모결과창: 25% 축소 및 녹색 종료버튼 100% 한눈에 노출 */
+  /* [교수님 지시사항 반영] 모바일 세로보기 마지막 응모결과창: 창 높이를 위아래로 대폭 확장하여 녹색 종료버튼 및 상단 배지 100% 한눈에 노출 */
+  .bukang-modal-box.is-result-state {
+    width: 92vw !important;
+    max-width: 420px !important;
+    min-height: 470px !important;
+    max-height: 85vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    margin: auto !important;
+  }
+
+  .bukang-body.is-result-state {
+    flex: 1 !important;
+    min-height: 410px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    position: relative !important;
+    width: 100% !important;
+  }
+
+  .bukang-body.is-result-state .slot-stage-wrap {
+    display: none !important;
+  }
+
+  .bukang-body.is-result-state .bukang-input-panel {
+    display: none !important;
+  }
+
   .bukang-result-panel {
     display: flex !important;
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    width: 100% !important;
+    height: auto !important;
+    flex: 1 !important;
     align-items: center !important;
     justify-content: center !important;
-    padding: 0.35rem 0.5rem !important;
-    overflow-y: auto !important;
+    padding: 0.6rem 0.5rem !important;
+    background: transparent !important;
     box-sizing: border-box !important;
   }
 
   .bukang-result-panel .result-card {
-    padding: 0.45rem 0.8rem !important;
-    max-width: 315px !important;
+    padding: 0.75rem 0.95rem !important;
+    max-width: 340px !important;
     width: 95% !important;
-    border-radius: 12px !important;
+    border-radius: 14px !important;
     border-width: 2px !important;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.2) !important;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2) !important;
     margin: auto !important;
     box-sizing: border-box !important;
   }
 
   .bukang-result-panel .result-badge {
-    font-size: 0.68rem !important;
-    padding: 0.12rem 0.55rem !important;
-    margin-bottom: 0.15rem !important;
+    font-size: 0.72rem !important;
+    padding: 0.15rem 0.65rem !important;
+    margin-bottom: 0.25rem !important;
   }
 
   .bukang-result-panel .result-title {
-    font-size: 0.92rem !important;
-    margin: 0 0 0.12rem 0 !important;
+    font-size: 1.02rem !important;
+    margin: 0 0 0.2rem 0 !important;
     letter-spacing: -0.02em !important;
-    line-height: 1.25 !important;
+    line-height: 1.3 !important;
   }
 
   .bukang-result-panel .result-sub-text {
-    font-size: 0.7rem !important;
-    line-height: 1.28 !important;
-    margin-bottom: 0.28rem !important;
+    font-size: 0.75rem !important;
+    line-height: 1.35 !important;
+    margin-bottom: 0.35rem !important;
   }
   .bukang-result-panel .result-sub-text span {
-    font-size: 0.68rem !important;
+    font-size: 0.72rem !important;
   }
 
   .bukang-result-panel .entry-receipt {
-    padding: 0.25rem 0.55rem !important;
-    margin-bottom: 0.28rem !important;
-    font-size: 0.7rem !important;
-    border-radius: 8px !important;
+    padding: 0.35rem 0.75rem !important;
+    margin-bottom: 0.45rem !important;
+    font-size: 0.78rem !important;
+    border-radius: 9px !important;
   }
 
   .bukang-result-panel .receipt-row {
-    padding: 0.08rem 0 !important;
+    padding: 0.16rem 0 !important;
   }
 
   .bukang-result-panel .receipt-row span {
-    font-size: 0.7rem !important;
+    font-size: 0.76rem !important;
   }
 
   .bukang-result-panel .receipt-row strong {
-    font-size: 0.78rem !important;
+    font-size: 0.86rem !important;
   }
 
   .bukang-result-panel .result-btn-row {
-    margin-top: 0.18rem !important;
+    margin-top: 0.35rem !important;
   }
 
   .bukang-result-panel .bukang-finish-btn {
-    padding: 0.4rem 2rem !important;
-    font-size: 0.88rem !important;
-    border-radius: 9px !important;
-    box-shadow: 0 3px 10px rgba(16, 185, 129, 0.35) !important;
+    padding: 0.55rem 2.6rem !important;
+    font-size: 0.98rem !important;
+    font-weight: 800 !important;
+    border-radius: 11px !important;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4) !important;
   }
 }
 
