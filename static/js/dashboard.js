@@ -233,14 +233,20 @@
           <a href="/api/event/export-excel" class="btn" style="background:#006241;color:white;border:none;font-weight:700;white-space:nowrap;box-shadow:0 3px 8px rgba(0,98,65,0.25);" title="스타벅스 커피쿠폰 이벤트 응모자 명단(휴대전화 번호) 엑셀 다운로드">
             <span>☕</span> 이벤트응모자(Excel)
           </a>
+          <a href="/api/survey/export-docx" class="btn" style="background:#1d4ed8;color:white;border:none;font-weight:700;white-space:nowrap;box-shadow:0 3px 8px rgba(29,78,216,0.25);" title="설문 전체 문항지 워드파일(.docx) 다운로드">
+            <span>📝</span> 설문지(Word)
+          </a>
+          <a href="/api/survey/export-pdf" class="btn" style="background:#b91c1c;color:white;border:none;font-weight:700;white-space:nowrap;box-shadow:0 3px 8px rgba(185,28,28,0.25);" title="설문 전체 문항지 PDF파일(.pdf) 다운로드">
+            <span>📑</span> 설문지(PDF)
+          </a>
           <a href="/api/survey/export-excel" class="btn btn-success" style="background:#059669;color:white;border:none;font-weight:600;white-space:nowrap;" title="설문 응답 최종 로우데이터 엑셀 다운로드">
             <span>📥</span> 설문응답 로우데이터(Excel)
           </a>
           <a href="/api/reports/docx" class="btn btn-secondary" style="white-space:nowrap;" title="워드 종합보고서 다운로드">
-            <span>📄</span> Word 다운로드
+            <span>📄</span> Word 보고서
           </a>
           <a href="/api/reports/pptx" class="btn btn-primary" style="white-space:nowrap;" title="파워포인트 발표자료 다운로드">
-            <span>📊</span> PPTX 다운로드
+            <span>📊</span> PPTX 발표자료
           </a>
         </div>
       </header>
@@ -1440,6 +1446,12 @@
           </p>
         </div>
         <div style="display:flex;gap:0.85rem;flex-wrap:wrap;">
+          <a href="/api/survey/export-docx" class="btn" style="background:#2563eb;color:white;padding:0.75rem 1.4rem;font-size:0.95rem;font-weight:700;border:none;" title="설문 전체 문항지 워드파일(.docx) 다운로드">
+            <span>📝</span> 설문지 Word (.docx)
+          </a>
+          <a href="/api/survey/export-pdf" class="btn" style="background:#dc2626;color:white;padding:0.75rem 1.4rem;font-size:0.95rem;font-weight:700;border:none;" title="설문 전체 문항지 PDF파일(.pdf) 다운로드">
+            <span>📑</span> 설문지 PDF (.pdf)
+          </a>
           <a href="/api/survey/export-excel" class="btn" style="background:#10b981;color:white;padding:0.75rem 1.4rem;font-size:0.95rem;font-weight:700;border:none;">
             <span>📥</span> Excel 로우데이터 (.xlsx)
           </a>
@@ -1709,6 +1721,28 @@
             <a href="/api/reports/pptx" class="btn" style="background:#2563eb;color:white;text-align:center;padding:0.65rem;border-radius:8px;font-weight:700;font-size:0.88rem;text-decoration:none;display:block;box-shadow:0 3px 8px rgba(37,99,235,0.25);">
               <span>📊</span> PPTX 발표자료 다운로드
             </a>
+          </div>
+
+          <!-- Card 5: Survey Questionnaire Sheet (Word & PDF) -->
+          <div style="background:white;border-radius:12px;padding:1.4rem;border:1.5px solid #93c5fd;box-shadow:0 3px 10px rgba(0,0,0,0.04);display:flex;flex-direction:column;justify-content:space-between;">
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.6rem;">
+                <span style="background:#1d4ed8;color:white;font-size:0.75rem;font-weight:800;padding:0.25rem 0.6rem;border-radius:4px;">설문지 인쇄/출력용</span>
+                <span style="font-size:0.8rem;color:#1d4ed8;font-weight:700;">.DOCX & .PDF</span>
+              </div>
+              <h3 style="font-size:1.05rem;font-weight:700;color:#1e3a8a;margin:0 0 0.4rem;">설문조사 문항지 (29개 문항)</h3>
+              <p style="font-size:0.82rem;color:#475569;line-height:1.45;margin:0 0 1rem;">
+                서면 설문 진행 및 사전 검토용 A4 규격 공식 설문지 양식 (5점 척도 표, 주관식 기재란, 객관식 보기 포함)
+              </p>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
+              <a href="/api/survey/export-docx" class="btn" style="background:#2563eb;color:white;text-align:center;padding:0.65rem 0.3rem;border-radius:8px;font-weight:700;font-size:0.84rem;text-decoration:none;display:block;" title="워드(.docx) 다운로드">
+                <span>📄</span> Word 다운
+              </a>
+              <a href="/api/survey/export-pdf" class="btn" style="background:#dc2626;color:white;text-align:center;padding:0.65rem 0.3rem;border-radius:8px;font-weight:700;font-size:0.84rem;text-decoration:none;display:block;" title="PDF(.pdf) 다운로드">
+                <span>📑</span> PDF 다운
+              </a>
+            </div>
           </div>
         </div>
       </div>

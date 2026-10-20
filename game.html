@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>부캉이 행운의 커피 슬롯머신 [체험 모드]</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>☕</text></svg>">
+  <link rel="stylesheet" href="/static/css/styles.css?v=20261020_demo">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800;900&family=Pretendard:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0284c7;
+      --primary-dark: #0369a1;
+      --gold: #f59e0b;
+      --gold-light: #fef3c7;
+      --magenta: #ec008c;
+    }
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+      background: radial-gradient(circle at 50% 20%, #0f172a 0%, #020617 100%);
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Malgun Gothic", sans-serif;
+      color: #0f172a;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+    }
+    
+    /* Top Floating Demo Badge Banner */
+    .demo-top-banner {
+      width: 100%;
+      background: linear-gradient(90deg, #1e1b4b 0%, #312e81 50%, #1e1b4b 100%);
+      border-bottom: 2px solid rgba(129, 140, 248, 0.4);
+      padding: 0.65rem 1rem;
+      color: #e0e7ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      font-size: 0.88rem;
+      font-weight: 700;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.35);
+      z-index: 100;
+      text-align: center;
+      flex-wrap: wrap;
+    }
+    .demo-pill {
+      background: #4f46e5;
+      color: #ffffff;
+      padding: 0.2rem 0.65rem;
+      border-radius: 9999px;
+      font-size: 0.76rem;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      border: 1px solid #818cf8;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .btn-copy-link {
+      background: rgba(255, 255, 255, 0.15);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      padding: 0.28rem 0.8rem;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .btn-copy-link:hover, .btn-copy-link:active {
+      background: #0284c7;
+      border-color: #38bdf8;
+      transform: translateY(-1px);
+    }
+
+    /* Main Container */
+    .game-page-wrapper {
+      width: 100%;
+      max-width: 860px;
+      padding: 1.2rem 1rem 3rem 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-sizing: border-box;
+    }
+
+    .game-card {
+      width: 100%;
+      background: #ffffff;
+      border-radius: 24px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6), 0 0 0 2px rgba(255, 255, 255, 0.1);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* Header */
+    .game-header {
+      background: linear-gradient(90deg, #0284c7 0%, #0369a1 100%);
+      padding: 0.9rem 1.4rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #bae6fd;
+    }
+    .game-header-title {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      color: #ffffff;
+    }
+    .game-header-title h1 {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.25);
+    }
+    .game-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .btn-icon-sound {
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      color: white;
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.15rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .btn-icon-sound:active {
+      transform: scale(0.92);
+      background: rgba(255, 255, 255, 0.35);
+    }
+
+    /* Confetti Canvas */
+    #confetti-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* Footer Info */
+    .game-footer-note {
+      margin-top: 1.5rem;
+      color: #94a3b8;
+      font-size: 0.82rem;
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    /* Toast Notification */
+    .demo-toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #0f172a;
+      color: #ffffff;
+      padding: 0.75rem 1.4rem;
+      border-radius: 9999px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      border: 1.5px solid #38bdf8;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      z-index: 10000;
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+    }
+    .demo-toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Floating Notification -->
+  <div class="demo-top-banner">
+    <span class="demo-pill">🎮 체험용 데모 모드</span>
+    <span>데이터 연동/변동 없이 100% 안전하게 동작합니다.</span>
+    <button class="btn-copy-link" id="btn-copy-top" title="휴대폰 공유용 웹 주소 복사">
+      📋 링크 복사
+    </button>
+  </div>
+
+  <!-- Main Game Stage Card -->
+  <div class="game-page-wrapper">
+    <div class="game-card">
+      
+      <!-- Top Header -->
+      <div class="game-header">
+        <div class="game-header-title">
+          <span style="font-size:1.6rem; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.2));">☕</span>
+          <h1>행운의 커피 슬롯머신 이벤트</h1>
+        </div>
+        <div class="game-header-actions">
+          <button class="btn-icon-sound" id="btn-sound-toggle" title="사운드 켜기/끄기">🔊</button>
+        </div>
+      </div>
+
+      <!-- Main Slot Body -->
+      <div class="bukang-body" style="background:#ffffff; display:flex; flex-direction:column; width:100%; flex:1;">
+        
+        <!-- Slot Stage -->
+        <div class="slot-stage-wrap">
+          
+          <!-- Left: Heungkuk CI Card -->
+          <div class="slot-brand-col">
+            <div class="brand-card-item">
+              <img src="/static/images/heungkuk_ci.png" alt="흥국금융가족">
+            </div>
+          </div>
+
+          <!-- Right: 3-Reel Slot Machine -->
+          <div class="slot-frame" id="slot-casing">
+            <div class="slot-marquee-title">
+              ★ Coffee LUCKY 777 ★
+            </div>
+            
+            <div class="slot-reels-container">
+              <div class="slot-payline"></div>
+              
+              <!-- Reel 1 -->
+              <div class="slot-reel-window">
+                <div class="slot-reel-strip" id="reel-strip-1">
+                  <!-- Strips dynamically populated -->
+                </div>
+              </div>
+
+              <!-- Reel 2 -->
+              <div class="slot-reel-window">
+                <div class="slot-reel-strip" id="reel-strip-2">
+                  <!-- Strips dynamically populated -->
+                </div>
+              </div>
+
+              <!-- Reel 3 -->
+              <div class="slot-reel-window">
+                <div class="slot-reel-strip" id="reel-strip-3">
+                  <!-- Strips dynamically populated -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Input & Spin Action Panel -->
+        <div class="bukang-input-panel" id="bukang-input-view" style="display:flex; flex-direction:column; align-items:center; text-align:center; padding:1.2rem 1.4rem;">
+          <div class="bukang-guide-card" style="max-width:680px; width:100%;">
+            
+            <!-- Badge -->
+            <div class="coffee-challenge-card" style="display:inline-flex; align-items:center; gap:0.65rem; background:#ffffff; border:1.5px solid #cbd5e1; border-radius:16px; padding:0.35rem 1.15rem; box-shadow:0 3px 10px rgba(0,0,0,0.08); margin-bottom:0.45rem;">
+              <img src="/static/images/coffee.png" alt="커피" style="height:30px; width:auto; object-fit:contain;">
+              <span style="font-size:1.02rem; font-weight:900; color:#0f172a; letter-spacing:-0.02em;">
+                커피쿠폰 챌린지 슬롯머신 [체험 모드]
+              </span>
+            </div>
+
+            <!-- Instruction -->
+            <p style="font-size:1.02rem; font-weight:700; color:#1e293b; margin:0.35rem 0 0.85rem 0;">
+              아래 <span style="color:#0284c7; background:#e0f2fe; padding:0.18rem 0.55rem; border-radius:6px; font-weight:800; border:1.5px solid #7dd3fc; display:inline-block;">'슬롯 당기기'</span> 버튼을 클릭하여 슬롯을 회전시켜 보세요!
+            </p>
+
+            <!-- Phone Input Row (Sample Pre-filled for effortless test) -->
+            <div class="bukang-phone-form" style="display:flex; gap:0.6rem; justify-content:center; align-items:center; flex-wrap:wrap; margin-bottom:0.75rem;">
+              <input 
+                type="tel" 
+                id="bukang-phone-input" 
+                placeholder="010-0000-0000" 
+                value="010-7777-8888" 
+                maxlength="13"
+                style="padding:0.75rem 1.1rem; border:2px solid #94a3b8; border-radius:12px; font-size:1.1rem; font-weight:700; color:#0f172a; width:220px; text-align:center; outline:none; transition:border-color 0.2s;"
+              >
+              <button class="bukang-start-btn" id="bukang-start-btn" style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:white; border:none; border-radius:12px; padding:0.75rem 1.8rem; font-size:1.05rem; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 6px 16px rgba(2, 132, 199, 0.38); white-space:nowrap; transition:all 0.2s ease;">
+                🎰 슬롯 당기기
+              </button>
+            </div>
+
+            <!-- Agreement Box -->
+            <div class="slot-agreement-box">
+              <label style="display:inline-flex; align-items:center; justify-content:center; gap:0.45rem; cursor:pointer; font-size:0.86rem; color:#1e293b; font-weight:700;">
+                <input type="checkbox" id="bukang-privacy-check" checked style="width:16px; height:16px; accent-color:#0284c7; cursor:pointer; flex-shrink:0;">
+                <span>(체험용) 개인정보 수집 동의 체크 완료 (서버 저장 없음)</span>
+              </label>
+              <div style="font-size:0.8rem; color:#64748b; font-weight:500; line-height:1.35; text-align:center; margin-top:0.35rem;">
+                💡 체험 모드에서는 실제 설문 DB나 당첨자 명부에 전혀 기록되지 않습니다. 안심하고 테스트하세요.
+              </div>
+            </div>
+
+            <div class="phone-err-msg" id="bukang-phone-err" style="color:#ef4444; font-size:0.92rem; font-weight:800; margin-top:0.45rem; display:none;"></div>
+          </div>
+        </div>
+
+        <!-- Result Celebration Overlay (Finished Receipt with REPLAY button!) -->
+        <div class="bukang-result-panel" id="bukang-result-view" style="display:none; padding:1.2rem 1rem; flex-direction:column; align-items:center; justify-content:center; box-sizing:border-box;">
+          <div class="result-card" style="padding:1.1rem 1.4rem; max-width:420px; width:100%; margin:0 auto; box-shadow:0 12px 32px rgba(0,0,0,0.22); border:2.5px solid #facc15; border-radius:18px; background:#ffffff; text-align:center; box-sizing:border-box;">
+            
+            <div class="result-badge" style="background:linear-gradient(135deg, #10b981 0%, #059669 100%); color:white; font-size:0.82rem; font-weight:800; padding:0.25rem 0.9rem; border-radius:20px; display:inline-block; margin-bottom:0.45rem;">
+              🎉 잭팟 당첨 (체험 완료)
+            </div>
+            
+            <h2 class="result-title" style="font-size:1.25rem; font-weight:900; color:#1e3a8a; margin:0 0 0.35rem 0; letter-spacing:-0.02em;">
+              ★ 3-Reel 커피 잭팟 달성! ★
+            </h2>
+            
+            <div class="result-sub-text" style="font-size:0.86rem; color:#475569; margin-bottom:0.85rem; line-height:1.45;">
+              스타벅스 커피쿠폰 잭팟에 성공하셨습니다!<br>
+              <span style="color:#0284c7; font-weight:700;">(본 화면은 체험용으로 실제 서버에 기록되지 않습니다)</span>
+            </div>
+
+            <!-- Receipt Detail -->
+            <div class="entry-receipt" style="padding:0.65rem 0.95rem; margin-bottom:1rem; font-size:0.85rem; background:#f8fafc; border:1.5px dashed #cbd5e1; border-radius:12px; text-align:left;">
+              <div class="receipt-row" style="display:flex; justify-content:space-between; padding:0.35rem 0; border-bottom:1px solid #f1f5f9;">
+                <span style="color:#64748b;">접수 번호</span>
+                <strong id="receipt-id" style="color:#0f172a; font-family:monospace; font-size:0.95rem;">DEMO-LUCKY-777</strong>
+              </div>
+              <div class="receipt-row" style="display:flex; justify-content:space-between; padding:0.35rem 0; border-bottom:1px solid #f1f5f9;">
+                <span style="color:#64748b;">응모 번호</span>
+                <strong id="receipt-phone" style="color:#0f172a; font-family:monospace; font-size:0.95rem;">010-7777-8888</strong>
+              </div>
+              <div class="receipt-row" style="display:flex; justify-content:space-between; padding:0.35rem 0;">
+                <span style="color:#64748b;">모드 상태</span>
+                <span style="color:#10b981; font-weight:800;">체험 플레이 완료 (무제한 재시도 가능)</span>
+              </div>
+            </div>
+
+            <!-- Action Buttons: Replay & Copy Link -->
+            <div class="result-btn-row" style="display:flex; gap:0.6rem; justify-content:center; flex-wrap:wrap;">
+              <button class="bukang-replay-btn" id="btn-replay-game" style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:white; border:none; border-radius:12px; padding:0.65rem 1.6rem; font-size:0.95rem; font-weight:800; cursor:pointer; box-shadow:0 4px 14px rgba(2, 132, 199, 0.35); transition:all 0.2s ease;">
+                🔄 다시 돌려보기
+              </button>
+              <button class="btn-copy-link" id="btn-copy-result" style="background:#f1f5f9; color:#0f172a; border:1.5px solid #cbd5e1; padding:0.65rem 1.4rem; border-radius:12px; font-size:0.92rem; font-weight:800;">
+                📋 모바일 공유 링크 복사
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Footer Note -->
+    <div class="game-footer-note">
+      부산 북항 친수공원 마스코트 '부캉이'와 함께하는 스마트 HRD 이벤트<br>
+      흥국생명 & 흥국화재 구성원 역량진단 설문조사 연계 모듈
+    </div>
+  </div>
+
+  <!-- Confetti Canvas -->
+  <canvas id="confetti-canvas"></canvas>
+
+  <!-- Toast Notification -->
+  <div class="demo-toast" id="demo-toast">
+    <span>✅</span>
+    <span id="toast-text">웹 주소가 클립보드에 복사되었습니다!</span>
+  </div>
+
+  <!-- Game Logic Script (100% Pure Client-Side Simulation) -->
+  <script>
+    (function() {
+      // 1. Confetti FX System
+      const canvas = document.getElementById('confetti-canvas');
+      const ctx = canvas.getContext('2d');
+      let confettiList = [];
+      let confettiAnimId = null;
+
+      function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+      window.addEventListener('resize', resizeCanvas);
+      resizeCanvas();
+
+      function spawnConfetti(count = 70) {
+        const colors = ['#ec008c', '#0284c7', '#f59e0b', '#10b981', '#8b5cf6', '#f43f5e'];
+        for (let i = 0; i < count; i++) {
+          confettiList.push({
+            x: Math.random() * canvas.width,
+            y: -20,
+            w: Math.random() * 9 + 6,
+            h: Math.random() * 6 + 4,
+            vx: (Math.random() - 0.5) * 5,
+            vy: Math.random() * 4 + 3.5,
+            rot: Math.random() * 360,
+            vRot: (Math.random() - 0.5) * 12,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            life: 1.0,
+            decay: Math.random() * 0.008 + 0.004
+          });
+        }
+        if (!confettiAnimId) loopConfetti();
+      }
+
+      function loopConfetti() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (let i = confettiList.length - 1; i >= 0; i--) {
+          const p = confettiList[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          p.rot += p.vRot;
+          p.life -= p.decay;
+
+          if (p.life <= 0 || p.y > canvas.height + 30) {
+            confettiList.splice(i, 1);
+            continue;
+          }
+
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate((p.rot * Math.PI) / 180);
+          ctx.globalAlpha = Math.max(0, p.life);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+          ctx.restore();
+        }
+
+        if (confettiList.length > 0) {
+          confettiAnimId = requestAnimationFrame(loopConfetti);
+        } else {
+          confettiAnimId = null;
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+      }
+
+      // 2. Web Audio Synthesizer
+      let audioCtx = null;
+      let isMuted = false;
+
+      function initAudio() {
+        if (!audioCtx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) audioCtx = new AudioContext();
+        }
+        if (audioCtx && audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+      }
+
+      function playTone(freq, type = 'sine', duration = 0.12, vol = 0.22, startTime = 0) {
+        if (isMuted || !audioCtx || freq <= 0) return;
+        try {
+          const t = audioCtx.currentTime + startTime;
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, t);
+          gain.gain.setValueAtTime(vol, t);
+          gain.gain.exponentialRampToValueAtTime(0.0001, t + duration);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(t);
+          osc.stop(t + duration);
+        } catch (e) {}
+      }
+
+      let soundStep = 0;
+      function playSpinChime() {
+        soundStep = (soundStep + 1) % 2;
+        const f1 = soundStep === 0 ? 1046.50 : 1318.51;
+        const f2 = soundStep === 0 ? 2093.00 : 2637.02;
+        playTone(f1, 'sine', 0.05, 0.18);
+        playTone(f2, 'triangle', 0.04, 0.10, 0.01);
+      }
+
+      function playSlowTickSound(freq = 680) {
+        playTone(freq, 'triangle', 0.08, 0.25);
+        playTone(freq * 0.5, 'sine', 0.06, 0.18, 0.02);
+      }
+
+      function playReelStopSound(freq = 1046.50) {
+        playTone(freq, 'sine', 0.32, 0.32);
+        playTone(freq * 1.5, 'triangle', 0.22, 0.20, 0.04);
+      }
+
+      function playJackpotFanfare() {
+        if (isMuted || !audioCtx) return;
+        try {
+          initAudio();
+          const arpeggio = [
+            { f: 523.25, d: 0.15, dt: 0.00 },
+            { f: 659.25, d: 0.15, dt: 0.13 },
+            { f: 783.99, d: 0.15, dt: 0.26 },
+            { f: 1046.50, d: 0.40, dt: 0.40 }
+          ];
+          arpeggio.forEach(n => {
+            playTone(n.f, 'triangle', n.d, 0.35, n.dt);
+            playTone(n.f * 1.005, 'sawtooth', n.d * 0.7, 0.15, n.dt);
+          });
+
+          setTimeout(() => {
+            const chords = [1046.50, 1318.51, 1567.98, 2093.00];
+            chords.forEach(freq => {
+              playTone(freq, 'triangle', 1.8, 0.26);
+              playTone(freq * 0.5, 'sine', 1.8, 0.35);
+            });
+          }, 450);
+        } catch (e) {}
+      }
+
+      // 3. Build Slot Strips HTML
+      const reelItemsHtml = `
+        <div class="slot-cell">
+          <div class="slot-cell-icon"><img src="/static/images/coffee.png" alt="커피"></div>
+          <div class="slot-cell-label">커피</div>
+        </div>
+        <div class="slot-cell">
+          <div class="slot-cell-icon" style="font-size:2.5rem;">💎</div>
+          <div class="slot-cell-label">흥국금융</div>
+        </div>
+        <div class="slot-cell">
+          <div class="slot-cell-icon" style="font-size:2.5rem;">🍀</div>
+          <div class="slot-cell-label">행운클로버</div>
+        </div>
+        <div class="slot-cell">
+          <div class="slot-cell-icon" style="font-size:2.5rem;">🎁</div>
+          <div class="slot-cell-label">선물상자</div>
+        </div>
+        <div class="slot-cell">
+          <div class="slot-cell-icon"><img src="/static/images/coffee.png" alt="커피"></div>
+          <div class="slot-cell-label">커피</div>
+        </div>
+      `;
+
+      ['reel-strip-1', 'reel-strip-2', 'reel-strip-3'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = reelItemsHtml;
+      });
+
+      // 4. Spin Slot Machine State
+      let isSpinning = false;
+      let spinSoundTimer = null;
+      let suspenseTimers = [];
+
+      function startSpin() {
+        if (isSpinning) return;
+        isSpinning = true;
+        initAudio();
+
+        const phoneInput = document.getElementById('bukang-phone-input');
+        const phone = (phoneInput ? phoneInput.value : '').trim() || '010-7777-8888';
+        
+        let masked = phone;
+        const parts = phone.split('-');
+        if (parts.length === 3) {
+          masked = `${parts[0]}-****-${parts[2]}`;
+        }
+        document.getElementById('receipt-phone').innerText = masked;
+        document.getElementById('receipt-id').innerText = 'DEMO-' + Math.floor(1000 + Math.random() * 9000);
+
+        const startBtn = document.getElementById('bukang-start-btn');
+        if (startBtn) {
+          startBtn.disabled = true;
+          startBtn.innerHTML = `<span>🎲</span> 릴 회전 중...`;
+          startBtn.style.background = '#64748b';
+        }
+
+        const strip1 = document.getElementById('reel-strip-1');
+        const strip2 = document.getElementById('reel-strip-2');
+        const strip3 = document.getElementById('reel-strip-3');
+
+        // Start all spinning
+        [strip1, strip2, strip3].forEach(st => {
+          if (st) {
+            st.style.transition = 'none';
+            st.classList.add('is-spinning');
+          }
+        });
+
+        // Spin Sound Loop
+        spinSoundTimer = setInterval(() => {
+          playSpinChime();
+        }, 90);
+
+        // Responsive Cell Height
+        const isMobileLandscape = window.matchMedia('(orientation: landscape) and (max-height: 550px)').matches || (window.innerWidth <= 950 && window.matchMedia('(orientation: landscape)').matches);
+        let cellH = 136;
+        if (isMobileLandscape) {
+          cellH = 84;
+        } else if (window.innerWidth <= 768) {
+          cellH = 86;
+        }
+        const targetOffset = -(cellH * 4); // Target: ☕ Coffee
+
+        // Step 1: Reel 1 Stop (1.8s)
+        setTimeout(() => {
+          if (strip1) {
+            strip1.classList.remove('is-spinning');
+            strip1.style.transition = 'transform 0.4s cubic-bezier(0.12, 0.9, 0.25, 1.05)';
+            strip1.style.transform = `translateY(${targetOffset}px)`;
+          }
+          playReelStopSound(1046.50);
+        }, 1800);
+
+        // Step 2: Reel 2 Stop (3.4s)
+        setTimeout(() => {
+          if (strip2) {
+            strip2.classList.remove('is-spinning');
+            strip2.style.transition = 'transform 0.4s cubic-bezier(0.12, 0.9, 0.25, 1.05)';
+            strip2.style.transform = `translateY(${targetOffset}px)`;
+          }
+          playReelStopSound(1318.51);
+        }, 3400);
+
+        // Step 3: Reel 3 Slow Suspense Deceleration (4.2s ~ 5.8s)
+        setTimeout(() => {
+          if (spinSoundTimer) {
+            clearInterval(spinSoundTimer);
+            spinSoundTimer = null;
+          }
+          if (strip3) {
+            strip3.classList.remove('is-spinning');
+            strip3.style.transition = 'transform 1.6s cubic-bezier(0.15, 0.85, 0.35, 1.03)';
+            strip3.style.transform = `translateY(${targetOffset}px)`;
+          }
+
+          const tickTimings = [
+            { t: 250, f: 800 },
+            { t: 650, f: 740 },
+            { t: 1100, f: 680 },
+            { t: 1550, f: 620 }
+          ];
+          tickTimings.forEach(item => {
+            const timerId = setTimeout(() => {
+              playSlowTickSound(item.f);
+            }, item.t);
+            suspenseTimers.push(timerId);
+          });
+        }, 4200);
+
+        // Step 4: Final Jackpot Fanfare & Glow (5.8s)
+        setTimeout(() => {
+          playJackpotFanfare();
+          spawnConfetti(85);
+
+          const casing = document.getElementById('slot-casing');
+          if (casing) {
+            casing.classList.add('is-jackpot');
+            casing.style.borderColor = '#facc15';
+            casing.style.boxShadow = '0 0 45px #facc15, 0 0 65px rgba(236, 0, 140, 0.85), inset 0 0 25px #facc15';
+          }
+          document.querySelectorAll('.slot-reel-window').forEach(el => {
+            el.style.borderColor = '#facc15';
+            el.style.boxShadow = '0 0 15px #facc15, inset 0 0 12px #facc15';
+          });
+        }, 5800);
+
+        // Step 5: Transition to Result Receipt (7.2s)
+        setTimeout(() => {
+          const inputView = document.getElementById('bukang-input-view');
+          const resView = document.getElementById('bukang-result-view');
+          if (inputView) inputView.style.display = 'none';
+          if (resView) resView.style.display = 'flex';
+          isSpinning = false;
+        }, 7200);
+      }
+
+      // Reset for Replay
+      function resetGame() {
+        if (isSpinning) return;
+        suspenseTimers.forEach(id => clearTimeout(id));
+        suspenseTimers = [];
+        if (spinSoundTimer) clearInterval(spinSoundTimer);
+
+        const strip1 = document.getElementById('reel-strip-1');
+        const strip2 = document.getElementById('reel-strip-2');
+        const strip3 = document.getElementById('reel-strip-3');
+        [strip1, strip2, strip3].forEach(st => {
+          if (st) {
+            st.classList.remove('is-spinning');
+            st.style.transition = 'transform 0.4s ease-out';
+            st.style.transform = 'translateY(0px)';
+          }
+        });
+
+        const casing = document.getElementById('slot-casing');
+        if (casing) {
+          casing.classList.remove('is-jackpot');
+          casing.style.borderColor = '#f59e0b';
+          casing.style.boxShadow = '0 20px 45px rgba(0,0,0,0.5), 0 0 25px rgba(245, 158, 11, 0.25)';
+        }
+        document.querySelectorAll('.slot-reel-window').forEach(el => {
+          el.style.borderColor = '#334155';
+          el.style.boxShadow = 'inset 0 4px 10px rgba(0,0,0,0.6)';
+        });
+
+        const inputView = document.getElementById('bukang-input-view');
+        const resView = document.getElementById('bukang-result-view');
+        if (inputView) inputView.style.display = 'flex';
+        if (resView) resView.style.display = 'none';
+
+        const startBtn = document.getElementById('bukang-start-btn');
+        if (startBtn) {
+          startBtn.disabled = false;
+          startBtn.innerHTML = `🎰 슬롯 당기기`;
+          startBtn.style.background = 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)';
+        }
+      }
+
+      // Event Listeners
+      const startBtn = document.getElementById('bukang-start-btn');
+      if (startBtn) startBtn.addEventListener('click', startSpin);
+
+      const replayBtn = document.getElementById('btn-replay-game');
+      if (replayBtn) replayBtn.addEventListener('click', resetGame);
+
+      // Sound Toggle
+      const soundBtn = document.getElementById('btn-sound-toggle');
+      if (soundBtn) {
+        soundBtn.addEventListener('click', () => {
+          isMuted = !isMuted;
+          soundBtn.innerText = isMuted ? '🔇' : '🔊';
+          initAudio();
+        });
+      }
+
+      // Toast & Copy Link
+      function showToast(msg) {
+        const toast = document.getElementById('demo-toast');
+        const text = document.getElementById('toast-text');
+        if (text) text.innerText = msg;
+        if (toast) {
+          toast.classList.add('show');
+          setTimeout(() => toast.classList.remove('show'), 2600);
+        }
+      }
+
+      function copyShareLink() {
+        const url = window.location.href;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(url).then(() => {
+            showToast('📋 링크가 복사되었습니다! 카톡이나 문자로 전달하세요.');
+          }).catch(() => fallbackCopy(url));
+        } else {
+          fallbackCopy(url);
+        }
+      }
+
+      function fallbackCopy(text) {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+          document.execCommand('copy');
+          showToast('📋 링크가 복사되었습니다! 카톡이나 문자로 전달하세요.');
+        } catch (e) {
+          prompt('아래 웹 주소를 복사하여 공유하세요:', text);
+        }
+        document.body.removeChild(ta);
+      }
+
+      document.getElementById('btn-copy-top').addEventListener('click', copyShareLink);
+      document.getElementById('btn-copy-result').addEventListener('click', copyShareLink);
+
+      // Phone Input Auto-hyphen
+      const phoneInput = document.getElementById('bukang-phone-input');
+      if (phoneInput) {
+        phoneInput.addEventListener('input', (e) => {
+          let val = e.target.value.replace(/[^0-9]/g, '');
+          if (val.length > 11) val = val.slice(0, 11);
+          if (val.length > 7) {
+            val = `${val.slice(0, 3)}-${val.slice(3, 7)}-${val.slice(7)}`;
+          } else if (val.length > 3) {
+            val = `${val.slice(0, 3)}-${val.slice(3)}`;
+          }
+          e.target.value = val;
+        });
+        phoneInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') startSpin();
+        });
+      }
+
+    })();
+  </script>
+</body>
+</html>
