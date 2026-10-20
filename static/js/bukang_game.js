@@ -373,40 +373,41 @@ class BukangLuckyDrawGame {
           </div>
 
           <!-- Phase 3: Result Celebration Overlay (Finished Receipt - 일체형 화면으로 슬롯과 함께 노출!) -->
-          <div class="bukang-result-panel" id="bukang-result-view" style="display:none; padding: 0.75rem 1.2rem; flex-direction: column; align-items: center;">
-            <div class="result-card" style="padding: 0.75rem 1.25rem; max-width: 520px; width: 100%; margin: 0 auto; box-shadow: 0 12px 30px rgba(0,0,0,0.25); border: 2.5px solid #facc15; border-radius: 16px; background: #ffffff; text-align: center; box-sizing: border-box;">
-              <div class="result-badge" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; font-size: 0.82rem; font-weight: 800; padding: 0.2rem 0.85rem; border-radius: 20px; display: inline-block; margin-bottom: 0.3rem;">
+          <!-- Phase 3: Result Celebration Overlay (Finished Receipt - 25% 축소 최적화로 종료버튼 100% 한눈에 노출) -->
+          <div class="bukang-result-panel" id="bukang-result-view" style="display:none; padding: 0.4rem 0.6rem; flex-direction: column; align-items: center; justify-content: center; box-sizing: border-box;">
+            <div class="result-card" style="padding: 0.5rem 0.85rem; max-width: 350px; width: 100%; margin: 0 auto; box-shadow: 0 8px 24px rgba(0,0,0,0.22); border: 2px solid #facc15; border-radius: 12px; background: #ffffff; text-align: center; box-sizing: border-box;">
+              <div class="result-badge" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; font-size: 0.72rem; font-weight: 800; padding: 0.15rem 0.65rem; border-radius: 20px; display: inline-block; margin-bottom: 0.2rem;">
                 응모 접수 완료
               </div>
-              <h2 class="result-title" style="font-size: 1.22rem; font-weight: 900; color: #1e3a8a; margin: 0 0 0.25rem 0; letter-spacing: -0.02em;">
+              <h2 class="result-title" style="font-size: 0.98rem; font-weight: 900; color: #1e3a8a; margin: 0 0 0.18rem 0; letter-spacing: -0.02em;">
                 선착순 이벤트에 정상 응모되었습니다
               </h2>
-              <div class="result-sub-text" style="font-size: 0.86rem; color: #475569; margin-bottom: 0.5rem; line-height: 1.35;">
+              <div class="result-sub-text" style="font-size: 0.74rem; color: #475569; margin-bottom: 0.35rem; line-height: 1.3;">
                 선착순 000명에게 모바일 쿠폰을 보내드립니다<br>
-                <span style="color:#0284c7;font-weight:700;font-size:0.8rem;">(발송일 : 10월 30일 이후)</span>
+                <span style="color:#0284c7;font-weight:700;font-size:0.72rem;">(발송일 : 10월 30일 이후)</span>
               </div>
 
-              <div class="entry-receipt" style="padding: 0.45rem 0.85rem; margin-bottom: 0.55rem; font-size: 0.82rem; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 10px; text-align: left;">
-                <div class="receipt-row" style="display: flex; justify-content: space-between; padding: 0.2rem 0; border-bottom: 1px solid #f1f5f9;">
+              <div class="entry-receipt" style="padding: 0.28rem 0.65rem; margin-bottom: 0.35rem; font-size: 0.74rem; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; text-align: left;">
+                <div class="receipt-row" style="display: flex; justify-content: space-between; padding: 0.12rem 0; border-bottom: 1px solid #f1f5f9;">
                   <span style="color: #64748b;">접수 번호</span>
-                  <strong id="receipt-id" style="color: #0f172a; font-family: monospace; font-size: 0.94rem;">발급 중...</strong>
+                  <strong id="receipt-id" style="color: #0f172a; font-family: monospace; font-size: 0.82rem;">발급 중...</strong>
                 </div>
-                <div class="receipt-row" style="display: flex; justify-content: space-between; padding: 0.2rem 0; border-bottom: 1px solid #f1f5f9;">
+                <div class="receipt-row" style="display: flex; justify-content: space-between; padding: 0.12rem 0; border-bottom: 1px solid #f1f5f9;">
                   <span style="color: #64748b;">응모 번호</span>
-                  <strong id="receipt-phone" style="color: #0f172a; font-family: monospace; font-size: 0.94rem;">010-****-0000</strong>
+                  <strong id="receipt-phone" style="color: #0f172a; font-family: monospace; font-size: 0.82rem;">010-****-0000</strong>
                 </div>
-                <div class="receipt-row" style="display: flex; justify-content: space-between; padding: 0.2rem 0; border-bottom: 1px solid #f1f5f9;">
+                <div class="receipt-row" style="display: flex; justify-content: space-between; padding: 0.12rem 0; border-bottom: 1px solid #f1f5f9;">
                   <span style="color: #64748b;">슬롯 결과</span>
-                  <span style="color: #059669; font-weight: 700;">☕ ☕ ☕ (커피 3연속 잭팟 성공!)</span>
+                  <span style="color: #059669; font-weight: 700; font-size: 0.74rem;">☕ ☕ ☕ (커피 3연속 잭팟 성공!)</span>
                 </div>
-                <div class="receipt-row" style="display: flex; justify-content: space-between; padding: 0.2rem 0;">
+                <div class="receipt-row" style="display: flex; justify-content: space-between; padding: 0.12rem 0;">
                   <span style="color: #64748b;">응모 확인</span>
-                  <span style="color: #0284c7; font-weight: 700;">선착순 정상 접수 완료</span>
+                  <span style="color: #0284c7; font-weight: 700; font-size: 0.74rem;">선착순 정상 접수 완료</span>
                 </div>
               </div>
 
-              <div class="result-btn-row" style="display: flex; justify-content: center; margin-top: 0.35rem;">
-                <button class="bukang-finish-btn" id="bukang-finish-btn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 12px; padding: 0.62rem 2.8rem; font-size: 1.02rem; font-weight: 800; cursor: pointer; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.35); transition: all 0.2s ease;">
+              <div class="result-btn-row" style="display: flex; justify-content: center; margin-top: 0.25rem;">
+                <button class="bukang-finish-btn" id="bukang-finish-btn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 10px; padding: 0.45rem 2.2rem; font-size: 0.9rem; font-weight: 800; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35); transition: all 0.2s ease;">
                   종료
                 </button>
               </div>
@@ -702,7 +703,13 @@ class BukangLuckyDrawGame {
 
       const inputView = document.getElementById('bukang-input-view');
       const resView = document.getElementById('bukang-result-view');
+      const topCloseBtn = document.getElementById('bukang-close-top-btn');
       
+      // 우측 상단 종료(X) 버튼 숨기기 (교수님 지시사항: 결과창에서는 X버튼 불필요, 하단 녹색 종료버튼으로만 진행)
+      if (topCloseBtn) {
+        topCloseBtn.style.setProperty('display', 'none', 'important');
+      }
+
       // 입력창 숨기고 결과 영수증 노출 (우측 게임실행 화면 완전 제거)
       if (inputView) {
         inputView.style.setProperty('display', 'none', 'important');

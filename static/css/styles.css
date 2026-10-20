@@ -1949,9 +1949,9 @@ body {
 
 .bukang-result-panel .result-card {
   margin: auto !important;
-  max-width: 410px !important;
-  padding: 0.85rem 1.3rem !important;
-  border-radius: 16px !important;
+  max-width: 360px !important;
+  padding: 0.55rem 0.95rem !important;
+  border-radius: 14px !important;
   box-sizing: border-box !important;
 }
 
@@ -2599,6 +2599,79 @@ body {
     line-height: 1.35 !important;
     text-align: center !important;
   }
+
+  /* [교수님 지시사항 반영] 모바일 세로보기 마지막 응모결과창: 25% 축소 및 녹색 종료버튼 100% 한눈에 노출 */
+  .bukang-result-panel {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0.35rem 0.5rem !important;
+    overflow-y: auto !important;
+    box-sizing: border-box !important;
+  }
+
+  .bukang-result-panel .result-card {
+    padding: 0.45rem 0.8rem !important;
+    max-width: 315px !important;
+    width: 95% !important;
+    border-radius: 12px !important;
+    border-width: 2px !important;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2) !important;
+    margin: auto !important;
+    box-sizing: border-box !important;
+  }
+
+  .bukang-result-panel .result-badge {
+    font-size: 0.68rem !important;
+    padding: 0.12rem 0.55rem !important;
+    margin-bottom: 0.15rem !important;
+  }
+
+  .bukang-result-panel .result-title {
+    font-size: 0.92rem !important;
+    margin: 0 0 0.12rem 0 !important;
+    letter-spacing: -0.02em !important;
+    line-height: 1.25 !important;
+  }
+
+  .bukang-result-panel .result-sub-text {
+    font-size: 0.7rem !important;
+    line-height: 1.28 !important;
+    margin-bottom: 0.28rem !important;
+  }
+  .bukang-result-panel .result-sub-text span {
+    font-size: 0.68rem !important;
+  }
+
+  .bukang-result-panel .entry-receipt {
+    padding: 0.25rem 0.55rem !important;
+    margin-bottom: 0.28rem !important;
+    font-size: 0.7rem !important;
+    border-radius: 8px !important;
+  }
+
+  .bukang-result-panel .receipt-row {
+    padding: 0.08rem 0 !important;
+  }
+
+  .bukang-result-panel .receipt-row span {
+    font-size: 0.7rem !important;
+  }
+
+  .bukang-result-panel .receipt-row strong {
+    font-size: 0.78rem !important;
+  }
+
+  .bukang-result-panel .result-btn-row {
+    margin-top: 0.18rem !important;
+  }
+
+  .bukang-result-panel .bukang-finish-btn {
+    padding: 0.4rem 2rem !important;
+    font-size: 0.88rem !important;
+    border-radius: 9px !important;
+    box-shadow: 0 3px 10px rgba(16, 185, 129, 0.35) !important;
+  }
 }
 
 @keyframes reelSpinMobile {
@@ -2819,12 +2892,20 @@ body {
   }
 }
 
-/* Global Result State Guards (게임 완료 후 우측/하단 입력패널 완전 숨김) */
+/* Global Result State Guards (게임 완료 후 우측/하단 입력패널 완전 숨김 및 상단 X버튼 숨김) */
 .is-result-state .bukang-input-panel,
 .bukang-modal-box.is-result-state .bukang-input-panel,
 .bukang-body.is-result-state .bukang-input-panel,
 #bukang-input-view[style*="display: none"],
 #bukang-input-view[style*="display:none"] {
+  display: none !important;
+}
+
+/* [교수님 지시사항 반영] 마지막 응모결과창에서는 우측 상단 종료(X) 버튼 숨김 */
+.is-result-state #bukang-close-top-btn,
+.bukang-modal-box.is-result-state #bukang-close-top-btn,
+.bukang-body.is-result-state ~ .bukang-header #bukang-close-top-btn,
+.is-result-state button[id="bukang-close-top-btn"] {
   display: none !important;
 }
 
