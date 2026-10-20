@@ -297,6 +297,18 @@ def submit_event():
         "message": message
     })
 
+@app.route("/api/admin/reset", methods=["GET", "POST"])
+def admin_reset():
+    save_json(RESPONSES_FILE, [])
+    save_json(EVENT_ENTRIES_FILE, [])
+    return jsonify({
+        "success": True,
+        "message": "설문 응답(responses.json) 및 이벤트 응모(event_entries.json) 데이터가 0건으로 깨끗하게 초기화(리셋)되었습니다.",
+        "responses_count": 0,
+        "event_entries_count": 0,
+        "reset_at": get_kst_now_str()
+    })
+
 @app.route("/health")
 def health():
     return jsonify({"status": "ok", "app": "2027_employee_survey", "port": int(os.environ.get("PORT", 5001))})
