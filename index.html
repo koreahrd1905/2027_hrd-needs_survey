@@ -85,6 +85,174 @@
       box-shadow: 0 2px 6px rgba(29,78,216,0.06);
     }
 
+    /* Survey Export Buttons (Word, PDF, Print) */
+    .survey-export-btn-group {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      flex-wrap: wrap;
+    }
+    .btn-export-doc {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.45rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      border: 1px solid transparent;
+      line-height: 1.2;
+    }
+    .btn-export-word {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border-color: #bfdbfe;
+    }
+    .btn-export-word:hover {
+      background: #dbeafe;
+      color: #1e40af;
+      transform: translateY(-1px);
+      box-shadow: 0 3px 8px rgba(29,78,216,0.15);
+    }
+    .btn-export-pdf {
+      background: #fef2f2;
+      color: #dc2626;
+      border-color: #fecaca;
+    }
+    .btn-export-pdf:hover {
+      background: #fee2e2;
+      color: #b91c1c;
+      transform: translateY(-1px);
+      box-shadow: 0 3px 8px rgba(220,38,38,0.15);
+    }
+    .btn-export-print {
+      background: #f8fafc;
+      color: #334155;
+      border-color: #cbd5e1;
+    }
+    .btn-export-print:hover {
+      background: #e2e8f0;
+      color: #0f172a;
+      transform: translateY(-1px);
+    }
+
+    /* Print / Export Callout Banner */
+    .survey-download-callout-banner {
+      background: #ffffff;
+      border: 1.5px solid #e2e8f0;
+      border-left: 5px solid #2563eb;
+      border-radius: 16px;
+      padding: 1.25rem 1.6rem;
+      margin-bottom: 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1.2rem;
+      box-shadow: 0 4px 16px rgba(15,23,42,0.04);
+    }
+    .callout-left {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .callout-icon {
+      font-size: 2.2rem;
+      line-height: 1;
+    }
+    .callout-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.01em;
+    }
+    .callout-desc {
+      font-size: 0.88rem;
+      color: #64748b;
+      margin-top: 0.25rem;
+      line-height: 1.45;
+    }
+    .callout-actions {
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+    .btn-callout-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.62rem 1.15rem;
+      border-radius: 10px;
+      font-size: 0.92rem;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+    }
+    .btn-callout-word {
+      background: #2563eb;
+      color: white;
+      box-shadow: 0 3px 10px rgba(37,99,235,0.22);
+    }
+    .btn-callout-word:hover {
+      background: #1d4ed8;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 14px rgba(37,99,235,0.32);
+      color: white;
+    }
+    .btn-callout-pdf {
+      background: #dc2626;
+      color: white;
+      box-shadow: 0 3px 10px rgba(220,38,38,0.22);
+    }
+    .btn-callout-pdf:hover {
+      background: #b91c1c;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 14px rgba(220,38,38,0.32);
+      color: white;
+    }
+    .btn-callout-print {
+      background: #f1f5f9;
+      color: #1e293b;
+      border-color: #cbd5e1;
+    }
+    .btn-callout-print:hover {
+      background: #e2e8f0;
+      color: #0f172a;
+      transform: translateY(-2px);
+    }
+
+    /* Print Media Query */
+    @media print {
+      .respondent-top-bar,
+      .page-header-banner,
+      .survey-download-callout-banner,
+      .submit-bar,
+      #lucky-draw-modal,
+      #toast-msg {
+        display: none !important;
+      }
+      body {
+        background: white !important;
+        color: black !important;
+      }
+      .survey-container-wrap {
+        margin: 0 !important;
+        padding: 0 !important;
+        max-width: 100% !important;
+      }
+      .survey-section {
+        box-shadow: none !important;
+        border: 1px solid #ccc !important;
+        page-break-inside: avoid;
+        margin-bottom: 2rem !important;
+      }
+    }
+
     /* 1240px Wide Survey Container */
     .survey-container-wrap {
       max-width: 1240px;
@@ -658,8 +826,21 @@
           <div class="brand-text-sub">구성원 교육 Needs 설문조사</div>
         </div>
       </div>
-      <div class="privacy-tag">
-        <span>🔒</span> 100% 익명 통계 처리 (보안 안심)
+      <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+        <div class="privacy-tag">
+          <span>🔒</span> 100% 익명 통계 처리 (보안 안심)
+        </div>
+        <div class="survey-export-btn-group">
+          <a href="/api/survey/export-docx" class="btn-export-doc btn-export-word" title="설문 문항지 워드파일(.docx) 다운로드" download>
+            <span>📄</span> 워드 (.docx)
+          </a>
+          <a href="/api/survey/export-pdf" class="btn-export-doc btn-export-pdf" title="설문 문항지 PDF파일(.pdf) 다운로드" download>
+            <span>📑</span> PDF 다운로드
+          </a>
+          <button type="button" onclick="window.print()" class="btn-export-doc btn-export-print" title="웹 설문지 바로 인쇄하기">
+            <span>🖨️</span> 바로 인쇄
+          </button>
+        </div>
       </div>
     </div>
   </header>
@@ -704,6 +885,28 @@
             <div class="banner-info-val" style="color:#fef08a;">커피쿠폰 추첨 이벤트</div>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Survey Questions Download & Print Callout -->
+    <div class="survey-download-callout-banner">
+      <div class="callout-left">
+        <span class="callout-icon">📋</span>
+        <div>
+          <div class="callout-title">설문조사 문항지 출력 및 다운로드</div>
+          <div class="callout-desc">서면 검토 및 사전 작성을 위해 설문 전체 문항(총 29개 문항)을 워드(Word) 파일 및 PDF 문서로 내려받아 출력하실 수 있습니다.</div>
+        </div>
+      </div>
+      <div class="callout-actions">
+        <a href="/api/survey/export-docx" class="btn-callout-action btn-callout-word" title="워드 파일 다운로드 (.docx)" download>
+          <span>📄</span> Word 다운로드 (.docx)
+        </a>
+        <a href="/api/survey/export-pdf" class="btn-callout-action btn-callout-pdf" title="PDF 파일 다운로드 (.pdf)" download>
+          <span>📑</span> PDF 다운로드 (.pdf)
+        </a>
+        <button type="button" onclick="window.print()" class="btn-callout-action btn-callout-print" title="웹 설문 화면 인쇄">
+          <span>🖨️</span> 웹 화면 즉시 인쇄
+        </button>
       </div>
     </div>
 
